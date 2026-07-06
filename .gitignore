@@ -1,0 +1,25 @@
+# Claude Code local settings
+.claude/settings.local.json
+
+# Secrets
+.env
+.env.local
+*.local
+
+# Node / Next.js (apps/web)
+node_modules/
+.next/
+out/
+next-env.d.ts
+
+# Go (services/api)
+services/api/api
+services/api/api.exe
+
+# Python (services/ai)
+.venv/
+__pycache__/
+*.pyc
+
+# Misc
+.DS_Store

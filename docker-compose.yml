@@ -1,0 +1,35 @@
+# KRIYA — Docker Compose dev (KRIYA-MASTER.md Bagian 4).
+# Data (Postgres + Auth + Storage + pgvector) memakai Supabase managed — bukan container lokal.
+# web (Next.js) dijalankan lokal via `npm run dev` di apps/web saat pengembangan.
+
+services:
+  api:
+    build: ./services/api
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      PORT: "8080"
+    restart: unless-stopped
+
+  ai:
+    build: ./services/ai
+    ports:
+      - "8000:8000"
+    env_file: .env
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_PORT=5678
+      - N8N_HOST=localhost
+      - GENERIC_TIMEZONE=Asia/Jakarta
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+volumes:
+  n8n_data:
