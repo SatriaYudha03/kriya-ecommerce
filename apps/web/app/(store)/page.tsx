@@ -19,7 +19,7 @@ export default function HomePage() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/kategori/ruang-tamu"
+            href="/kategori/living-room"
             className="rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800"
           >
             Jelajahi katalog

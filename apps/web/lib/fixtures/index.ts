@@ -1,6 +1,6 @@
 // Fixtures FE — WAJIB mengikuti kontrak KRIYA-MASTER.md Bagian 6 byte-per-byte.
 // Dipakai saat NEXT_PUBLIC_USE_FIXTURES=true agar FE maju tanpa backend.
-// Semua data sintetis; nama produk pola "NUSANTARA + fungsi" (bukan brand nyata).
+// Semua data sintetis; nama produk pola "NUSANTARA + function" (bukan brand nyata).
 
 import type {
   Cart,
@@ -12,95 +12,95 @@ import type {
 } from "../types";
 
 export const categories: Category[] = [
-  { id: "c1000000-0000-0000-0000-000000000001", slug: "ruang-tamu", name: "Ruang tamu" },
-  { id: "c1000000-0000-0000-0000-000000000002", slug: "kamar-tidur", name: "Kamar tidur" },
-  { id: "c1000000-0000-0000-0000-000000000003", slug: "ruang-kerja", name: "Ruang kerja" },
-  { id: "c1000000-0000-0000-0000-000000000004", slug: "ruang-makan", name: "Ruang makan" },
-  { id: "c1000000-0000-0000-0000-000000000005", slug: "penyimpanan", name: "Penyimpanan" },
-  { id: "c1000000-0000-0000-0000-000000000006", slug: "pencahayaan", name: "Pencahayaan" },
+  { id: "c1000000-0000-0000-0000-000000000001", slug: "living-room", name: "Living room" },
+  { id: "c1000000-0000-0000-0000-000000000002", slug: "bedroom", name: "Bedroom" },
+  { id: "c1000000-0000-0000-0000-000000000003", slug: "workspace", name: "Workspace" },
+  { id: "c1000000-0000-0000-0000-000000000004", slug: "dining-room", name: "Dining room" },
+  { id: "c1000000-0000-0000-0000-000000000005", slug: "storage", name: "Storage" },
+  { id: "c1000000-0000-0000-0000-000000000006", slug: "lighting", name: "Lighting" },
 ];
 
 export const productList: ProductListItem[] = [
   {
     id: "a1000000-0000-0000-0000-000000000001",
-    slug: "taru-meja-kerja",
-    name: "TARU meja kerja",
-    category_slug: "ruang-kerja",
+    slug: "taru-work-desk",
+    name: "TARU work desk",
+    category_slug: "workspace",
     price_min: 1250000,
-    thumbnail_url: "/img/taru-meja-kerja-1.jpg",
+    thumbnail_url: "/img/taru-work-desk-1.jpg",
   },
   {
     id: "a1000000-0000-0000-0000-000000000002",
-    slug: "raka-rak-dinding",
-    name: "RAKA rak dinding",
-    category_slug: "penyimpanan",
+    slug: "raka-wall-shelf",
+    name: "RAKA wall shelf",
+    category_slug: "storage",
     price_min: 450000,
-    thumbnail_url: "/img/raka-rak-dinding-1.jpg",
+    thumbnail_url: "/img/raka-wall-shelf-1.jpg",
   },
   {
     id: "a1000000-0000-0000-0000-000000000003",
-    slug: "sena-sofa-dua-dudukan",
-    name: "SENA sofa dua dudukan",
-    category_slug: "ruang-tamu",
-    price_min: 3200000,
-    thumbnail_url: "/img/sena-sofa-dua-dudukan-1.jpg",
+    slug: "tamu-sofa",
+    name: "TAMU sofa",
+    category_slug: "living-room",
+    price_min: 2800000,
+    thumbnail_url: "/img/tamu-sofa-1.jpg",
   },
   {
     id: "a1000000-0000-0000-0000-000000000004",
-    slug: "wana-ranjang-kayu",
-    name: "WANA ranjang kayu",
-    category_slug: "kamar-tidur",
-    price_min: 2750000,
-    thumbnail_url: "/img/wana-ranjang-kayu-1.jpg",
+    slug: "nira-bed-frame",
+    name: "NIRA bed frame",
+    category_slug: "bedroom",
+    price_min: 4500000,
+    thumbnail_url: "/img/nira-bed-frame-1.jpg",
   },
   {
     id: "a1000000-0000-0000-0000-000000000005",
-    slug: "boga-meja-makan",
-    name: "BOGA meja makan",
-    category_slug: "ruang-makan",
-    price_min: 1900000,
-    thumbnail_url: "/img/boga-meja-makan-1.jpg",
+    slug: "meja-dining-table",
+    name: "MEJA dining table",
+    category_slug: "dining-room",
+    price_min: 4500000,
+    thumbnail_url: "/img/meja-dining-table-1.jpg",
   },
   {
     id: "a1000000-0000-0000-0000-000000000006",
-    slug: "cahya-lampu-lantai",
-    name: "CAHYA lampu lantai",
-    category_slug: "pencahayaan",
-    price_min: 620000,
-    thumbnail_url: "/img/cahya-lampu-lantai-1.jpg",
+    slug: "obor-floor-lamp",
+    name: "OBOR floor lamp",
+    category_slug: "lighting",
+    price_min: 1200000,
+    thumbnail_url: "/img/obor-floor-lamp-1.jpg",
   },
 ];
 
 export const productDetails: Record<string, ProductDetail> = {
-  "taru-meja-kerja": {
+  "taru-work-desk": {
     id: "a1000000-0000-0000-0000-000000000001",
-    slug: "taru-meja-kerja",
-    name: "TARU meja kerja",
+    slug: "taru-work-desk",
+    name: "TARU work desk",
     description:
-      "Meja kerja ringkas untuk ruang sempit. Permukaan kayu pinus dengan rangka baja kokoh, cocok untuk laptop dan catatan harian.",
-    category: { slug: "ruang-kerja", name: "Ruang kerja" },
-    materials: ["kayu pinus", "baja"],
+      "Spacious work desk with a pine wood top and sturdy steel legs. Built-in cable tray keeps your workspace clutter-free.",
+    category: { slug: "workspace", name: "Workspace" },
+    materials: ["pine wood", "steel"],
     dimensions: { width_cm: 120, depth_cm: 60, height_cm: 75 },
     weight_kg: 18.5,
     images: [
-      { url: "/img/taru-meja-kerja-1.jpg", alt: "TARU meja kerja tampak depan" },
-      { url: "/img/taru-meja-kerja-2.jpg", alt: "TARU meja kerja tampak samping" },
+      { url: "/img/taru-work-desk-1.jpg", alt: "TARU work desk front view" },
+      { url: "/img/taru-work-desk-2.jpg", alt: "TARU work desk side view" },
     ],
     variants: [
       {
         id: "v1000000-0000-0000-0000-000000000001",
-        sku: "TARU-MK-NAT",
+        sku: "TARU-WD-NAT",
         color: "natural",
         size: null,
-        price: 1250000,
+        price: 1800000,
         stock: 12,
       },
       {
         id: "v1000000-0000-0000-0000-000000000002",
-        sku: "TARU-MK-HTM",
-        color: "hitam",
+        sku: "TARU-WD-BLK",
+        color: "black",
         size: null,
-        price: 1350000,
+        price: 1950000,
         stock: 7,
       },
     ],
@@ -119,18 +119,18 @@ export const cart: Cart = {
     {
       variant_id: "v1000000-0000-0000-0000-000000000001",
       qty: 1,
-      price: 1250000,
-      subtotal: 1250000,
+      price: 1800000,
+      subtotal: 1800000,
       product: {
-        slug: "taru-meja-kerja",
-        name: "TARU meja kerja",
-        thumbnail_url: "/img/taru-meja-kerja-1.jpg",
+        slug: "taru-work-desk",
+        name: "TARU work desk",
+        thumbnail_url: "/img/taru-work-desk-1.jpg",
         color: "natural",
         size: null,
       },
     },
   ],
-  total: 1250000,
+  total: 1800000,
 };
 
 export const orders: Order[] = [
@@ -139,17 +139,17 @@ export const orders: Order[] = [
     status: "paid",
     items: [
       {
-        name: "TARU meja kerja",
+        name: "TARU work desk",
         color: "natural",
         size: null,
         qty: 1,
-        price: 1250000,
-        subtotal: 1250000,
+        price: 1800000,
+        subtotal: 1800000,
       },
     ],
-    subtotal: 1250000,
+    subtotal: 1800000,
     shipping_cost: 150000,
-    total: 1400000,
+    total: 1950000,
     shipping_address: {
       recipient: "Satria",
       phone: "081200000000",

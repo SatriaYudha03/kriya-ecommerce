@@ -120,19 +120,19 @@ Status order: `pending_payment → paid → processing → shipped → completed
 `data/seed/products.json`:
 ```json
 {
-  "categories": [{"slug": "ruang-tamu", "name": "Ruang tamu"}],
+  "categories": [{"slug": "living-room", "name": "Living room"}],
   "products": [{
-    "slug": "taru-meja-kerja", "name": "TARU meja kerja",
-    "category_slug": "ruang-kerja", "description": "...",
-    "materials": ["kayu pinus", "baja"],
+    "slug": "taru-work-desk", "name": "TARU work desk",
+    "category_slug": "workspace", "description": "...",
+    "materials": ["pine wood", "steel"],
     "dimensions": {"width_cm": 120, "depth_cm": 60, "height_cm": 75},
     "weight_kg": 18.5, "has_assembly_guide": true,
-    "images": [{"storage_path": "products/taru-meja-kerja-1.jpg", "alt": "..."}],
-    "variants": [{"sku": "TARU-MK-NAT", "color": "natural", "size": null, "price": 1250000, "stock": 12}]
+    "images": [{"storage_path": "products/taru-work-desk-1.jpg", "alt": "..."}],
+    "variants": [{"sku": "TARU-WD-NAT", "color": "natural", "size": null, "price": 1250000, "stock": 12}]
   }]
 }
 ```
-Kategori final (6): `ruang-tamu`, `kamar-tidur`, `ruang-kerja`, `ruang-makan`, `penyimpanan`, `pencahayaan`.
+Kategori final (6): `living-room`, `bedroom`, `workspace`, `dining-room`, `storage`, `lighting`.
 
 **Fixtures FE wajib mengikuti kontrak di atas byte-per-byte** (nama field, bentuk envelope).
 

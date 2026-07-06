@@ -1,0 +1,2957 @@
+{
+  "categories": [
+    {
+      "slug": "living-room",
+      "name": "Living room"
+    },
+    {
+      "slug": "bedroom",
+      "name": "Bedroom"
+    },
+    {
+      "slug": "workspace",
+      "name": "Workspace"
+    },
+    {
+      "slug": "dining-room",
+      "name": "Dining room"
+    },
+    {
+      "slug": "storage",
+      "name": "Storage"
+    },
+    {
+      "slug": "lighting",
+      "name": "Lighting"
+    }
+  ],
+  "products": [
+    {
+      "slug": "tamu-sofa",
+      "name": "TAMU sofa",
+      "category_slug": "living-room",
+      "description": "A comfortable three-seater sofa with solid pine wood frame and soft polyester upholstery. Minimalist Scandinavian design that blends with any living room style.",
+      "materials": [
+        "polyester fabric",
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 180,
+        "depth_cm": 85,
+        "height_cm": 80
+      },
+      "weight_kg": 35.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/tamu-sofa-1.jpg",
+          "alt": "Tamu Sofa - view 1"
+        },
+        {
+          "storage_path": "products/tamu-sofa-2.jpg",
+          "alt": "Tamu Sofa - view 2"
+        },
+        {
+          "storage_path": "products/tamu-sofa-3.jpg",
+          "alt": "Tamu Sofa - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "TAMU-SFA-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 2800000,
+          "stock": 13
+        },
+        {
+          "sku": "TAMU-SFA-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 2800000,
+          "stock": 12
+        }
+      ]
+    },
+    {
+      "slug": "ruma-coffee-table",
+      "name": "RUMA coffee table",
+      "category_slug": "living-room",
+      "description": "Elegant coffee table combining teak wood top with slender steel legs. Perfect centerpiece for a modern living room.",
+      "materials": [
+        "teak wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 100,
+        "depth_cm": 55,
+        "height_cm": 45
+      },
+      "weight_kg": 12.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/ruma-coffee-table-1.jpg",
+          "alt": "Ruma Coffee Table - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "RUMA-CT-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1500000,
+          "stock": 26
+        },
+        {
+          "sku": "RUMA-CT-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1500000,
+          "stock": 28
+        }
+      ]
+    },
+    {
+      "slug": "sari-TV-console",
+      "name": "SARI TV console",
+      "category_slug": "living-room",
+      "description": "Spacious TV console with cable management and two open shelves. Clean lines in laminated MDF with powder-coated steel frame.",
+      "materials": [
+        "laminated MDF",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 150,
+        "depth_cm": 40,
+        "height_cm": 50
+      },
+      "weight_kg": 22.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/sari-TV-console-1.jpg",
+          "alt": "Sari Tv Console - view 1"
+        },
+        {
+          "storage_path": "products/sari-TV-console-2.jpg",
+          "alt": "Sari Tv Console - view 2"
+        },
+        {
+          "storage_path": "products/sari-TV-console-3.jpg",
+          "alt": "Sari Tv Console - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "SARI-TV-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 2200000,
+          "stock": 6
+        },
+        {
+          "sku": "SARI-TV-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 2300000,
+          "stock": 11
+        }
+      ]
+    },
+    {
+      "slug": "bumi-armchair",
+      "name": "BUMI armchair",
+      "category_slug": "living-room",
+      "description": "Cozy single armchair with deep cushioning and wide armrests. Pine wood legs add a warm, natural touch to your living space.",
+      "materials": [
+        "polyester fabric",
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 75,
+        "depth_cm": 80,
+        "height_cm": 85
+      },
+      "weight_kg": 18.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/bumi-armchair-1.jpg",
+          "alt": "Bumi Armchair - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "BUMI-AC-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1800000,
+          "stock": 27
+        },
+        {
+          "sku": "BUMI-AC-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1800000,
+          "stock": 25
+        },
+        {
+          "sku": "BUMI-AC-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1800000,
+          "stock": 27
+        },
+        {
+          "sku": "BUMI-AC-WHT",
+          "color": "white",
+          "size": null,
+          "price": 1800000,
+          "stock": 22
+        }
+      ]
+    },
+    {
+      "slug": "nala-side-table",
+      "name": "NALA side table",
+      "category_slug": "living-room",
+      "description": "Compact bamboo side table with a steel base. Ideal for placing next to a sofa or reading chair.",
+      "materials": [
+        "bamboo",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 45,
+        "depth_cm": 45,
+        "height_cm": 55
+      },
+      "weight_kg": 5.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/nala-side-table-1.jpg",
+          "alt": "Nala Side Table - view 1"
+        },
+        {
+          "storage_path": "products/nala-side-table-2.jpg",
+          "alt": "Nala Side Table - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "NALA-ST-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 850000,
+          "stock": 5
+        },
+        {
+          "sku": "NALA-ST-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 800000,
+          "stock": 29
+        }
+      ]
+    },
+    {
+      "slug": "wira-bookshelf",
+      "name": "WIRA bookshelf",
+      "category_slug": "living-room",
+      "description": "Tall open bookshelf with five tiers crafted from solid pine wood. A versatile piece for books, plants, and decor.",
+      "materials": [
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 80,
+        "depth_cm": 30,
+        "height_cm": 180
+      },
+      "weight_kg": 25.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/wira-bookshelf-1.jpg",
+          "alt": "Wira Bookshelf - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "WIRA-BS-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 2550000,
+          "stock": 29
+        },
+        {
+          "sku": "WIRA-BS-BLK",
+          "color": "black",
+          "size": null,
+          "price": 2600000,
+          "stock": 7
+        },
+        {
+          "sku": "WIRA-BS-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 2400000,
+          "stock": 17
+        },
+        {
+          "sku": "WIRA-BS-WHT",
+          "color": "white",
+          "size": null,
+          "price": 2400000,
+          "stock": 8
+        }
+      ]
+    },
+    {
+      "slug": "kala-floor-rug",
+      "name": "KALA floor rug",
+      "category_slug": "living-room",
+      "description": "Soft woven polyester floor rug with a subtle geometric pattern. Adds warmth and texture to any living room floor.",
+      "materials": [
+        "polyester fabric"
+      ],
+      "dimensions": {
+        "width_cm": 200,
+        "depth_cm": 140,
+        "height_cm": 1
+      },
+      "weight_kg": 3.2,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/kala-floor-rug-1.jpg",
+          "alt": "Kala Floor Rug - view 1"
+        },
+        {
+          "storage_path": "products/kala-floor-rug-2.jpg",
+          "alt": "Kala Floor Rug - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "KALA-FR-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 950000,
+          "stock": 28
+        },
+        {
+          "sku": "KALA-FR-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1050000,
+          "stock": 8
+        },
+        {
+          "sku": "KALA-FR-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 950000,
+          "stock": 17
+        }
+      ]
+    },
+    {
+      "slug": "dara-accent-cabinet",
+      "name": "DARA accent cabinet",
+      "category_slug": "living-room",
+      "description": "Handsome accent cabinet with mahogany body and tempered glass doors. Display your favorite pieces behind elegant glass panels.",
+      "materials": [
+        "mahogany",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 90,
+        "depth_cm": 40,
+        "height_cm": 85
+      },
+      "weight_kg": 28.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/dara-accent-cabinet-1.jpg",
+          "alt": "Dara Accent Cabinet - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "DARA-AB-BLK",
+          "color": "black",
+          "size": null,
+          "price": 3900000,
+          "stock": 27
+        },
+        {
+          "sku": "DARA-AB-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 3500000,
+          "stock": 7
+        },
+        {
+          "sku": "DARA-AB-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 3500000,
+          "stock": 6
+        },
+        {
+          "sku": "DARA-AB-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 3500000,
+          "stock": 26
+        }
+      ]
+    },
+    {
+      "slug": "pura-wall-shelf-set",
+      "name": "PURA wall shelf set",
+      "category_slug": "living-room",
+      "description": "Set of three floating wall shelves in pine wood with steel brackets. Easy to install and arrange in any configuration.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 120,
+        "depth_cm": 22,
+        "height_cm": 15
+      },
+      "weight_kg": 4.8,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/pura-wall-shelf-set-1.jpg",
+          "alt": "Pura Wall Shelf Set - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "PURA-WS-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1100000,
+          "stock": 17
+        },
+        {
+          "sku": "PURA-WS-WHT",
+          "color": "white",
+          "size": null,
+          "price": 1100000,
+          "stock": 13
+        },
+        {
+          "sku": "PURA-WS-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1100000,
+          "stock": 19
+        }
+      ]
+    },
+    {
+      "slug": "mega-lounge-chair",
+      "name": "MEGA lounge chair",
+      "category_slug": "living-room",
+      "description": "Premium lounge chair upholstered in synthetic leather with a chrome steel base. Statement piece for sophisticated living rooms.",
+      "materials": [
+        "synthetic leather",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 70,
+        "depth_cm": 78,
+        "height_cm": 95
+      },
+      "weight_kg": 20.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/mega-lounge-chair-1.jpg",
+          "alt": "Mega Lounge Chair - view 1"
+        },
+        {
+          "storage_path": "products/mega-lounge-chair-2.jpg",
+          "alt": "Mega Lounge Chair - view 2"
+        },
+        {
+          "storage_path": "products/mega-lounge-chair-3.jpg",
+          "alt": "Mega Lounge Chair - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "MEGA-LC-WHT",
+          "color": "white",
+          "size": null,
+          "price": 4200000,
+          "stock": 11
+        },
+        {
+          "sku": "MEGA-LC-BLK",
+          "color": "black",
+          "size": null,
+          "price": 4700000,
+          "stock": 27
+        },
+        {
+          "sku": "MEGA-LC-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 4200000,
+          "stock": 26
+        }
+      ]
+    },
+    {
+      "slug": "nira-bed-frame",
+      "name": "NIRA bed frame",
+      "category_slug": "bedroom",
+      "description": "Sturdy queen-size bed frame made from solid pine wood with slatted base. Scandinavian-inspired headboard for a clean bedroom look.",
+      "materials": [
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 160,
+        "depth_cm": 200,
+        "height_cm": 90
+      },
+      "weight_kg": 38.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/nira-bed-frame-1.jpg",
+          "alt": "Nira Bed Frame - view 1"
+        },
+        {
+          "storage_path": "products/nira-bed-frame-2.jpg",
+          "alt": "Nira Bed Frame - view 2"
+        },
+        {
+          "storage_path": "products/nira-bed-frame-3.jpg",
+          "alt": "Nira Bed Frame - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "NIRA-BF-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 4500000,
+          "stock": 10
+        },
+        {
+          "sku": "NIRA-BF-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 4500000,
+          "stock": 22
+        }
+      ]
+    },
+    {
+      "slug": "gala-wardrobe",
+      "name": "GALA wardrobe",
+      "category_slug": "bedroom",
+      "description": "Full-height two-door wardrobe with interior shelves and a hanging rail. Laminated MDF ensures durability and easy maintenance.",
+      "materials": [
+        "laminated MDF"
+      ],
+      "dimensions": {
+        "width_cm": 120,
+        "depth_cm": 55,
+        "height_cm": 200
+      },
+      "weight_kg": 55.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/gala-wardrobe-1.jpg",
+          "alt": "Gala Wardrobe - view 1"
+        },
+        {
+          "storage_path": "products/gala-wardrobe-2.jpg",
+          "alt": "Gala Wardrobe - view 2"
+        },
+        {
+          "storage_path": "products/gala-wardrobe-3.jpg",
+          "alt": "Gala Wardrobe - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "GALA-WR-WHT",
+          "color": "white",
+          "size": null,
+          "price": 5800000,
+          "stock": 17
+        },
+        {
+          "sku": "GALA-WR-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 6250000,
+          "stock": 25
+        }
+      ]
+    },
+    {
+      "slug": "sena-nightstand",
+      "name": "SENA nightstand",
+      "category_slug": "bedroom",
+      "description": "Compact teak wood nightstand with one drawer and open shelf. Warm tones complement any bedroom palette.",
+      "materials": [
+        "teak wood"
+      ],
+      "dimensions": {
+        "width_cm": 45,
+        "depth_cm": 40,
+        "height_cm": 50
+      },
+      "weight_kg": 8.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/sena-nightstand-1.jpg",
+          "alt": "Sena Nightstand - view 1"
+        },
+        {
+          "storage_path": "products/sena-nightstand-2.jpg",
+          "alt": "Sena Nightstand - view 2"
+        },
+        {
+          "storage_path": "products/sena-nightstand-3.jpg",
+          "alt": "Sena Nightstand - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "SENA-NS-WHT",
+          "color": "white",
+          "size": null,
+          "price": 1400000,
+          "stock": 12
+        },
+        {
+          "sku": "SENA-NS-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1400000,
+          "stock": 6
+        },
+        {
+          "sku": "SENA-NS-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1600000,
+          "stock": 17
+        },
+        {
+          "sku": "SENA-NS-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1400000,
+          "stock": 13
+        }
+      ]
+    },
+    {
+      "slug": "loka-dresser",
+      "name": "LOKA dresser",
+      "category_slug": "bedroom",
+      "description": "Six-drawer dresser in rich mahogany with brass-finished handles. Generous storage for a tidy, organized bedroom.",
+      "materials": [
+        "mahogany"
+      ],
+      "dimensions": {
+        "width_cm": 100,
+        "depth_cm": 45,
+        "height_cm": 80
+      },
+      "weight_kg": 30.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/loka-dresser-1.jpg",
+          "alt": "Loka Dresser - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "LOKA-DR-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 4800000,
+          "stock": 15
+        },
+        {
+          "sku": "LOKA-DR-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 4800000,
+          "stock": 11
+        }
+      ]
+    },
+    {
+      "slug": "awan-vanity-desk",
+      "name": "AWAN vanity desk",
+      "category_slug": "bedroom",
+      "description": "Elegant vanity desk with a tempered glass top and pine wood frame. Includes a small drawer for accessories.",
+      "materials": [
+        "pine wood",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 90,
+        "depth_cm": 45,
+        "height_cm": 75
+      },
+      "weight_kg": 16.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/awan-vanity-desk-1.jpg",
+          "alt": "Awan Vanity Desk - view 1"
+        },
+        {
+          "storage_path": "products/awan-vanity-desk-2.jpg",
+          "alt": "Awan Vanity Desk - view 2"
+        },
+        {
+          "storage_path": "products/awan-vanity-desk-3.jpg",
+          "alt": "Awan Vanity Desk - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "AWAN-VD-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 2750000,
+          "stock": 9
+        },
+        {
+          "sku": "AWAN-VD-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 2600000,
+          "stock": 12
+        },
+        {
+          "sku": "AWAN-VD-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 2600000,
+          "stock": 28
+        }
+      ]
+    },
+    {
+      "slug": "tara-bedside-lamp-table",
+      "name": "TARA bedside lamp table",
+      "category_slug": "bedroom",
+      "description": "Slim bamboo lamp table designed to fit beside any bed. Lightweight yet stable with a natural woven texture.",
+      "materials": [
+        "bamboo"
+      ],
+      "dimensions": {
+        "width_cm": 35,
+        "depth_cm": 35,
+        "height_cm": 60
+      },
+      "weight_kg": 4.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/tara-bedside-lamp-table-1.jpg",
+          "alt": "Tara Bedside Lamp Table - view 1"
+        },
+        {
+          "storage_path": "products/tara-bedside-lamp-table-2.jpg",
+          "alt": "Tara Bedside Lamp Table - view 2"
+        },
+        {
+          "storage_path": "products/tara-bedside-lamp-table-3.jpg",
+          "alt": "Tara Bedside Lamp Table - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "TARA-BL-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1350000,
+          "stock": 17
+        },
+        {
+          "sku": "TARA-BL-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1200000,
+          "stock": 16
+        },
+        {
+          "sku": "TARA-BL-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1200000,
+          "stock": 12
+        },
+        {
+          "sku": "TARA-BL-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1400000,
+          "stock": 9
+        }
+      ]
+    },
+    {
+      "slug": "rasi-clothing-rack",
+      "name": "RASI clothing rack",
+      "category_slug": "bedroom",
+      "description": "Open clothing rack with a steel frame and pine wood shelf at the base. Perfect for displaying your favorite outfits.",
+      "materials": [
+        "steel",
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 100,
+        "depth_cm": 45,
+        "height_cm": 150
+      },
+      "weight_kg": 9.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/rasi-clothing-rack-1.jpg",
+          "alt": "Rasi Clothing Rack - view 1"
+        },
+        {
+          "storage_path": "products/rasi-clothing-rack-2.jpg",
+          "alt": "Rasi Clothing Rack - view 2"
+        },
+        {
+          "storage_path": "products/rasi-clothing-rack-3.jpg",
+          "alt": "Rasi Clothing Rack - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "RASI-CR-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1800000,
+          "stock": 9
+        },
+        {
+          "sku": "RASI-CR-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1800000,
+          "stock": 25
+        },
+        {
+          "sku": "RASI-CR-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1800000,
+          "stock": 10
+        }
+      ]
+    },
+    {
+      "slug": "bayu-mattress-topper",
+      "name": "BAYU mattress topper",
+      "category_slug": "bedroom",
+      "description": "Plush polyester mattress topper that adds an extra layer of comfort. Fits standard queen-size beds.",
+      "materials": [
+        "polyester fabric"
+      ],
+      "dimensions": {
+        "width_cm": 160,
+        "depth_cm": 200,
+        "height_cm": 5
+      },
+      "weight_kg": 4.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/bayu-mattress-topper-1.jpg",
+          "alt": "Bayu Mattress Topper - view 1"
+        },
+        {
+          "storage_path": "products/bayu-mattress-topper-2.jpg",
+          "alt": "Bayu Mattress Topper - view 2"
+        },
+        {
+          "storage_path": "products/bayu-mattress-topper-3.jpg",
+          "alt": "Bayu Mattress Topper - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "BAYU-MT-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1500000,
+          "stock": 17
+        },
+        {
+          "sku": "BAYU-MT-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1500000,
+          "stock": 24
+        },
+        {
+          "sku": "BAYU-MT-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1700000,
+          "stock": 21
+        }
+      ]
+    },
+    {
+      "slug": "cala-storage-bench",
+      "name": "CALA storage bench",
+      "category_slug": "bedroom",
+      "description": "Upholstered storage bench with a lift-up seat and pine wood legs. Sits at the foot of your bed for extra blanket storage.",
+      "materials": [
+        "pine wood",
+        "polyester fabric"
+      ],
+      "dimensions": {
+        "width_cm": 110,
+        "depth_cm": 40,
+        "height_cm": 48
+      },
+      "weight_kg": 14.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/cala-storage-bench-1.jpg",
+          "alt": "Cala Storage Bench - view 1"
+        },
+        {
+          "storage_path": "products/cala-storage-bench-2.jpg",
+          "alt": "Cala Storage Bench - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "CALA-SB-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 2200000,
+          "stock": 29
+        },
+        {
+          "sku": "CALA-SB-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 2200000,
+          "stock": 25
+        },
+        {
+          "sku": "CALA-SB-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 2200000,
+          "stock": 15
+        },
+        {
+          "sku": "CALA-SB-BLK",
+          "color": "black",
+          "size": null,
+          "price": 2350000,
+          "stock": 18
+        }
+      ]
+    },
+    {
+      "slug": "dian-full-length-mirror",
+      "name": "DIAN full-length mirror",
+      "category_slug": "bedroom",
+      "description": "Full-length standing mirror with a solid pine wood frame. Lean it against the wall for a modern, relaxed aesthetic.",
+      "materials": [
+        "pine wood",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 50,
+        "depth_cm": 5,
+        "height_cm": 160
+      },
+      "weight_kg": 12.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/dian-full-length-mirror-1.jpg",
+          "alt": "Dian Full Length Mirror - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "DIAN-FM-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1900000,
+          "stock": 21
+        },
+        {
+          "sku": "DIAN-FM-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1900000,
+          "stock": 29
+        },
+        {
+          "sku": "DIAN-FM-BLK",
+          "color": "black",
+          "size": null,
+          "price": 2050000,
+          "stock": 8
+        }
+      ]
+    },
+    {
+      "slug": "taru-work-desk",
+      "name": "TARU work desk",
+      "category_slug": "workspace",
+      "description": "Spacious work desk with a pine wood top and sturdy steel legs. Built-in cable tray keeps your workspace clutter-free.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 120,
+        "depth_cm": 60,
+        "height_cm": 75
+      },
+      "weight_kg": 18.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/taru-work-desk-1.jpg",
+          "alt": "Taru Work Desk - view 1"
+        },
+        {
+          "storage_path": "products/taru-work-desk-2.jpg",
+          "alt": "Taru Work Desk - view 2"
+        },
+        {
+          "storage_path": "products/taru-work-desk-3.jpg",
+          "alt": "Taru Work Desk - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "TARU-WD-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1800000,
+          "stock": 24
+        },
+        {
+          "sku": "TARU-WD-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1800000,
+          "stock": 11
+        },
+        {
+          "sku": "TARU-WD-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1800000,
+          "stock": 9
+        }
+      ]
+    },
+    {
+      "slug": "raka-wall-shelf",
+      "name": "RAKA wall shelf",
+      "category_slug": "workspace",
+      "description": "Floating wall shelf with steel brackets and pine wood board. Mount above your desk for books and supplies.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 80,
+        "depth_cm": 25,
+        "height_cm": 30
+      },
+      "weight_kg": 4.2,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/raka-wall-shelf-1.jpg",
+          "alt": "Raka Wall Shelf - view 1"
+        },
+        {
+          "storage_path": "products/raka-wall-shelf-2.jpg",
+          "alt": "Raka Wall Shelf - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "RAKA-WS-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 750000,
+          "stock": 5
+        },
+        {
+          "sku": "RAKA-WS-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 750000,
+          "stock": 24
+        }
+      ]
+    },
+    {
+      "slug": "jati-office-chair",
+      "name": "JATI office chair",
+      "category_slug": "workspace",
+      "description": "Ergonomic office chair with breathable polyester mesh back and adjustable height. Steel base with smooth-rolling casters.",
+      "materials": [
+        "polyester fabric",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 60,
+        "depth_cm": 60,
+        "height_cm": 105
+      },
+      "weight_kg": 14.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/jati-office-chair-1.jpg",
+          "alt": "Jati Office Chair - view 1"
+        },
+        {
+          "storage_path": "products/jati-office-chair-2.jpg",
+          "alt": "Jati Office Chair - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "JATI-OC-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 2500000,
+          "stock": 30
+        },
+        {
+          "sku": "JATI-OC-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 2500000,
+          "stock": 14
+        },
+        {
+          "sku": "JATI-OC-BLK",
+          "color": "black",
+          "size": null,
+          "price": 2700000,
+          "stock": 12
+        }
+      ]
+    },
+    {
+      "slug": "kasa-filing-cabinet",
+      "name": "KASA filing cabinet",
+      "category_slug": "workspace",
+      "description": "Three-drawer steel filing cabinet with lock mechanism. Compact footprint fits under most desks.",
+      "materials": [
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 40,
+        "depth_cm": 50,
+        "height_cm": 65
+      },
+      "weight_kg": 16.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/kasa-filing-cabinet-1.jpg",
+          "alt": "Kasa Filing Cabinet - view 1"
+        },
+        {
+          "storage_path": "products/kasa-filing-cabinet-2.jpg",
+          "alt": "Kasa Filing Cabinet - view 2"
+        },
+        {
+          "storage_path": "products/kasa-filing-cabinet-3.jpg",
+          "alt": "Kasa Filing Cabinet - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "KASA-FC-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1200000,
+          "stock": 20
+        },
+        {
+          "sku": "KASA-FC-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1200000,
+          "stock": 7
+        }
+      ]
+    },
+    {
+      "slug": "sula-monitor-stand",
+      "name": "SULA monitor stand",
+      "category_slug": "workspace",
+      "description": "Bamboo monitor riser with storage space underneath for keyboard and stationery. Promotes ergonomic screen height.",
+      "materials": [
+        "bamboo"
+      ],
+      "dimensions": {
+        "width_cm": 55,
+        "depth_cm": 25,
+        "height_cm": 12
+      },
+      "weight_kg": 2.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/sula-monitor-stand-1.jpg",
+          "alt": "Sula Monitor Stand - view 1"
+        },
+        {
+          "storage_path": "products/sula-monitor-stand-2.jpg",
+          "alt": "Sula Monitor Stand - view 2"
+        },
+        {
+          "storage_path": "products/sula-monitor-stand-3.jpg",
+          "alt": "Sula Monitor Stand - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "SULA-MS-WHT",
+          "color": "white",
+          "size": null,
+          "price": 850000,
+          "stock": 20
+        },
+        {
+          "sku": "SULA-MS-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 850000,
+          "stock": 22
+        }
+      ]
+    },
+    {
+      "slug": "meru-standing-desk",
+      "name": "MERU standing desk",
+      "category_slug": "workspace",
+      "description": "Height-adjustable standing desk with a crank mechanism. Laminated MDF top on a robust steel frame for daily use.",
+      "materials": [
+        "laminated MDF",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 140,
+        "depth_cm": 70,
+        "height_cm": 120
+      },
+      "weight_kg": 28.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/meru-standing-desk-1.jpg",
+          "alt": "Meru Standing Desk - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "MERU-SD-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 3800000,
+          "stock": 11
+        },
+        {
+          "sku": "MERU-SD-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 3800000,
+          "stock": 22
+        },
+        {
+          "sku": "MERU-SD-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 4300000,
+          "stock": 27
+        }
+      ]
+    },
+    {
+      "slug": "pena-desk-organizer",
+      "name": "PENA desk organizer",
+      "category_slug": "workspace",
+      "description": "Multi-compartment bamboo desk organizer for pens, notes, and gadgets. Natural finish adds warmth to your workspace.",
+      "materials": [
+        "bamboo"
+      ],
+      "dimensions": {
+        "width_cm": 30,
+        "depth_cm": 20,
+        "height_cm": 15
+      },
+      "weight_kg": 1.2,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/pena-desk-organizer-1.jpg",
+          "alt": "Pena Desk Organizer - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "PENA-DO-BLK",
+          "color": "black",
+          "size": null,
+          "price": 850000,
+          "stock": 19
+        },
+        {
+          "sku": "PENA-DO-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 800000,
+          "stock": 12
+        },
+        {
+          "sku": "PENA-DO-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 750000,
+          "stock": 7
+        },
+        {
+          "sku": "PENA-DO-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 750000,
+          "stock": 15
+        }
+      ]
+    },
+    {
+      "slug": "guna-task-lamp",
+      "name": "GUNA task lamp",
+      "category_slug": "workspace",
+      "description": "Adjustable aluminum task lamp with a flexible neck and weighted steel base. Provides focused lighting for late-night work.",
+      "materials": [
+        "aluminum",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 18,
+        "depth_cm": 18,
+        "height_cm": 50
+      },
+      "weight_kg": 1.8,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/guna-task-lamp-1.jpg",
+          "alt": "Guna Task Lamp - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "GUNA-TL-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 750000,
+          "stock": 5
+        },
+        {
+          "sku": "GUNA-TL-WHT",
+          "color": "white",
+          "size": null,
+          "price": 750000,
+          "stock": 7
+        },
+        {
+          "sku": "GUNA-TL-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 750000,
+          "stock": 27
+        },
+        {
+          "sku": "GUNA-TL-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 750000,
+          "stock": 25
+        }
+      ]
+    },
+    {
+      "slug": "lipi-pegboard-panel",
+      "name": "LIPI pegboard panel",
+      "category_slug": "workspace",
+      "description": "Modular pegboard panel with included hooks and shelves. Mount on any wall to customize your workspace storage.",
+      "materials": [
+        "laminated MDF",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 60,
+        "depth_cm": 2,
+        "height_cm": 90
+      },
+      "weight_kg": 3.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/lipi-pegboard-panel-1.jpg",
+          "alt": "Lipi Pegboard Panel - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "LIPI-PB-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1000000,
+          "stock": 15
+        },
+        {
+          "sku": "LIPI-PB-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1000000,
+          "stock": 7
+        }
+      ]
+    },
+    {
+      "slug": "saba-printer-stand",
+      "name": "SABA printer stand",
+      "category_slug": "workspace",
+      "description": "Compact printer stand with a lower shelf for paper supplies. Pine wood top and steel legs with leveling feet.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 55,
+        "depth_cm": 45,
+        "height_cm": 35
+      },
+      "weight_kg": 7.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/saba-printer-stand-1.jpg",
+          "alt": "Saba Printer Stand - view 1"
+        },
+        {
+          "storage_path": "products/saba-printer-stand-2.jpg",
+          "alt": "Saba Printer Stand - view 2"
+        },
+        {
+          "storage_path": "products/saba-printer-stand-3.jpg",
+          "alt": "Saba Printer Stand - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "SABA-PS-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1200000,
+          "stock": 22
+        },
+        {
+          "sku": "SABA-PS-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1100000,
+          "stock": 9
+        }
+      ]
+    },
+    {
+      "slug": "meja-dining-table",
+      "name": "MEJA dining table",
+      "category_slug": "dining-room",
+      "description": "Solid teak wood dining table seating up to six. Tapered legs and a smooth, oil-finished top for everyday meals.",
+      "materials": [
+        "teak wood"
+      ],
+      "dimensions": {
+        "width_cm": 150,
+        "depth_cm": 85,
+        "height_cm": 75
+      },
+      "weight_kg": 32.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/meja-dining-table-1.jpg",
+          "alt": "Meja Dining Table - view 1"
+        },
+        {
+          "storage_path": "products/meja-dining-table-2.jpg",
+          "alt": "Meja Dining Table - view 2"
+        },
+        {
+          "storage_path": "products/meja-dining-table-3.jpg",
+          "alt": "Meja Dining Table - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "MEJA-DT-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 4500000,
+          "stock": 30
+        },
+        {
+          "sku": "MEJA-DT-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 4900000,
+          "stock": 8
+        },
+        {
+          "sku": "MEJA-DT-WHT",
+          "color": "white",
+          "size": null,
+          "price": 4500000,
+          "stock": 8
+        },
+        {
+          "sku": "MEJA-DT-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 4500000,
+          "stock": 26
+        }
+      ]
+    },
+    {
+      "slug": "ruji-dining-chair",
+      "name": "RUJI dining chair",
+      "category_slug": "dining-room",
+      "description": "Pine wood dining chair with a padded polyester seat cushion. Stackable design saves space when not in use.",
+      "materials": [
+        "pine wood",
+        "polyester fabric"
+      ],
+      "dimensions": {
+        "width_cm": 45,
+        "depth_cm": 52,
+        "height_cm": 85
+      },
+      "weight_kg": 6.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/ruji-dining-chair-1.jpg",
+          "alt": "Ruji Dining Chair - view 1"
+        },
+        {
+          "storage_path": "products/ruji-dining-chair-2.jpg",
+          "alt": "Ruji Dining Chair - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "RUJI-DC-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1350000,
+          "stock": 6
+        },
+        {
+          "sku": "RUJI-DC-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1200000,
+          "stock": 26
+        },
+        {
+          "sku": "RUJI-DC-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1200000,
+          "stock": 25
+        }
+      ]
+    },
+    {
+      "slug": "padi-bench-seat",
+      "name": "PADI bench seat",
+      "category_slug": "dining-room",
+      "description": "Teak wood dining bench that pairs with the MEJA table. Comfortably seats two to three people.",
+      "materials": [
+        "teak wood"
+      ],
+      "dimensions": {
+        "width_cm": 120,
+        "depth_cm": 35,
+        "height_cm": 45
+      },
+      "weight_kg": 12.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/padi-bench-seat-1.jpg",
+          "alt": "Padi Bench Seat - view 1"
+        },
+        {
+          "storage_path": "products/padi-bench-seat-2.jpg",
+          "alt": "Padi Bench Seat - view 2"
+        },
+        {
+          "storage_path": "products/padi-bench-seat-3.jpg",
+          "alt": "Padi Bench Seat - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "PADI-BE-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1800000,
+          "stock": 28
+        },
+        {
+          "sku": "PADI-BE-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1950000,
+          "stock": 8
+        }
+      ]
+    },
+    {
+      "slug": "nusa-buffet-sideboard",
+      "name": "NUSA buffet sideboard",
+      "category_slug": "dining-room",
+      "description": "Generous mahogany sideboard with sliding doors and interior shelving. Steel legs lift it off the floor for a light profile.",
+      "materials": [
+        "mahogany",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 160,
+        "depth_cm": 45,
+        "height_cm": 80
+      },
+      "weight_kg": 38.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/nusa-buffet-sideboard-1.jpg",
+          "alt": "Nusa Buffet Sideboard - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "NUSA-BU-WHT",
+          "color": "white",
+          "size": null,
+          "price": 5200000,
+          "stock": 19
+        },
+        {
+          "sku": "NUSA-BU-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 5200000,
+          "stock": 9
+        }
+      ]
+    },
+    {
+      "slug": "lara-bar-cart",
+      "name": "LARA bar cart",
+      "category_slug": "dining-room",
+      "description": "Two-tier bar cart with tempered glass shelves and a steel frame. Rolls smoothly on locking casters.",
+      "materials": [
+        "steel",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 75,
+        "depth_cm": 40,
+        "height_cm": 80
+      },
+      "weight_kg": 10.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/lara-bar-cart-1.jpg",
+          "alt": "Lara Bar Cart - view 1"
+        },
+        {
+          "storage_path": "products/lara-bar-cart-2.jpg",
+          "alt": "Lara Bar Cart - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "LARA-BC-BLK",
+          "color": "black",
+          "size": null,
+          "price": 2250000,
+          "stock": 7
+        },
+        {
+          "sku": "LARA-BC-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 2300000,
+          "stock": 22
+        }
+      ]
+    },
+    {
+      "slug": "kopi-kitchen-island",
+      "name": "KOPI kitchen island",
+      "category_slug": "dining-room",
+      "description": "Versatile kitchen island with a butcher-block pine wood top and steel shelf below. Adds prep and storage space.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 120,
+        "depth_cm": 60,
+        "height_cm": 90
+      },
+      "weight_kg": 28.0,
+      "has_assembly_guide": true,
+      "images": [
+        {
+          "storage_path": "products/kopi-kitchen-island-1.jpg",
+          "alt": "Kopi Kitchen Island - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "KOPI-KI-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 3800000,
+          "stock": 5
+        },
+        {
+          "sku": "KOPI-KI-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 3800000,
+          "stock": 7
+        }
+      ]
+    },
+    {
+      "slug": "tera-plate-rack",
+      "name": "TERA plate rack",
+      "category_slug": "dining-room",
+      "description": "Open bamboo plate rack that holds up to twelve dinner plates. Air-dry or display your favorite dishware.",
+      "materials": [
+        "bamboo"
+      ],
+      "dimensions": {
+        "width_cm": 50,
+        "depth_cm": 25,
+        "height_cm": 45
+      },
+      "weight_kg": 3.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/tera-plate-rack-1.jpg",
+          "alt": "Tera Plate Rack - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "TERA-PR-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1000000,
+          "stock": 17
+        },
+        {
+          "sku": "TERA-PR-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 900000,
+          "stock": 6
+        }
+      ]
+    },
+    {
+      "slug": "gili-wine-rack",
+      "name": "GILI wine rack",
+      "category_slug": "dining-room",
+      "description": "Vertical pine wood wine rack with twelve bottle slots. Compact design fits in a kitchen corner or dining room.",
+      "materials": [
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 45,
+        "depth_cm": 25,
+        "height_cm": 80
+      },
+      "weight_kg": 5.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/gili-wine-rack-1.jpg",
+          "alt": "Gili Wine Rack - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "GILI-WR-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1400000,
+          "stock": 30
+        },
+        {
+          "sku": "GILI-WR-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1600000,
+          "stock": 14
+        },
+        {
+          "sku": "GILI-WR-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1550000,
+          "stock": 28
+        }
+      ]
+    },
+    {
+      "slug": "halu-serving-tray-table",
+      "name": "HALU serving tray table",
+      "category_slug": "dining-room",
+      "description": "Foldable tray table with a removable teak wood top. Ideal for serving guests or as an extra side table.",
+      "materials": [
+        "teak wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 60,
+        "depth_cm": 40,
+        "height_cm": 65
+      },
+      "weight_kg": 4.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/halu-serving-tray-table-1.jpg",
+          "alt": "Halu Serving Tray Table - view 1"
+        },
+        {
+          "storage_path": "products/halu-serving-tray-table-2.jpg",
+          "alt": "Halu Serving Tray Table - view 2"
+        },
+        {
+          "storage_path": "products/halu-serving-tray-table-3.jpg",
+          "alt": "Halu Serving Tray Table - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "HALU-TT-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1600000,
+          "stock": 14
+        },
+        {
+          "sku": "HALU-TT-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1700000,
+          "stock": 6
+        },
+        {
+          "sku": "HALU-TT-WHT",
+          "color": "white",
+          "size": null,
+          "price": 1600000,
+          "stock": 23
+        },
+        {
+          "sku": "HALU-TT-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1600000,
+          "stock": 28
+        }
+      ]
+    },
+    {
+      "slug": "waja-stool-set",
+      "name": "WAJA stool set",
+      "category_slug": "dining-room",
+      "description": "Set of two solid pine wood counter stools with footrests. Clean, rounded lines suit modern and rustic kitchens alike.",
+      "materials": [
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 35,
+        "depth_cm": 35,
+        "height_cm": 65
+      },
+      "weight_kg": 4.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/waja-stool-set-1.jpg",
+          "alt": "Waja Stool Set - view 1"
+        },
+        {
+          "storage_path": "products/waja-stool-set-2.jpg",
+          "alt": "Waja Stool Set - view 2"
+        },
+        {
+          "storage_path": "products/waja-stool-set-3.jpg",
+          "alt": "Waja Stool Set - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "WAJA-SS-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1500000,
+          "stock": 6
+        },
+        {
+          "sku": "WAJA-SS-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1600000,
+          "stock": 20
+        }
+      ]
+    },
+    {
+      "slug": "kobu-cube-shelf",
+      "name": "KOBU cube shelf",
+      "category_slug": "storage",
+      "description": "Four-cube open shelf unit in laminated MDF. Modular design lets you stack multiple units for larger storage walls.",
+      "materials": [
+        "laminated MDF"
+      ],
+      "dimensions": {
+        "width_cm": 80,
+        "depth_cm": 35,
+        "height_cm": 80
+      },
+      "weight_kg": 14.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/kobu-cube-shelf-1.jpg",
+          "alt": "Kobu Cube Shelf - view 1"
+        },
+        {
+          "storage_path": "products/kobu-cube-shelf-2.jpg",
+          "alt": "Kobu Cube Shelf - view 2"
+        },
+        {
+          "storage_path": "products/kobu-cube-shelf-3.jpg",
+          "alt": "Kobu Cube Shelf - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "KOBU-CS-WHT",
+          "color": "white",
+          "size": null,
+          "price": 850000,
+          "stock": 10
+        },
+        {
+          "sku": "KOBU-CS-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 850000,
+          "stock": 7
+        },
+        {
+          "sku": "KOBU-CS-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 850000,
+          "stock": 24
+        },
+        {
+          "sku": "KOBU-CS-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 850000,
+          "stock": 7
+        }
+      ]
+    },
+    {
+      "slug": "laci-drawer-unit",
+      "name": "LACI drawer unit",
+      "category_slug": "storage",
+      "description": "Three-drawer pine wood storage unit on casters. Fits under desks or beside beds for flexible extra storage.",
+      "materials": [
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 40,
+        "depth_cm": 40,
+        "height_cm": 65
+      },
+      "weight_kg": 10.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/laci-drawer-unit-1.jpg",
+          "alt": "Laci Drawer Unit - view 1"
+        },
+        {
+          "storage_path": "products/laci-drawer-unit-2.jpg",
+          "alt": "Laci Drawer Unit - view 2"
+        },
+        {
+          "storage_path": "products/laci-drawer-unit-3.jpg",
+          "alt": "Laci Drawer Unit - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "LACI-DU-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1350000,
+          "stock": 23
+        },
+        {
+          "sku": "LACI-DU-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1200000,
+          "stock": 12
+        }
+      ]
+    },
+    {
+      "slug": "bale-storage-box-set",
+      "name": "BALE storage box set",
+      "category_slug": "storage",
+      "description": "Set of three nesting bamboo storage boxes with lids. Keep shelves tidy and organized with a natural look.",
+      "materials": [
+        "bamboo"
+      ],
+      "dimensions": {
+        "width_cm": 38,
+        "depth_cm": 28,
+        "height_cm": 18
+      },
+      "weight_kg": 2.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/bale-storage-box-set-1.jpg",
+          "alt": "Bale Storage Box Set - view 1"
+        },
+        {
+          "storage_path": "products/bale-storage-box-set-2.jpg",
+          "alt": "Bale Storage Box Set - view 2"
+        },
+        {
+          "storage_path": "products/bale-storage-box-set-3.jpg",
+          "alt": "Bale Storage Box Set - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "BALE-SX-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 550000,
+          "stock": 26
+        },
+        {
+          "sku": "BALE-SX-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 550000,
+          "stock": 23
+        },
+        {
+          "sku": "BALE-SX-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 550000,
+          "stock": 23
+        },
+        {
+          "sku": "BALE-SX-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 600000,
+          "stock": 13
+        }
+      ]
+    },
+    {
+      "slug": "kodi-wardrobe-organizer",
+      "name": "KODI wardrobe organizer",
+      "category_slug": "storage",
+      "description": "Hanging wardrobe organizer with six fabric compartments on a steel hook. Maximize vertical closet space.",
+      "materials": [
+        "polyester fabric",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 45,
+        "depth_cm": 30,
+        "height_cm": 120
+      },
+      "weight_kg": 3.8,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/kodi-wardrobe-organizer-1.jpg",
+          "alt": "Kodi Wardrobe Organizer - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "KODI-WO-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 450000,
+          "stock": 17
+        },
+        {
+          "sku": "KODI-WO-BLK",
+          "color": "black",
+          "size": null,
+          "price": 500000,
+          "stock": 25
+        },
+        {
+          "sku": "KODI-WO-WHT",
+          "color": "white",
+          "size": null,
+          "price": 450000,
+          "stock": 14
+        },
+        {
+          "sku": "KODI-WO-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 450000,
+          "stock": 19
+        }
+      ]
+    },
+    {
+      "slug": "peti-trunk-chest",
+      "name": "PETI trunk chest",
+      "category_slug": "storage",
+      "description": "Rustic pine wood trunk with steel corner brackets and a flat top. Double as a coffee table or entryway bench.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 80,
+        "depth_cm": 45,
+        "height_cm": 45
+      },
+      "weight_kg": 15.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/peti-trunk-chest-1.jpg",
+          "alt": "Peti Trunk Chest - view 1"
+        },
+        {
+          "storage_path": "products/peti-trunk-chest-2.jpg",
+          "alt": "Peti Trunk Chest - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "PETI-TC-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 2200000,
+          "stock": 24
+        },
+        {
+          "sku": "PETI-TC-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 2550000,
+          "stock": 8
+        }
+      ]
+    },
+    {
+      "slug": "raga-basket-set",
+      "name": "RAGA basket set",
+      "category_slug": "storage",
+      "description": "Set of three handwoven rattan baskets in graduating sizes. Beautiful open storage for blankets, toys, or magazines.",
+      "materials": [
+        "rattan"
+      ],
+      "dimensions": {
+        "width_cm": 40,
+        "depth_cm": 30,
+        "height_cm": 25
+      },
+      "weight_kg": 2.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/raga-basket-set-1.jpg",
+          "alt": "Raga Basket Set - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "RAGA-BK-WHT",
+          "color": "white",
+          "size": null,
+          "price": 800000,
+          "stock": 16
+        },
+        {
+          "sku": "RAGA-BK-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 800000,
+          "stock": 7
+        },
+        {
+          "sku": "RAGA-BK-BLK",
+          "color": "black",
+          "size": null,
+          "price": 900000,
+          "stock": 16
+        },
+        {
+          "sku": "RAGA-BK-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 800000,
+          "stock": 14
+        }
+      ]
+    },
+    {
+      "slug": "siku-corner-shelf",
+      "name": "SIKU corner shelf",
+      "category_slug": "storage",
+      "description": "Tall corner shelf with five tiers. Turns an unused corner into display and storage space with warm pine wood.",
+      "materials": [
+        "pine wood"
+      ],
+      "dimensions": {
+        "width_cm": 35,
+        "depth_cm": 35,
+        "height_cm": 150
+      },
+      "weight_kg": 8.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/siku-corner-shelf-1.jpg",
+          "alt": "Siku Corner Shelf - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "SIKU-CR-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 1400000,
+          "stock": 24
+        },
+        {
+          "sku": "SIKU-CR-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1400000,
+          "stock": 30
+        },
+        {
+          "sku": "SIKU-CR-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1550000,
+          "stock": 5
+        }
+      ]
+    },
+    {
+      "slug": "tali-wall-hook-rack",
+      "name": "TALI wall hook rack",
+      "category_slug": "storage",
+      "description": "Pine wood wall rack with five steel hooks. Mount in an entryway, bedroom, or bathroom for coats, bags, and towels.",
+      "materials": [
+        "pine wood",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 60,
+        "depth_cm": 8,
+        "height_cm": 15
+      },
+      "weight_kg": 1.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/tali-wall-hook-rack-1.jpg",
+          "alt": "Tali Wall Hook Rack - view 1"
+        },
+        {
+          "storage_path": "products/tali-wall-hook-rack-2.jpg",
+          "alt": "Tali Wall Hook Rack - view 2"
+        },
+        {
+          "storage_path": "products/tali-wall-hook-rack-3.jpg",
+          "alt": "Tali Wall Hook Rack - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "TALI-HR-BLK",
+          "color": "black",
+          "size": null,
+          "price": 400000,
+          "stock": 8
+        },
+        {
+          "sku": "TALI-HR-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 400000,
+          "stock": 28
+        },
+        {
+          "sku": "TALI-HR-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 400000,
+          "stock": 22
+        },
+        {
+          "sku": "TALI-HR-WHT",
+          "color": "white",
+          "size": null,
+          "price": 400000,
+          "stock": 9
+        }
+      ]
+    },
+    {
+      "slug": "ubin-shoe-rack",
+      "name": "UBIN shoe rack",
+      "category_slug": "storage",
+      "description": "Three-tier bamboo shoe rack with a steel frame. Holds up to nine pairs and keeps your entryway neat.",
+      "materials": [
+        "bamboo",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 70,
+        "depth_cm": 28,
+        "height_cm": 50
+      },
+      "weight_kg": 4.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/ubin-shoe-rack-1.jpg",
+          "alt": "Ubin Shoe Rack - view 1"
+        },
+        {
+          "storage_path": "products/ubin-shoe-rack-2.jpg",
+          "alt": "Ubin Shoe Rack - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "UBIN-SR-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 650000,
+          "stock": 11
+        },
+        {
+          "sku": "UBIN-SR-WHT",
+          "color": "white",
+          "size": null,
+          "price": 650000,
+          "stock": 26
+        },
+        {
+          "sku": "UBIN-SR-BLK",
+          "color": "black",
+          "size": null,
+          "price": 700000,
+          "stock": 13
+        }
+      ]
+    },
+    {
+      "slug": "watu-modular-cabinet",
+      "name": "WATU modular cabinet",
+      "category_slug": "storage",
+      "description": "Stackable modular cabinet with one door and one open shelf. Combine units to build your own storage system.",
+      "materials": [
+        "laminated MDF",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 60,
+        "depth_cm": 40,
+        "height_cm": 80
+      },
+      "weight_kg": 18.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/watu-modular-cabinet-1.jpg",
+          "alt": "Watu Modular Cabinet - view 1"
+        },
+        {
+          "storage_path": "products/watu-modular-cabinet-2.jpg",
+          "alt": "Watu Modular Cabinet - view 2"
+        },
+        {
+          "storage_path": "products/watu-modular-cabinet-3.jpg",
+          "alt": "Watu Modular Cabinet - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "WATU-MC-BLK",
+          "color": "black",
+          "size": null,
+          "price": 1800000,
+          "stock": 13
+        },
+        {
+          "sku": "WATU-MC-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1600000,
+          "stock": 6
+        },
+        {
+          "sku": "WATU-MC-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1600000,
+          "stock": 5
+        }
+      ]
+    },
+    {
+      "slug": "suru-pendant-lamp",
+      "name": "SURU pendant lamp",
+      "category_slug": "lighting",
+      "description": "Handwoven rattan pendant lamp casting warm, patterned shadows. Steel suspension hardware included for easy installation.",
+      "materials": [
+        "rattan",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 35,
+        "depth_cm": 35,
+        "height_cm": 30
+      },
+      "weight_kg": 2.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/suru-pendant-lamp-1.jpg",
+          "alt": "Suru Pendant Lamp - view 1"
+        },
+        {
+          "storage_path": "products/suru-pendant-lamp-2.jpg",
+          "alt": "Suru Pendant Lamp - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "SURU-PL-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 850000,
+          "stock": 10
+        },
+        {
+          "sku": "SURU-PL-BLK",
+          "color": "black",
+          "size": null,
+          "price": 950000,
+          "stock": 22
+        }
+      ]
+    },
+    {
+      "slug": "obor-floor-lamp",
+      "name": "OBOR floor lamp",
+      "category_slug": "lighting",
+      "description": "Tall floor lamp with a fabric drum shade and slender steel pole. Soft ambient lighting for living rooms and bedrooms.",
+      "materials": [
+        "steel",
+        "polyester fabric"
+      ],
+      "dimensions": {
+        "width_cm": 35,
+        "depth_cm": 35,
+        "height_cm": 160
+      },
+      "weight_kg": 6.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/obor-floor-lamp-1.jpg",
+          "alt": "Obor Floor Lamp - view 1"
+        },
+        {
+          "storage_path": "products/obor-floor-lamp-2.jpg",
+          "alt": "Obor Floor Lamp - view 2"
+        },
+        {
+          "storage_path": "products/obor-floor-lamp-3.jpg",
+          "alt": "Obor Floor Lamp - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "OBOR-FL-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 1200000,
+          "stock": 7
+        },
+        {
+          "sku": "OBOR-FL-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1200000,
+          "stock": 27
+        },
+        {
+          "sku": "OBOR-FL-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1200000,
+          "stock": 9
+        }
+      ]
+    },
+    {
+      "slug": "gita-table-lamp",
+      "name": "GITA table lamp",
+      "category_slug": "lighting",
+      "description": "Table lamp with a synthetic marble base and fabric shade. Adds a touch of elegance to nightstands and consoles.",
+      "materials": [
+        "synthetic marble",
+        "polyester fabric"
+      ],
+      "dimensions": {
+        "width_cm": 22,
+        "depth_cm": 22,
+        "height_cm": 40
+      },
+      "weight_kg": 3.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/gita-table-lamp-1.jpg",
+          "alt": "Gita Table Lamp - view 1"
+        },
+        {
+          "storage_path": "products/gita-table-lamp-2.jpg",
+          "alt": "Gita Table Lamp - view 2"
+        },
+        {
+          "storage_path": "products/gita-table-lamp-3.jpg",
+          "alt": "Gita Table Lamp - view 3"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "GITA-TL-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 750000,
+          "stock": 23
+        },
+        {
+          "sku": "GITA-TL-BLK",
+          "color": "black",
+          "size": null,
+          "price": 850000,
+          "stock": 18
+        }
+      ]
+    },
+    {
+      "slug": "luma-wall-sconce",
+      "name": "LUMA wall sconce",
+      "category_slug": "lighting",
+      "description": "Minimalist aluminum wall sconce with upward light direction. Energy-efficient and ideal for hallways and bedrooms.",
+      "materials": [
+        "aluminum"
+      ],
+      "dimensions": {
+        "width_cm": 12,
+        "depth_cm": 15,
+        "height_cm": 20
+      },
+      "weight_kg": 0.8,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/luma-wall-sconce-1.jpg",
+          "alt": "Luma Wall Sconce - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "LUMA-WC-BLK",
+          "color": "black",
+          "size": null,
+          "price": 500000,
+          "stock": 30
+        },
+        {
+          "sku": "LUMA-WC-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 450000,
+          "stock": 6
+        }
+      ]
+    },
+    {
+      "slug": "kila-desk-lamp",
+      "name": "KILA desk lamp",
+      "category_slug": "lighting",
+      "description": "Industrial-style desk lamp with adjustable arm and steel shade. Focused beam for reading and detail work.",
+      "materials": [
+        "steel",
+        "aluminum"
+      ],
+      "dimensions": {
+        "width_cm": 15,
+        "depth_cm": 20,
+        "height_cm": 45
+      },
+      "weight_kg": 1.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/kila-desk-lamp-1.jpg",
+          "alt": "Kila Desk Lamp - view 1"
+        },
+        {
+          "storage_path": "products/kila-desk-lamp-2.jpg",
+          "alt": "Kila Desk Lamp - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "KILA-DL-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 600000,
+          "stock": 26
+        },
+        {
+          "sku": "KILA-DL-WHT",
+          "color": "white",
+          "size": null,
+          "price": 600000,
+          "stock": 8
+        }
+      ]
+    },
+    {
+      "slug": "bina-string-lights",
+      "name": "BINA string lights",
+      "category_slug": "lighting",
+      "description": "Warm white LED string lights with small steel-cased bulbs. Five-meter length for indoor and covered outdoor use.",
+      "materials": [
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 0,
+        "depth_cm": 0,
+        "height_cm": 500
+      },
+      "weight_kg": 0.5,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/bina-string-lights-1.jpg",
+          "alt": "Bina String Lights - view 1"
+        },
+        {
+          "storage_path": "products/bina-string-lights-2.jpg",
+          "alt": "Bina String Lights - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "BINA-SL-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 350000,
+          "stock": 12
+        },
+        {
+          "sku": "BINA-SL-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 400000,
+          "stock": 30
+        },
+        {
+          "sku": "BINA-SL-OAK",
+          "color": "oak",
+          "size": null,
+          "price": 350000,
+          "stock": 30
+        },
+        {
+          "sku": "BINA-SL-WHT",
+          "color": "white",
+          "size": null,
+          "price": 350000,
+          "stock": 10
+        }
+      ]
+    },
+    {
+      "slug": "rani-chandelier",
+      "name": "RANI chandelier",
+      "category_slug": "lighting",
+      "description": "Modern five-arm chandelier with tempered glass shades and a matte steel frame. Statement lighting for dining areas.",
+      "materials": [
+        "steel",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 55,
+        "depth_cm": 55,
+        "height_cm": 40
+      },
+      "weight_kg": 8.0,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/rani-chandelier-1.jpg",
+          "alt": "Rani Chandelier - view 1"
+        },
+        {
+          "storage_path": "products/rani-chandelier-2.jpg",
+          "alt": "Rani Chandelier - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "RANI-CH-WHT",
+          "color": "white",
+          "size": null,
+          "price": 2400000,
+          "stock": 15
+        },
+        {
+          "sku": "RANI-CH-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 2400000,
+          "stock": 30
+        }
+      ]
+    },
+    {
+      "slug": "teju-lantern",
+      "name": "TEJU lantern",
+      "category_slug": "lighting",
+      "description": "Decorative bamboo lantern with tempered glass panels. Use with a candle or LED for a cozy atmosphere.",
+      "materials": [
+        "bamboo",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 20,
+        "depth_cm": 20,
+        "height_cm": 35
+      },
+      "weight_kg": 1.8,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/teju-lantern-1.jpg",
+          "alt": "Teju Lantern - view 1"
+        },
+        {
+          "storage_path": "products/teju-lantern-2.jpg",
+          "alt": "Teju Lantern - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "TEJU-LN-CRM",
+          "color": "cream",
+          "size": null,
+          "price": 500000,
+          "stock": 10
+        },
+        {
+          "sku": "TEJU-LN-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 500000,
+          "stock": 30
+        },
+        {
+          "sku": "TEJU-LN-WHT",
+          "color": "white",
+          "size": null,
+          "price": 500000,
+          "stock": 27
+        },
+        {
+          "sku": "TEJU-LN-BLK",
+          "color": "black",
+          "size": null,
+          "price": 500000,
+          "stock": 6
+        }
+      ]
+    },
+    {
+      "slug": "pijar-spotlight-set",
+      "name": "PIJAR spotlight set",
+      "category_slug": "lighting",
+      "description": "Set of three adjustable aluminum spotlights on a steel track. Direct light to artwork, shelves, or accent walls.",
+      "materials": [
+        "aluminum",
+        "steel"
+      ],
+      "dimensions": {
+        "width_cm": 8,
+        "depth_cm": 8,
+        "height_cm": 12
+      },
+      "weight_kg": 0.6,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/pijar-spotlight-set-1.jpg",
+          "alt": "Pijar Spotlight Set - view 1"
+        },
+        {
+          "storage_path": "products/pijar-spotlight-set-2.jpg",
+          "alt": "Pijar Spotlight Set - view 2"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "PIJAR-SP-WHT",
+          "color": "white",
+          "size": null,
+          "price": 1000000,
+          "stock": 16
+        },
+        {
+          "sku": "PIJAR-SP-WNT",
+          "color": "walnut",
+          "size": null,
+          "price": 1050000,
+          "stock": 30
+        }
+      ]
+    },
+    {
+      "slug": "lentera-outdoor-lamp",
+      "name": "LENTERA outdoor lamp",
+      "category_slug": "lighting",
+      "description": "Weather-resistant steel outdoor lamp with a tempered glass enclosure. Mounts on walls or posts for patio lighting.",
+      "materials": [
+        "steel",
+        "tempered glass"
+      ],
+      "dimensions": {
+        "width_cm": 18,
+        "depth_cm": 18,
+        "height_cm": 30
+      },
+      "weight_kg": 2.2,
+      "has_assembly_guide": false,
+      "images": [
+        {
+          "storage_path": "products/lentera-outdoor-lamp-1.jpg",
+          "alt": "Lentera Outdoor Lamp - view 1"
+        }
+      ],
+      "variants": [
+        {
+          "sku": "LENTERA-OL-NAT",
+          "color": "natural",
+          "size": null,
+          "price": 1100000,
+          "stock": 11
+        },
+        {
+          "sku": "LENTERA-OL-GRY",
+          "color": "grey",
+          "size": null,
+          "price": 1100000,
+          "stock": 17
+        }
+      ]
+    }
+  ]
+}

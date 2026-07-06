@@ -9,30 +9,35 @@ import (
 	"github.com/kriya-commerce/api/internal/db"
 	"github.com/kriya-commerce/api/internal/handler"
 	"github.com/kriya-commerce/api/internal/middleware"
+	"github.com/kriya-commerce/api/internal/repository"
 )
 
 func main() {
 	cfg := config.Load()
 
-	// Koneksi DB opsional saat M0 agar healthz tetap hidup tanpa DB.
-	if cfg.SupabaseDBURL != "" {
-		if _, err := db.Open(cfg.SupabaseDBURL); err != nil {
-			log.Printf("peringatan: gagal koneksi DB: %v", err)
-		} else {
-			log.Println("koneksi DB berhasil")
-		}
-	} else {
-		log.Println("SUPABASE_DB_URL kosong — melewati koneksi DB (scaffold M0)")
+	// Koneksi DB
+	database, err := db.Open(cfg.SupabaseDBURL)
+	if err != nil {
+		log.Fatalf("gagal koneksi DB: %v", err)
 	}
+	log.Println("koneksi DB berhasil")
 
 	r := gin.Default()
 	r.Use(middleware.CORS(cfg.WebOrigin))
 
 	r.GET("/healthz", handler.Health)
+	
+	// Inisialisasi Repo & Handler
+	catalogRepo := repository.NewCatalogRepository(database)
+	catalogHandler := handler.NewCatalogHandler(catalogRepo)
 
 	v1 := r.Group("/api/v1")
 	v1.GET("/healthz", handler.Health)
-	// Endpoint katalog, cart, orders, webhook ditambahkan pada M1+.
+	
+	v1.GET("/categories", catalogHandler.GetCategories)
+	v1.GET("/products", catalogHandler.GetProducts)
+	v1.GET("/products/:slug", catalogHandler.GetProduct)
+
 
 	// Grup butuh auth (diisi M2+); didaftarkan agar middleware ikut ter-compile.
 	authed := v1.Group("")
