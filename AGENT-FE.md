@@ -1,0 +1,62 @@
+# AGENT-FE — Frontend KRIYA
+
+Kamu adalah agent frontend. Baca `KRIYA-MASTER.md` dulu (kontrak API Bagian 6 adalah kitab sucimu). Teritorimu: **`apps/web/` saja.**
+
+## Stack & aturan teknis
+
+- Next.js **App Router**, TypeScript **strict**, Tailwind, **shadcn/ui** (init dengan tema netral; komponen shadcn di `components/ui/`, komponen bisnis di `components/kriya/`).
+- Server Components sebagai default; `"use client"` hanya bila perlu (cart, form, search, chat, Snap).
+- **TanStack Query** untuk semua server state di client components. **Zustand** hanya untuk client state: `cartStore` (persist), `uiStore` (drawer/modal/toast). Auth memakai supabase-js; JANGAN simpan token manual.
+- Satu fetcher terpusat `lib/api.ts`: baca `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_AI_URL`, sisipkan Bearer token bila ada sesi, parse envelope `{data, meta}` dan lempar error terstruktur dari `{error}`. Semua panggilan API lewat fetcher ini — tidak ada `fetch` liar.
+- **Fixture-first:** `lib/fixtures/` berisi contoh data yang match kontrak byte-per-byte. Flag `NEXT_PUBLIC_USE_FIXTURES=true` mengalihkan fetcher ke fixtures, sehingga FE bisa maju tanpa menunggu BE. Setiap kali kontrak berubah (oleh Satria), fixtures ikut diperbarui.
+- DILARANG query database Supabase langsung. Pengecualian: Auth (supabase-js) dan upload gambar ke Storage di halaman admin (M6).
+- Gambar: `next/image`, `remotePatterns` untuk host Supabase Storage. Rasio kartu produk 4:5.
+- Harga: integer rupiah dari API → format `Rp1.250.000` via util `formatRupiah()`.
+
+## Arah desain (agar tidak generic)
+
+Furniture minimal hangat: palet netral (stone/putih gading) + satu aksen terracotta/amber; banyak whitespace; tipografi bersih (Geist/Inter) dengan display besar di hero; grid produk 2 kolom mobile → 4 desktop; sentence case; foto besar bicara, dekorasi sedikit. Semua teks UI Bahasa Indonesia. Jangan pernah lorem ipsum — pakai fixtures.
+
+## Task per milestone
+
+### M0 — Scaffold
+- [ ] `create-next-app` (TS, Tailwind, App Router) di `apps/web`, init shadcn/ui
+- [ ] Struktur: `app/(store)/`, `app/(auth)/`, `app/(admin)/`, `components/`, `lib/`, `stores/`
+- [ ] `lib/api.ts` + `lib/fixtures/` (products, product detail, categories, cart, orders — sesuai kontrak) + `formatRupiah`
+- [ ] Layout dasar: header (logo KRIYA, nav kategori, search placeholder, ikon cart), footer
+- [ ] `.env.local.example` berisi semua `NEXT_PUBLIC_*`
+
+### M1 — Katalog (fixtures dulu, sambungkan ke API live di akhir)
+- [ ] Home: hero, grid 6 kategori, produk terbaru
+- [ ] `/kategori/[slug]`: listing + filter (harga, sort) + pagination sesuai `meta`
+- [ ] `/produk/[slug]`: galeri, pemilih varian (warna/ukuran → harga & stok berubah), dimensi & material, tab "Panduan perakitan" (placeholder bila belum ada)
+- [ ] State kosong & loading skeleton untuk semua halaman data
+
+### M2 — Transaksi
+- [ ] `/(auth)`: login & register (supabase-js, email + Google)
+- [ ] Cart drawer + `/cart` (Zustand persist untuk guest; setelah login, sinkron via `PUT /api/v1/cart` dengan debounce)
+- [ ] `/checkout`: form alamat (validasi), pilih zona kirim, ringkasan; submit → `POST /orders` → buka **Snap popup** (`snap.js` sandbox, `snap_token` + `midtrans_client_key` dari respons)
+- [ ] `/pesanan` + `/pesanan/[id]`: daftar & detail, badge status berwarna, polling ringan saat `pending_payment`
+
+### M3 — AI search
+- [ ] Search bar global (debounce 300 ms) → `/cari?q=` memanggil `GET /ai/v1/search`; tampilkan hint kecil bila `meta.mode = "keyword_fallback"`
+- [ ] Blok "Produk serupa" di PDP via `/ai/v1/products/{id}/similar`
+
+### M4 — Chat widget
+- [ ] Widget mengambang (bubble kanan bawah): `session_id` uuid per sesi browser, kirim ke `NEXT_PUBLIC_CHAT_WEBHOOK_URL`, render `reply` + chip `sources`; sertakan `user.email` bila login; state mengetik; error state ramah
+
+### M6 — Admin (kontrak final di gerbang M6)
+- [ ] Route group `/(admin)` dengan guard `profiles.role === 'admin'`
+- [ ] CRUD produk/varian/stok, daftar pesanan + ubah status, kartu metrik sederhana
+
+## Definition of done (setiap task)
+`next build` hijau, lint bersih, responsif mobile-first, teks Indonesia, tidak ada file di luar `apps/web/` yang tersentuh, log terisi.
+
+## Larangan spesifik
+Jangan mengganti library UI/state yang sudah ditetapkan. Jangan hardcode URL service (selalu env). Jangan menyimpan JWT di localStorage manual. Jangan mengubah fixtures menyimpang dari kontrak — kalau kontrak terasa salah, ajukan lewat "Permintaan lintas-teritori".
+
+## Permintaan lintas-teritori
+(tulis di sini, format: tanggal — kebutuhan — alasan; lalu berhenti dan tunggu Satria)
+
+## Log
+(append satu baris per sesi: `2026-07-06 · [fe] task · status/catatan`)
