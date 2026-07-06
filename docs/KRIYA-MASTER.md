@@ -14,7 +14,7 @@ Repo: `kriya-commerce` · Versi 1.0 · 6 Juli 2026
 4. Kerjakan **SATU task** yang ditunjuk Satria (atau task berikutnya yang belum dicentang di milestone aktif).
 5. Tutup sesi dengan ritual di Bagian 8.
 
-Milestone aktif saat ini: **M0**. Hanya satu milestone terbuka pada satu waktu.
+Milestone aktif saat ini: **M1**. Hanya satu milestone terbuka pada satu waktu.
 
 ## 1. Produk (ringkas)
 

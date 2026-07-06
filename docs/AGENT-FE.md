@@ -20,17 +20,17 @@ Furniture minimal hangat: palet netral (stone/putih gading) + satu aksen terraco
 ## Task per milestone
 
 ### M0 — Scaffold
-- [ ] `create-next-app` (TS, Tailwind, App Router) di `apps/web`, init shadcn/ui
-- [ ] Struktur: `app/(store)/`, `app/(auth)/`, `app/(admin)/`, `components/`, `lib/`, `stores/`
-- [ ] `lib/api.ts` + `lib/fixtures/` (products, product detail, categories, cart, orders — sesuai kontrak) + `formatRupiah`
-- [ ] Layout dasar: header (logo KRIYA, nav kategori, search placeholder, ikon cart), footer
-- [ ] `.env.local.example` berisi semua `NEXT_PUBLIC_*`
+- [x] `create-next-app` (TS, Tailwind, App Router) di `apps/web`, init shadcn/ui
+- [x] Struktur: `app/(store)/`, `app/(auth)/`, `app/(admin)/`, `components/`, `lib/`, `stores/`
+- [x] `lib/api.ts` + `lib/fixtures/` (products, product detail, categories, cart, orders — sesuai kontrak) + `formatRupiah`
+- [x] Layout dasar: header (logo KRIYA, nav kategori, search placeholder, ikon cart), footer
+- [x] `.env.local.example` berisi semua `NEXT_PUBLIC_*`
 
 ### M1 — Katalog (fixtures dulu, sambungkan ke API live di akhir)
-- [ ] Home: hero, grid 6 kategori, produk terbaru
-- [ ] `/kategori/[slug]`: listing + filter (harga, sort) + pagination sesuai `meta`
-- [ ] `/produk/[slug]`: galeri, pemilih varian (warna/ukuran → harga & stok berubah), dimensi & material, tab "Panduan perakitan" (placeholder bila belum ada)
-- [ ] State kosong & loading skeleton untuk semua halaman data
+- [x] Home: hero (carousel), grid 6 kategori, produk terbaru + layout ala anon (top bar, fitur layanan, banner penawaran, footer + newsletter)
+- [x] `/kategori/[slug]`: listing + filter (harga preset, sort) + pagination sesuai `meta` (state di URL)
+- [x] `/produk/[slug]`: galeri, pemilih varian (warna/ukuran → harga & stok berubah), dimensi & material, tab "Panduan perakitan" (placeholder bila belum ada)
+- [x] State kosong & loading skeleton untuk semua halaman data
 
 ### M2 — Transaksi
 - [ ] `/(auth)`: login & register (supabase-js, email + Google)
@@ -60,3 +60,4 @@ Jangan mengganti library UI/state yang sudah ditetapkan. Jangan hardcode URL ser
 
 ## Log
 (append satu baris per sesi: `2026-07-06 · [fe] task · status/catatan`)
+2026-07-06 · [fe] M1 katalog (layout ala anon) · selesai — home (hero carousel, kategori, rail produk, banner, footer+newsletter), /kategori/[slug] (filter harga+sort+paginasi via URL), /produk/[slug] (galeri, varian, tab), skeleton+empty state semua halaman; fixtures diperluas 24 produk; placeholder monogram untuk foto; next build hijau, lint bersih. Catatan: menambah placeholder /cari (M3) & /cart (M2) + not-found agar shell tidak buntu. Belum di-commit (menunggu Satria).

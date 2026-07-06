@@ -76,20 +76,41 @@ export async function getCategories(): Promise<Category[]> {
 export interface ProductsQuery {
   category?: string;
   q?: string;
+  min_price?: number;
+  max_price?: number;
   sort?: "newest" | "price_asc" | "price_desc";
   page?: number;
   limit?: number;
 }
 
+// Filter/sort/paginasi fixtures agar meniru perilaku endpoint Gin
+// (KRIYA-MASTER Bagian 6): sort newest|price_asc|price_desc, meta.total = jumlah
+// setelah filter, sebelum slice halaman. Dipakai hanya saat USE_FIXTURES.
+function queryFixtures(query: ProductsQuery): ListEnvelope<ProductListItem> {
+  let items = [...fixtures.productList];
+  if (query.category) items = items.filter((p) => p.category_slug === query.category);
+  if (query.q) {
+    const q = query.q.toLowerCase();
+    items = items.filter((p) => p.name.toLowerCase().includes(q));
+  }
+  if (query.min_price !== undefined) items = items.filter((p) => p.price_min >= query.min_price!);
+  if (query.max_price !== undefined) items = items.filter((p) => p.price_min <= query.max_price!);
+
+  if (query.sort === "price_asc") items.sort((a, b) => a.price_min - b.price_min);
+  else if (query.sort === "price_desc") items.sort((a, b) => b.price_min - a.price_min);
+  // "newest" (default) = urutan sumber (fixtures sudah newest-first).
+
+  const total = items.length;
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 20;
+  const start = (page - 1) * limit;
+  return { data: items.slice(start, start + limit), meta: { page, limit, total } };
+}
+
 export async function getProducts(
   query: ProductsQuery = {},
 ): Promise<ListEnvelope<ProductListItem>> {
-  if (USE_FIXTURES) {
-    const items = query.category
-      ? fixtures.productList.filter((p) => p.category_slug === query.category)
-      : fixtures.productList;
-    return { data: items, meta: { ...fixtures.productListMeta, total: items.length } };
-  }
+  if (USE_FIXTURES) return queryFixtures(query);
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {
     if (v !== undefined) params.set(k, String(v));
