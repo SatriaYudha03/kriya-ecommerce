@@ -5,6 +5,7 @@
 .env
 .env.local
 *.local
+.mcp.json
 
 # Node / Next.js (apps/web)
 node_modules/
@@ -23,5 +24,3 @@ __pycache__/
 
 # Misc
 .DS_Store
-
-.mcp.json

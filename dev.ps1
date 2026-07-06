@@ -67,7 +67,7 @@ if ($Install) {
 }
 
 # --- 3) Perintah tiap service (dijalankan di window PowerShell terpisah) ---
-$feCmd = "`$Host.UI.RawUI.WindowTitle='KRIYA FE :3000'; npm run dev"
+$feCmd = "`$Host.UI.RawUI.WindowTitle='KRIYA FE :3000'; pnpm dev"
 $beCmd = "`$Host.UI.RawUI.WindowTitle='KRIYA BE :8080'; go run ./cmd/api"
 $aiCmd = "`$Host.UI.RawUI.WindowTitle='KRIYA AI :8000'; & '$venvPy' -m uvicorn app.main:app --reload --port 8000"
 
