@@ -22,6 +22,11 @@ services/api/*.exe
 __pycache__/
 *.pyc
 
+# Playwright (e2e)
+e2e/playwright-report/
+e2e/test-results/
+e2e/node_modules/
+
 # Misc
 .DS_Store
 # Claude instructions
