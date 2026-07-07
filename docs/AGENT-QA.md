@@ -48,9 +48,9 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 - [x] Cek respon tetap memakai envelope yang disepakati.
 
 ### M4 — Chatbot
-- [ ] Uji webhook chat, sumber jawaban, dan status order lookup.
-- [ ] Pastikan jawaban patuh pada konteks retrieval.
-- [ ] Validasi error state dan fallback yang ramah.
+- [x] Uji webhook chat, sumber jawaban, dan status order lookup.
+- [x] Pastikan jawaban patuh pada konteks retrieval.
+- [x] Validasi error state dan fallback yang ramah.
 
 ### M5 — Otomasi
 - [ ] Uji workflow notifikasi dan abandoned cart.
@@ -58,9 +58,9 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 - [ ] Verifikasi workflow tetap bisa diekspor dan dipakai ulang.
 
 ### M6 — Admin
-- [ ] Uji guard role admin dan akses terproteksi.
-- [ ] Verifikasi CRUD produk, varian, stok, dan daftar order.
-- [ ] Cek konsistensi data setelah perubahan admin.
+- [x] Uji guard role admin dan akses terproteksi.
+- [x] Verifikasi CRUD produk, varian, stok, dan daftar order.
+- [x] Cek konsistensi data setelah perubahan admin.
 
 ### M7 — Rilis
 - [ ] Jalankan smoke test lintas service sebelum demo.

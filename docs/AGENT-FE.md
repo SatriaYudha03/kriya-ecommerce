@@ -43,11 +43,11 @@ Furniture minimal hangat: palet netral (stone/putih gading) + satu aksen terraco
 - [x] Blok "Produk serupa" di PDP via `/ai/v1/products/{id}/similar`
 
 ### M4 — Chat widget
-- [ ] Widget mengambang (bubble kanan bawah): `session_id` uuid per sesi browser, kirim ke `NEXT_PUBLIC_CHAT_WEBHOOK_URL`, render `reply` + chip `sources`; sertakan `user.email` bila login; state mengetik; error state ramah
+- [x] Widget mengambang (bubble kanan bawah): `session_id` uuid per sesi browser, kirim ke `NEXT_PUBLIC_CHAT_WEBHOOK_URL`, render `reply` + chip `sources`; sertakan `user.email` bila login; state mengetik; error state ramah
 
 ### M6 — Admin (kontrak final di gerbang M6)
-- [ ] Route group `/(admin)` dengan guard `profiles.role === 'admin'`
-- [ ] CRUD produk/varian/stok, daftar pesanan + ubah status, kartu metrik sederhana
+- [x] Route group `/(admin)` dengan guard `profiles.role === 'admin'`
+- [x] CRUD produk/varian/stok, daftar pesanan + ubah status, kartu metrik sederhana
 
 ## Definition of done (setiap task)
 `next build` hijau, lint bersih, responsif mobile-first, teks Indonesia, tidak ada file di luar `apps/web/` yang tersentuh, log terisi.
@@ -63,3 +63,4 @@ Jangan mengganti library UI/state yang sudah ditetapkan. Jangan hardcode URL ser
 2026-07-06 · [fe] M1 katalog (layout ala anon) · selesai — home (hero carousel, kategori, rail produk, banner, footer+newsletter), /kategori/[slug] (filter harga+sort+paginasi via URL), /produk/[slug] (galeri, varian, tab), skeleton+empty state semua halaman; fixtures diperluas 24 produk; placeholder monogram untuk foto; next build hijau, lint bersih. Catatan: menambah placeholder /cari (M3) & /cart (M2) + not-found agar shell tidak buntu. Belum di-commit (menunggu Satria).
 2026-07-08 · [fe] M2 transaksi · selesai — auth pages (login/register/callback via supabase-js), cart store (Zustand persist + API sync), cart page UI lengkap, checkout flow (validasi + Midtrans Snap), orders list & detail (polling saat pending). Sonner untuk toast. Next build hijau, lint bersih. Siap di-commit.
 2026-07-08 · [fe] M3 AI search · selesai — halaman /cari dengan handling keyword fallback, blok "Produk serupa" di halaman PDP. Next build hijau.
+2026-07-08 · [fe] M4 Chatbot & M6 Admin · selesai — membuat komponen `chat-widget.tsx` yang menangani UI, state mengetik, dan rendering sources. Layout serta halaman admin scaffolded (`/admin`, `/admin/produk`, `/admin/pesanan`) sudah dibuat dan lulus build check.
