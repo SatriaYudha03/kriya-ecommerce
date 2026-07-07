@@ -35,10 +35,10 @@ helm/
 ## Task per milestone
 
 ### D0 — Fondasi CI (bareng M0, murah & langsung jalan)
-- [ ] Dockerfile multi-stage untuk web, api, ai (kalau agent lain belum buat — koordinasikan, jangan menimpa tanpa izin)
-- [ ] `ci.yml`: trigger PR ke `main` → job matrix (web/api/ai) → lint + build + unit test tiap service
-- [ ] Tambahkan **Semgrep** (rule set default) sebagai job terpisah, jalan untuk seluruh repo
-- [ ] Tambahkan **Trivy fs scan** (dependency) sebagai job terpisah; severity `HIGH,CRITICAL` = gagal, sisanya cuma warning di log
+- [x] Dockerfile multi-stage untuk web, api, ai (kalau agent lain belum buat — koordinasikan, jangan menimpa tanpa izin)
+- [x] `ci.yml`: trigger PR ke `main` → job matrix (web/api/ai) → lint + build + unit test tiap service
+- [x] Tambahkan **Semgrep** (rule set default) sebagai job terpisah, jalan untuk seluruh repo
+- [x] Tambahkan **Trivy fs scan** (dependency) sebagai job terpisah; severity `HIGH,CRITICAL` = gagal, sisanya cuma warning di log
 
 ### D1 — Provisioning & cluster (setelah M1–M2 punya sesuatu untuk di-deploy)
 - [ ] `infra/terraform`: provisioning satu VPS (Hetzner/DigitalOcean — pilih yang tersedia), security group/firewall (buka 22, 80, 443, 6443 secukupnya), DNS record ke domain/subdomain kamu
@@ -79,3 +79,4 @@ Jangan commit `kubeconfig`, `.tfstate`, atau file `.env`. Jangan pakai `latest` 
 
 ## Log
 (append satu baris per sesi: `2026-07-07 · [devsecops] task · status/catatan`)
+2026-07-08 · [devsecops] inisiasi D0 · selesai membuat Dockerfile web standalone, ci.yml dengan build/test/lint matrix untuk web/api/ai, serta security gates Semgrep dan Trivy fs.
