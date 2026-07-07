@@ -7,6 +7,7 @@ import "os"
 type Config struct {
 	Port              string
 	SupabaseDBURL     string
+	SupabaseURL       string
 	SupabaseJWTSecret string
 	MidtransServerKey string
 	MidtransClientKey string
@@ -19,6 +20,7 @@ func Load() *Config {
 	return &Config{
 		Port:              getEnv("PORT", "8080"),
 		SupabaseDBURL:     os.Getenv("SUPABASE_DB_URL"),
+		SupabaseURL:       os.Getenv("SUPABASE_URL"),
 		SupabaseJWTSecret: os.Getenv("SUPABASE_JWT_SECRET"),
 		MidtransServerKey: os.Getenv("MIDTRANS_SERVER_KEY"),
 		MidtransClientKey: os.Getenv("MIDTRANS_CLIENT_KEY"),

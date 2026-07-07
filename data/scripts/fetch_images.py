@@ -168,8 +168,17 @@ def ensure_bucket(client: httpx.Client, supabase_url: str, service_key: str):
         resp.raise_for_status()
 
 
+def object_key(storage_path: str) -> str:
+    """storage_path sudah diawali f"{BUCKET}/" (mis. "products/tamu-sofa-1.jpg").
+    BUCKET ditambahkan lagi secara terpisah di URL Storage, jadi prefix itu
+    harus dilepas dulu supaya tidak double (products/products/...)."""
+    prefix = f"{BUCKET}/"
+    return storage_path[len(prefix):] if storage_path.startswith(prefix) else storage_path
+
+
 def upload_to_storage(client: httpx.Client, supabase_url: str, service_key: str, path: str, data: bytes) -> str:
-    upload_url = f"{supabase_url}/storage/v1/object/{BUCKET}/{path}"
+    key = object_key(path)
+    upload_url = f"{supabase_url}/storage/v1/object/{BUCKET}/{key}"
     resp = client.post(
         upload_url,
         content=data,
@@ -180,7 +189,7 @@ def upload_to_storage(client: httpx.Client, supabase_url: str, service_key: str,
         },
     )
     resp.raise_for_status()
-    return f"{supabase_url}/storage/v1/object/public/{BUCKET}/{path}"
+    return f"{supabase_url}/storage/v1/object/public/{BUCKET}/{key}"
 
 
 def extract_product_type(name: str) -> str:

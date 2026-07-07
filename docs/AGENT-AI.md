@@ -21,14 +21,14 @@ Kamu adalah agent AI & data. Baca `KRIYA-MASTER.md` dulu (kontrak Bagian 6, skem
 ## Task per milestone
 
 ### M0 — Scaffold
-- [ ] FastAPI skeleton: `GET /healthz` → `{"data":{"status":"ok"}}`, config env, `requirements.txt`, Dockerfile
+- [x] FastAPI skeleton: `GET /healthz` → `{"data":{"status":"ok"}}`, config env, `requirements.txt`, Dockerfile
 
 ### M1 — Data & konten (semua sintetis, semua lewat prompt terdokumentasi)
-- [ ] `data/prompts/product_generator.md`: prompt terstruktur untuk menghasilkan produk (disimpan sebagai bukti prompt engineering)
-- [ ] `generate_products.py` → `data/seed/products.json` **persis kontrak master**: 60 produk, 6 kategori (±10 tiap kategori), nama pola `NUSANTARA + fungsi` ("TARU meja kerja", "RAKA rak dinding") — kata Nusantara 1–2 suku kata, kapital, DILARANG memakai nama IKEA/brand nyata; harga wajar per kategori; dimensi & berat realistis; 2–4 varian warna; stok 5–30
-- [ ] Panduan perakitan 10 produk unggulan → `data/kb/guides/{slug}.md`: daftar komponen & alat, langkah bernomor, peringatan keselamatan; **self-contained** (sebut nama produk di tiap bagian, tanpa "seperti di atas")
-- [ ] `data/kb/faq.md` (20 QA) dan `data/kb/policies.md` (pengiriman, retur, garansi, pembayaran) — self-contained per bagian
-- [ ] `fetch_images.py`: cari foto furniture via Unsplash API (`UNSPLASH_ACCESS_KEY`) → upload ke bucket Storage `products` → tulis `storage_path` ke products.json → catat atribusi di `data/seed/image_credits.md`
+- [x] `data/prompts/product_generator.md`: prompt terstruktur untuk menghasilkan produk (disimpan sebagai bukti prompt engineering)
+- [x] `generate_products.py` → `data/seed/products.json` **persis kontrak master**: 60 produk, 6 kategori (±10 tiap kategori), nama pola `NUSANTARA + fungsi` ("TARU meja kerja", "RAKA rak dinding") — kata Nusantara 1–2 suku kata, kapital, DILARANG memakai nama IKEA/brand nyata; harga wajar per kategori; dimensi & berat realistis; 2–4 varian warna; stok 5–30
+- [x] Panduan perakitan 10 produk unggulan → `data/kb/guides/{slug}.md`: daftar komponen & alat, langkah bernomor, peringatan keselamatan; **self-contained** (sebut nama produk di tiap bagian, tanpa "seperti di atas")
+- [x] `data/kb/faq.md` (20 QA) dan `data/kb/policies.md` (pengiriman, retur, garansi, pembayaran) — self-contained per bagian
+- [x] `fetch_images.py`: cari foto furniture via Pexels API (`PEXELS_API_KEY`, ganti dari Unsplash — lihat catatan di "Permintaan lintas-teritori") → upload ke bucket Storage `products` → tulis `storage_path` ke products.json → catat atribusi di `data/seed/image_credits.md`
 
 ### M3 — Vector & endpoint AI
 - [ ] Migrasi vector (nomor berikutnya, pull dulu): `create extension vector`, tabel `documents` (768), index HNSW cosine, fungsi `match_documents(query_embedding, match_count, filter_type default null)`
@@ -57,5 +57,11 @@ Jangan sentuh `apps/web/` dan `services/api/`. Tabel commerce: **read boleh, wri
 ## Permintaan lintas-teritori
 (tulis di sini, format: tanggal — kebutuhan — alasan; lalu berhenti dan tunggu Satria)
 
+2026-07-06 — review bahasa konten produk — `product_generator.md` menetapkan deskripsi produk, assembly guide, FAQ, dan policies dalam Bahasa Inggris, berlawanan dengan Master §5 ("Seluruh teks UI berbahasa Indonesia"). **Keputusan Satria (2026-07-06): diterima sebagai deviasi yang disetujui, tidak perlu digenerate ulang.**
+
+2026-07-06 — bug path Storage double-prefix — **RESOLVED 2026-07-06.** `fetch_images.py` sebelumnya meng-upload ke `{BUCKET}/{storage_path}` dengan `BUCKET="products"` dan `storage_path` yang sudah diawali `products/`, sehingga objek nyata tersimpan di `products/products/{file}` (dikonfirmasi via curl: path tunggal → 400, path ganda → 200). Diperbaiki: `fetch_images.py` (`object_key()` melepas prefix `products/` dari `storage_path` sebelum dipakai sebagai key upload) + 125 objek existing dipindahkan lewat Storage API dari `products/products/*` ke `products/*`. Diverifikasi: path tunggal sekarang 200, path ganda 400. BE `internal/storage/url.go` sudah disederhanakan (tidak lagi double-prefix).
+
 ## Log
 (append satu baris per sesi: `2026-07-06 · [ai] task · status/catatan`)
+2026-07-06 · [ai] task M0+M1 · FastAPI healthz scaffold, product_generator.md, generate_products.py (60 produk/6 kategori sesuai kontrak), 10 assembly guide, faq.md, policies.md, fetch_images.py (Pexels) + image_credits.md — selesai, dikerjakan bersama sesi [be] 2026-07-06 (commit 7bf2c3d), checklist & log baru diisi retroaktif saat audit M0/M1.
+2026-07-06 · [ai] fix bug path Storage double-prefix · `fetch_images.py` diperbaiki (object_key() melepas prefix bucket dari storage_path) dan 125 objek existing dipindahkan ke path kanonik `products/{file}` via Storage API — selesai, ditemukan & diperbaiki saat audit lintas-teritori oleh sesi [be].

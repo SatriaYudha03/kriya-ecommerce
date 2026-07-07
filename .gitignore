@@ -15,7 +15,7 @@ next-env.d.ts
 
 # Go (services/api)
 services/api/api
-services/api/api.exe
+services/api/*.exe
 
 # Python (services/ai)
 .venv/

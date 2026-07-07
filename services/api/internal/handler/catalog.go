@@ -8,14 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kriya-commerce/api/internal/model"
 	"github.com/kriya-commerce/api/internal/repository"
+	"github.com/kriya-commerce/api/internal/storage"
 )
 
 type CatalogHandler struct {
-	repo *repository.CatalogRepository
+	repo        *repository.CatalogRepository
+	supabaseURL string
 }
 
-func NewCatalogHandler(repo *repository.CatalogRepository) *CatalogHandler {
-	return &CatalogHandler{repo: repo}
+func NewCatalogHandler(repo *repository.CatalogRepository, supabaseURL string) *CatalogHandler {
+	return &CatalogHandler{repo: repo, supabaseURL: supabaseURL}
 }
 
 func (h *CatalogHandler) GetCategories(c *gin.Context) {
@@ -78,7 +80,7 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 
 		thumb := ""
 		if len(p.Images) > 0 {
-			thumb = p.Images[0].StoragePath
+			thumb = storage.PublicImageURL(h.supabaseURL, p.Images[0].StoragePath)
 		}
 
 		res = append(res, model.ProductListResponse{
@@ -128,7 +130,7 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 	var images []model.ImageResponse
 	for _, img := range p.Images {
 		images = append(images, model.ImageResponse{
-			URL: img.StoragePath,
+			URL: storage.PublicImageURL(h.supabaseURL, img.StoragePath),
 			Alt: img.Alt,
 		})
 	}

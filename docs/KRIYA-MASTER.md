@@ -9,12 +9,12 @@ Repo: `kriya-commerce` · Versi 1.0 · 6 Juli 2026
 ## 0. Cara pakai (WAJIB untuk semua agent)
 
 1. Baca file ini sampai habis.
-2. Baca file teritorimu: `AGENT-FE.md` / `AGENT-BE.md` / `AGENT-AI.md`.
+2. Baca file teritorimu: `AGENT-FE.md` / `AGENT-BE.md` / `AGENT-AI.md` / `AGENT-QA.md`.
 3. Cek bagian **Log** di file teritorimu untuk tahu posisi terakhir.
 4. Kerjakan **SATU task** yang ditunjuk Satria (atau task berikutnya yang belum dicentang di milestone aktif).
 5. Tutup sesi dengan ritual di Bagian 8.
 
-Milestone aktif saat ini: **M1**. Hanya satu milestone terbuka pada satu waktu.
+Milestone aktif saat ini: **M2**. Hanya satu milestone terbuka pada satu waktu.
 
 ## 1. Produk (ringkas)
 
@@ -40,7 +40,7 @@ KRIYA menjual furniture flat-pack merek sendiri: katalog per ruangan, varian war
 kriya-commerce/
   CLAUDE.md                # pointer (lihat Bagian 11)
   KRIYA-MASTER.md          # file ini — pemilik: Satria
-  AGENT-FE.md / AGENT-BE.md / AGENT-AI.md
+  AGENT-FE.md / AGENT-BE.md / AGENT-AI.md / AGENT-QA.md
   docker-compose.yml       # pemilik: Satria
   .env.example             # pemilik: Satria
   apps/web/                # TERITORI AGENT-FE
@@ -150,6 +150,7 @@ Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan. Se
 
 - Branch utama: `main`. Branch task berumur < 1 hari boleh, langsung merge. Branch panjang DILARANG.
 - **Ritual sesi:** `git pull` → kerjakan satu task → build & test hijau → commit `"[fe|be|ai] deskripsi singkat"` → push → tambah satu baris di Log file agent-mu.
+- QA boleh jalan paralel untuk memvalidasi hasil task yang sudah siap diuji; QA tidak mengambil alih implementasi.
 - Paralel sungguhan: satu working copy per agent (`git worktree`). Dua agent dalam satu folder kerja = dilarang.
 - Butuh sesuatu di luar teritori (endpoint baru, kolom baru, perubahan kontrak): **berhenti**, tulis di "Permintaan lintas-teritori" di file agent-mu. Satria memutuskan, kontrak diubah dulu, baru kode.
 - Definition of done task: berjalan + build hijau + tidak menyentuh file di luar teritori + log terisi.
@@ -157,16 +158,16 @@ Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan. Se
 
 ## 9. Roadmap × agent
 
-| Milestone | FE | BE | AI |
-|---|---|---|---|
-| M0 Fondasi | scaffold Next + fixtures | scaffold Gin + healthz + Dockerfile | scaffold FastAPI + healthz + Dockerfile |
-| M1 Katalog | layout, home, listing, PDP (fixtures → live) | migrasi commerce, endpoint katalog, seed loader | `products.json` 60 item + gambar + KB docs |
-| M2 Transaksi | auth, cart, checkout, Snap popup, halaman pesanan | cart, orders, Midtrans, webhook | (siapkan ingest & prompt) |
-| M3 AI search | search bar + halaman hasil, blok "Produk serupa" | — | migrasi vector, ingest, /search, /similar |
-| M4 Chatbot | chat widget | endpoint internal status order | workflow n8n agent + eval 25 soal |
-| M5 Otomasi | — | dukungan kolom/status | workflow konfirmasi, abandoned cart, notif status |
-| M6 Admin | halaman admin CRUD | endpoint admin (kontrak difinalkan di gerbang) | — |
-| M7 Rilis | polish | polish | polish |
+| Milestone | FE | BE | AI | QA |
+|---|---|---|---|---|
+| M0 Fondasi | scaffold Next + fixtures | scaffold Gin + healthz + Dockerfile | scaffold FastAPI + healthz + Dockerfile | smoke build per service, cek healthz |
+| M1 Katalog | layout, home, listing, PDP (fixtures → live) | migrasi commerce, endpoint katalog, seed loader | `products.json` 60 item + gambar + KB docs | validasi kontrak listing/detail/fixture |
+| M2 Transaksi | auth, cart, checkout, Snap popup, halaman pesanan | cart, orders, Midtrans, webhook | (siapkan ingest & prompt) | auth, cart, checkout, webhook, order flow |
+| M3 AI search | search bar + halaman hasil, blok "Produk serupa" | — | migrasi vector, ingest, /search, /similar | semantic search + fallback + similar |
+| M4 Chatbot | chat widget | endpoint internal status order | workflow n8n agent + eval 25 soal | webhook chat + sumber + status lookup |
+| M5 Otomasi | — | dukungan kolom/status | workflow konfirmasi, abandoned cart, notif status | workflow check + kolom n8n-writable |
+| M6 Admin | halaman admin CRUD | endpoint admin (kontrak difinalkan di gerbang) | — | guard admin + CRUD / status validation |
+| M7 Rilis | polish | polish | polish | smoke lintas service + regresi akhir |
 
 Demo criteria per milestone: lihat `docs/PRD.md` Bagian 6.
 
@@ -182,6 +183,7 @@ Isi `CLAUDE.md` di root repo:
 Proyek KRIYA (e-commerce furniture + AI). WAJIB baca KRIYA-MASTER.md
 sebelum melakukan apa pun. Peranmu ditentukan di awal sesi:
 FE -> baca AGENT-FE.md · BE -> baca AGENT-BE.md · AI/data -> baca AGENT-AI.md.
+QA -> baca AGENT-QA.md.
 Patuhi teritori, kontrak, dan ritual sesi di KRIYA-MASTER.md.
 Kerjakan hanya SATU task per sesi. Jika butuh perubahan di luar
 teritorimu: berhenti dan tulis di "Permintaan lintas-teritori".
