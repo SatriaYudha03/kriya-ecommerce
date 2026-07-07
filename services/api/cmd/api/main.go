@@ -40,6 +40,9 @@ func main() {
 	orderHandler := handler.NewOrderHandler(orderRepo, midtransSvc)
 	paymentHandler := handler.NewPaymentHandler(orderRepo, midtransSvc)
 
+	adminRepo := repository.NewAdminRepository(database)
+	adminHandler := handler.NewAdminHandler(adminRepo, orderRepo, cfg.SupabaseURL)
+
 	v1 := r.Group("/api/v1")
 	v1.GET("/healthz", handler.Health)
 
@@ -59,6 +62,19 @@ func main() {
 	authed.POST("/orders", orderHandler.CreateOrder)
 	authed.GET("/orders", orderHandler.ListOrders)
 	authed.GET("/orders/:id", orderHandler.GetOrder)
+
+	// Grup khusus admin
+	admin := authed.Group("/admin")
+	admin.Use(middleware.Admin(database))
+	
+	admin.GET("/orders", adminHandler.ListOrders)
+	admin.PUT("/orders/:id/status", adminHandler.UpdateOrderStatus)
+	admin.POST("/products", adminHandler.CreateProduct)
+	admin.PUT("/products/:id", adminHandler.UpdateProduct)
+	admin.DELETE("/products/:id", adminHandler.DeleteProduct)
+	admin.POST("/products/:id/variants", adminHandler.CreateVariant)
+	admin.PUT("/products/:id/variants/:variant_id", adminHandler.UpdateVariant)
+	admin.DELETE("/products/:id/variants/:variant_id", adminHandler.DeleteVariant)
 
 	// Grup internal untuk chatbot n8n (diisi M4, endpoint status order sudah M2).
 	internal := v1.Group("/internal")

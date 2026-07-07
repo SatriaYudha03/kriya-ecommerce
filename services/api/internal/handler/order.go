@@ -100,7 +100,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	}
 
 	res := model.CreateOrderResponse{
-		Order:             toOrderResponse(*order, orderItems),
+		Order:             ToOrderResponse(*order, orderItems),
 		SnapToken:         snapToken,
 		MidtransClientKey: h.midtrans.ClientKey(),
 	}
@@ -127,7 +127,7 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 			})
 			return
 		}
-		res = append(res, toOrderResponse(o, items))
+		res = append(res, ToOrderResponse(o, items))
 	}
 
 	c.JSON(http.StatusOK, model.Response{Data: res})
@@ -159,7 +159,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.Response{Data: toOrderResponse(*order, items)})
+	c.JSON(http.StatusOK, model.Response{Data: ToOrderResponse(*order, items)})
 }
 
 // InternalOrderStatus dipakai chatbot n8n untuk cek status pesanan by order_id+email
@@ -196,7 +196,7 @@ func (h *OrderHandler) InternalOrderStatus(c *gin.Context) {
 	}})
 }
 
-func toOrderResponse(o repository.Order, items []repository.OrderItem) model.OrderResponse {
+func ToOrderResponse(o repository.Order, items []repository.OrderItem) model.OrderResponse {
 	var addr model.ShippingAddressResponse
 	json.Unmarshal(o.ShippingAddress, &addr)
 

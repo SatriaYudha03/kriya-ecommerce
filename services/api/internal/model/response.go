@@ -173,3 +173,47 @@ type InternalOrderStatusResponse struct {
 	Total     int       `json:"total"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// ===== Admin =====
+
+type AdminUpdateOrderStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=pending_payment paid processing shipped completed cancelled expired"`
+}
+
+type AdminCreateProductRequest struct {
+	Slug             string                `json:"slug" binding:"required"`
+	Name             string                `json:"name" binding:"required"`
+	CategorySlug     string                `json:"category_slug" binding:"required"`
+	Description      string                `json:"description"`
+	Materials        []string              `json:"materials"`
+	Dimensions       Dimensions            `json:"dimensions"`
+	WeightKg         float64               `json:"weight_kg"`
+	HasAssemblyGuide bool                  `json:"has_assembly_guide"`
+	Variants         []AdminVariantRequest `json:"variants" binding:"dive"`
+	Images           []AdminImageRequest   `json:"images" binding:"dive"`
+}
+
+type AdminUpdateProductRequest struct {
+	Slug             string     `json:"slug"`
+	Name             string     `json:"name"`
+	CategorySlug     string     `json:"category_slug"`
+	Description      string     `json:"description"`
+	Materials        []string   `json:"materials"`
+	Dimensions       Dimensions `json:"dimensions"`
+	WeightKg         float64    `json:"weight_kg"`
+	HasAssemblyGuide bool       `json:"has_assembly_guide"`
+}
+
+type AdminVariantRequest struct {
+	Sku   string  `json:"sku" binding:"required"`
+	Color string  `json:"color"`
+	Size  *string `json:"size"`
+	Price int     `json:"price" binding:"required,min=0"`
+	Stock int     `json:"stock" binding:"required,min=0"`
+}
+
+type AdminImageRequest struct {
+	StoragePath string `json:"storage_path" binding:"required"`
+	Alt         string `json:"alt"`
+	IsPrimary   bool   `json:"is_primary"`
+}
