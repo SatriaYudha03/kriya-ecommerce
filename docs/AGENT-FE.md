@@ -39,8 +39,8 @@ Furniture minimal hangat: palet netral (stone/putih gading) + satu aksen terraco
 - [x] `/pesanan` + `/pesanan/[id]`: daftar & detail, badge status berwarna, polling ringan saat `pending_payment`
 
 ### M3 — AI search
-- [ ] Search bar global (debounce 300 ms) → `/cari?q=` memanggil `GET /ai/v1/search`; tampilkan hint kecil bila `meta.mode = "keyword_fallback"`
-- [ ] Blok "Produk serupa" di PDP via `/ai/v1/products/{id}/similar`
+- [x] Search bar global (debounce 300 ms) → `/cari?q=` memanggil `GET /ai/v1/search`; tampilkan hint kecil bila `meta.mode = "keyword_fallback"`
+- [x] Blok "Produk serupa" di PDP via `/ai/v1/products/{id}/similar`
 
 ### M4 — Chat widget
 - [ ] Widget mengambang (bubble kanan bawah): `session_id` uuid per sesi browser, kirim ke `NEXT_PUBLIC_CHAT_WEBHOOK_URL`, render `reply` + chip `sources`; sertakan `user.email` bila login; state mengetik; error state ramah
@@ -62,3 +62,4 @@ Jangan mengganti library UI/state yang sudah ditetapkan. Jangan hardcode URL ser
 (append satu baris per sesi: `2026-07-06 · [fe] task · status/catatan`)
 2026-07-06 · [fe] M1 katalog (layout ala anon) · selesai — home (hero carousel, kategori, rail produk, banner, footer+newsletter), /kategori/[slug] (filter harga+sort+paginasi via URL), /produk/[slug] (galeri, varian, tab), skeleton+empty state semua halaman; fixtures diperluas 24 produk; placeholder monogram untuk foto; next build hijau, lint bersih. Catatan: menambah placeholder /cari (M3) & /cart (M2) + not-found agar shell tidak buntu. Belum di-commit (menunggu Satria).
 2026-07-08 · [fe] M2 transaksi · selesai — auth pages (login/register/callback via supabase-js), cart store (Zustand persist + API sync), cart page UI lengkap, checkout flow (validasi + Midtrans Snap), orders list & detail (polling saat pending). Sonner untuk toast. Next build hijau, lint bersih. Siap di-commit.
+2026-07-08 · [fe] M3 AI search · selesai — halaman /cari dengan handling keyword fallback, blok "Produk serupa" di halaman PDP. Next build hijau.

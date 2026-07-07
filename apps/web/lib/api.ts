@@ -15,6 +15,8 @@ import type {
   ProductListItem,
   CreateOrderPayload,
   CreateOrderResponse,
+  SearchEnvelope,
+  SimilarEnvelope,
 } from "./types";
 
 const USE_FIXTURES = process.env.NEXT_PUBLIC_USE_FIXTURES === "true";
@@ -180,4 +182,27 @@ export async function getOrder(id: string): Promise<Order> {
   }
   const { data } = await request<Envelope<Order>>(`/api/v1/orders/${id}`, { auth: true });
   return data;
+}
+
+export async function searchProducts(q: string): Promise<SearchEnvelope> {
+  if (USE_FIXTURES) {
+    return new Promise(resolve => setTimeout(() => {
+      const qLower = q.toLowerCase();
+      const hits = fixtures.productList.filter(p => p.name.toLowerCase().includes(qLower));
+      resolve({
+        data: hits.map(h => ({ ...h, product_id: h.id, score: 1.0 })),
+        meta: { mode: "keyword_fallback" }
+      });
+    }, 500));
+  }
+  return request<SearchEnvelope>(`/ai/v1/search?q=${encodeURIComponent(q)}`, { base: "ai" });
+}
+
+export async function getSimilarProducts(id: string): Promise<SimilarEnvelope> {
+  if (USE_FIXTURES) {
+    return new Promise(resolve => setTimeout(() => resolve({
+      data: fixtures.productList.slice(0, 4).map(h => ({ ...h, product_id: h.id, score: 0.9 }))
+    }), 500));
+  }
+  return request<SimilarEnvelope>(`/ai/v1/products/${id}/similar`, { base: "ai" });
 }

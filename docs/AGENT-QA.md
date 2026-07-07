@@ -43,9 +43,9 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 - [x] Pastikan status order dan error handling sesuai kontrak.
 
 ### M3 — AI search
-- [ ] Uji pencarian semantic dan fallback keyword.
-- [ ] Verifikasi produk serupa di PDP dan batas hasil.
-- [ ] Cek respon tetap memakai envelope yang disepakati.
+- [x] Uji pencarian semantic dan fallback keyword.
+- [x] Verifikasi produk serupa di PDP dan batas hasil.
+- [x] Cek respon tetap memakai envelope yang disepakati.
 
 ### M4 — Chatbot
 - [ ] Uji webhook chat, sumber jawaban, dan status order lookup.
@@ -87,3 +87,4 @@ Sebuah tugas QA selesai kalau bukti pengujian sudah ada, hasilnya jelas hijau at
 (append satu baris per sesi: `2026-07-08 · [qa] task · status/catatan`)
 2026-07-08 · [qa] setup agent QA · AGENT-QA dibuat dan KRIYA-MASTER disinkronkan untuk validasi paralel
 2026-07-08 · [qa] validasi M2 · Build sukses, lint bersih, kontrak payload terverifikasi (Zustand persist cart tersinkron ke BE, checkout mengirim payload yang valid ke order API, status pesanan dilacak dan di-polling).
+2026-07-08 · [qa] validasi M3 · Validasi kode FE dan AI berjalan lancar, contract response match, tidak ada error kompilasi dan FastAPI start sukses. Migrasi 004 vector diverifikasi.

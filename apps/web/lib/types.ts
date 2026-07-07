@@ -117,6 +117,28 @@ export interface ListEnvelope<T> {
   meta: ListMeta;
 }
 
+export interface SearchMeta {
+  mode: "semantic" | "keyword_fallback";
+}
+
+export interface SearchResponseItem {
+  product_id: string;
+  slug: string;
+  name: string;
+  price_min: number;
+  thumbnail_url: string;
+  score: number;
+}
+
+export interface SearchEnvelope {
+  data: SearchResponseItem[];
+  meta: SearchMeta;
+}
+
+export interface SimilarEnvelope {
+  data: SearchResponseItem[];
+}
+
 export interface ApiErrorBody {
   error: { code: string; message: string };
 }

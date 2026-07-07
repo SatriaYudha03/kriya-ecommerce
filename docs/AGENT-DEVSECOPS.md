@@ -41,9 +41,9 @@ helm/
 - [x] Tambahkan **Trivy fs scan** (dependency) sebagai job terpisah; severity `HIGH,CRITICAL` = gagal, sisanya cuma warning di log
 
 ### D1 — Provisioning & cluster (setelah M1–M2 punya sesuatu untuk di-deploy)
-- [ ] `infra/terraform`: provisioning satu VPS (Hetzner/DigitalOcean — pilih yang tersedia), security group/firewall (buka 22, 80, 443, 6443 secukupnya), DNS record ke domain/subdomain kamu
-- [ ] `infra/k3s-bootstrap.sh`: instal k3s single-node, ambil `kubeconfig`
-- [ ] `helm/kriya`: chart dasar (Deployment, Service, ConfigMap, Secret template) untuk web, api, ai, n8n (n8n pakai PersistentVolumeClaim)
+- [x] `infra/terraform`: provisioning satu VPS (Hetzner/DigitalOcean — pilih yang tersedia), security group/firewall (buka 22, 80, 443, 6443 secukupnya), DNS record ke domain/subdomain kamu
+- [x] `infra/k3s-bootstrap.sh`: instal k3s single-node, ambil `kubeconfig`
+- [x] `helm/kriya`: chart dasar (Deployment, Service, ConfigMap, Secret template) untuk web, api, ai, n8n (n8n pakai PersistentVolumeClaim)
 - [ ] Deploy manual pertama via `kubectl apply`/`helm install` untuk pastikan chart valid sebelum diotomasi
 - [ ] Traefik Ingress + cert-manager (ClusterIssuer Let's Encrypt) → domain punya HTTPS asli
 

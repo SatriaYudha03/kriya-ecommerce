@@ -1,36 +1,89 @@
-import Link from "next/link";
-import type { Metadata } from "next";
-import { Search } from "lucide-react";
+"use client";
 
-export const metadata: Metadata = { title: "Pencarian — KRIYA" };
+import { useSearchParams } from "next/navigation";
+import { useSearch } from "@/lib/queries";
+import { ProductCard } from "@/components/kriya/product-card";
+import { ProductGridSkeleton } from "@/components/kriya/product-grid";
+import { EmptyState } from "@/components/kriya/empty-state";
+import { Sparkles, Search as SearchIcon } from "lucide-react";
+import { Suspense } from "react";
 
-// Placeholder M1: pencarian semantik dibangun di M3 (GET /ai/v1/search).
-// Halaman ini menjaga tautan pencarian di header tidak buntu.
-type SP = { searchParams: Promise<{ q?: string }> };
+function SearchResults() {
+  const searchParams = useSearchParams();
+  const q = searchParams.get("q") || "";
+  const { data, isLoading } = useSearch(q);
 
-export default async function CariPage({ searchParams }: SP) {
-  const { q } = await searchParams;
+  if (!q.trim()) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-20 text-center text-neutral-500">
+        Ketik sesuatu di kotak pencarian untuk mencari furniture.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <h1 className="mb-6 text-2xl font-semibold text-neutral-900">Mencari: &quot;{q}&quot;</h1>
+        <ProductGridSkeleton count={8} />
+      </div>
+    );
+  }
+
+  if (!data || data.data.length === 0) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-20">
+        <EmptyState
+          title="Tidak ada hasil"
+          hint={`Pencarian untuk "${q}" tidak menemukan produk apapun. Coba kata kunci yang lebih umum.`}
+        />
+      </div>
+    );
+  }
+
+  const { items, meta } = { items: data.data, meta: data.meta };
+  const isFallback = meta.mode === "keyword_fallback";
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-20 text-center">
-      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-tint text-brand-strong">
-        <Search className="h-6 w-6" />
-      </span>
-      <h1 className="mt-5 text-2xl font-semibold tracking-tight text-neutral-900">Pencarian</h1>
-      {q && (
-        <p className="mt-2 text-neutral-600">
-          Kamu mencari <span className="font-medium text-neutral-900">“{q}”</span>.
-        </p>
-      )}
-      <p className="mx-auto mt-3 max-w-md text-sm text-neutral-500">
-        Pencarian pintar dengan bahasa sehari-hari hadir pada M3. Sementara ini, jelajahi katalog
-        per ruangan lewat menu di atas.
-      </p>
-      <Link
-        href="/"
-        className="mt-6 inline-block rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
-      >
-        Kembali ke beranda
-      </Link>
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+          Hasil pencarian: &quot;{q}&quot;
+        </h1>
+        {isFallback ? (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">
+            <SearchIcon className="h-3 w-3" /> Pencarian kata kunci
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-xs font-medium text-brand-strong">
+            <Sparkles className="h-3 w-3" /> Pencarian pintar AI
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
+        {items.map((item) => (
+          <ProductCard
+            key={item.slug}
+            product={{
+              id: item.product_id,
+              slug: item.slug,
+              name: item.name,
+              category_slug: "", // Not strictly used for display
+              thumbnail_url: item.thumbnail_url,
+              price_min: item.price_min,
+            }}
+          />
+        ))}
+      </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center">Memuat...</div>}>
+      <SearchResults />
+    </Suspense>
   );
 }

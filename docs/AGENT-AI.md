@@ -31,11 +31,11 @@ Kamu adalah agent AI & data. Baca `KRIYA-MASTER.md` dulu (kontrak Bagian 6, skem
 - [x] `fetch_images.py`: cari foto furniture via Pexels API (`PEXELS_API_KEY`, ganti dari Unsplash — lihat catatan di "Permintaan lintas-teritori") → upload ke bucket Storage `products` → tulis `storage_path` ke products.json → catat atribusi di `data/seed/image_credits.md`
 
 ### M3 — Vector & endpoint AI
-- [ ] Migrasi vector (nomor berikutnya, pull dulu): `create extension vector`, tabel `documents` (768), index HNSW cosine, fungsi `match_documents(query_embedding, match_count, filter_type default null)`
-- [ ] `ingest.py`: baca products.json + `data/kb/*` → chunk per bagian → metadata `{"type","product_id","ref"}` → embed batch Gemini → insert; flag `--reset` (kosongkan lalu isi ulang) agar idempoten
-- [ ] `GET /ai/v1/search`: embed query → `match_documents` filter `product` → jika skor tertinggi < 0.35 atau kosong → fallback ILIKE ke products, `meta.mode = "keyword_fallback"`
-- [ ] `GET /ai/v1/products/{id}/similar`: nearest-neighbor dari embedding dokumen produk, exclude diri sendiri
-- [ ] `POST /ai/v1/embed` (lindungi header `X-Internal-Key`)
+- [x] Migrasi vector (nomor berikutnya, pull dulu): `create extension vector`, tabel `documents` (768), index HNSW cosine, fungsi `match_documents(query_embedding, match_count, filter_type default null)`
+- [x] `ingest.py`: baca products.json + `data/kb/*` → chunk per bagian → metadata `{"type","product_id","ref"}` → embed batch Gemini → insert; flag `--reset` (kosongkan lalu isi ulang) agar idempoten
+- [x] `GET /ai/v1/search`: embed query → `match_documents` filter `product` → jika skor tertinggi < 0.35 atau kosong → fallback ILIKE ke products, `meta.mode = "keyword_fallback"`
+- [x] `GET /ai/v1/products/{id}/similar`: nearest-neighbor dari embedding dokumen produk, exclude diri sendiri
+- [x] `POST /ai/v1/embed` (lindungi header `X-Internal-Key`)
 
 ### M4 — Chatbot (n8n)
 - [ ] `data/prompts/chatbot_system.md`: persona staf KRIYA, Bahasa Indonesia natural; **jawab hanya dari konteks retrieval**; dilarang mengarang produk/harga/tanggal kirim; bila tidak yakin → tawarkan eskalasi CS; sertakan sumber
@@ -65,3 +65,4 @@ Jangan sentuh `apps/web/` dan `services/api/`. Tabel commerce: **read boleh, wri
 (append satu baris per sesi: `2026-07-06 · [ai] task · status/catatan`)
 2026-07-06 · [ai] task M0+M1 · FastAPI healthz scaffold, product_generator.md, generate_products.py (60 produk/6 kategori sesuai kontrak), 10 assembly guide, faq.md, policies.md, fetch_images.py (Pexels) + image_credits.md — selesai, dikerjakan bersama sesi [be] 2026-07-06 (commit 7bf2c3d), checklist & log baru diisi retroaktif saat audit M0/M1.
 2026-07-06 · [ai] fix bug path Storage double-prefix · `fetch_images.py` diperbaiki (object_key() melepas prefix bucket dari storage_path) dan 125 objek existing dipindahkan ke path kanonik `products/{file}` via Storage API — selesai, ditemukan & diperbaiki saat audit lintas-teritori oleh sesi [be].
+2026-07-08 · [ai] M3 AI search · selesai — Migrasi 004 vector dibuat. Modul `embeddings.py` (Gemini API batchEmbedContents via httpx) dan `db.py` (psycopg3 + pgvector) diimplementasikan. Script `ingest.py` untuk chunking dan embedding dibuat. Endpoint `/ai/v1/search`, `/ai/v1/products/{id}/similar`, dan `/ai/v1/embed` dibuat. Server sukses berjalan.

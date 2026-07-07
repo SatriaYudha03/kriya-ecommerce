@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Minus, Package, Plus, Ruler, ShoppingBag, Truck } from "lucide-react";
 import { categoryLabel } from "@/lib/category-meta";
 import { formatRupiah } from "@/lib/format";
-import { useProduct } from "@/lib/queries";
+import { useProduct, useSimilarProducts } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
@@ -14,6 +14,34 @@ import { EmptyState } from "./empty-state";
 import { ProductGallery } from "./product-gallery";
 import { ProductTabs } from "./product-tabs";
 import { VariantSelector } from "./variant-selector";
+import { ProductCard } from "./product-card";
+
+function SimilarProducts({ productId }: { productId: string }) {
+  const { data, isLoading } = useSimilarProducts(productId);
+
+  if (isLoading || !data || data.data.length === 0) return null;
+
+  return (
+    <section className="mt-20 border-t border-neutral-200 pt-16">
+      <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Mungkin Kamu Suka</h2>
+      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
+        {data.data.slice(0, 4).map((item) => (
+          <ProductCard
+            key={item.slug}
+            product={{
+              id: item.product_id,
+              slug: item.slug,
+              name: item.name,
+              category_slug: "", // Not strictly used for display
+              thumbnail_url: item.thumbnail_url,
+              price_min: item.price_min,
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function ProductDetailView({ slug }: { slug: string }) {
   const { data: product, isLoading, isError } = useProduct(slug);
@@ -185,6 +213,8 @@ export function ProductDetailView({ slug }: { slug: string }) {
       <div className="mt-14">
         <ProductTabs product={product} />
       </div>
+
+      <SimilarProducts productId={product.id} />
     </div>
   );
 }
