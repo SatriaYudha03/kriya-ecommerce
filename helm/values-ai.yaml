@@ -1,0 +1,9 @@
+# Values override for FastAPI AI Backend
+ai:
+  replicaCount: 2
+  env:
+    WEB_ORIGIN: "https://kriya.my.id"
+  secrets:
+    SUPABASE_DB_URL: "postgres://postgres:prod-password@db.supabase.co:5432/postgres"
+    GEMINI_API_KEY: "prod-gemini-key"
+    INTERNAL_API_KEY: "prod-shared-internal-key"

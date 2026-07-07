@@ -1,0 +1,15 @@
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 10Gi
+  config:
+    limits_config:
+      retention_period: 168h # 7 hari retensi log
+
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push

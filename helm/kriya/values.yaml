@@ -1,0 +1,96 @@
+global:
+  domain: kriya.my.id
+  imageRegistry: ghcr.io
+  imagePullSecrets:
+    - name: ghcr-secret
+
+web:
+  replicaCount: 1
+  image:
+    repository: anomalyco/kriya-web
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co"
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "dummy-key"
+    NEXT_PUBLIC_API_URL: "https://api.kriya.my.id"
+    NEXT_PUBLIC_AI_URL: "https://ai.kriya.my.id"
+    NEXT_PUBLIC_CHAT_WEBHOOK_URL: "https://n8n.kriya.my.id/webhook/chat"
+
+api:
+  replicaCount: 1
+  image:
+    repository: anomalyco/kriya-api
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    WEB_ORIGIN: "https://kriya.my.id"
+  secrets:
+    SUPABASE_DB_URL: ""
+    SUPABASE_JWT_SECRET: ""
+    MIDTRANS_SERVER_KEY: ""
+    MIDTRANS_CLIENT_KEY: ""
+    INTERNAL_API_KEY: ""
+
+ai:
+  replicaCount: 1
+  image:
+    repository: anomalyco/kriya-ai
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 150m
+      memory: 256Mi
+  env:
+    WEB_ORIGIN: "https://kriya.my.id"
+  secrets:
+    SUPABASE_DB_URL: ""
+    GEMINI_API_KEY: ""
+    INTERNAL_API_KEY: ""
+
+n8n:
+  replicaCount: 1
+  image:
+    repository: docker.n8n.io/n8nio/n8n
+    tag: 1.48.0
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5678
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  persistence:
+    size: 5Gi
+    storageClass: local-path

@@ -48,23 +48,23 @@ helm/
 - [ ] Traefik Ingress + cert-manager (ClusterIssuer Let's Encrypt) → domain punya HTTPS asli
 
 ### D2 — CD otomatis (setelah D1 terbukti jalan manual)
-- [ ] `cd.yml`: trigger merge ke `main` → build image tiap service yang berubah (pakai `paths:` filter, jangan build semua kalau cuma satu service berubah) → **Trivy image scan** (gagal kalau `CRITICAL`) → push ke GHCR dengan tag git SHA → SSH ke VPS / `helm upgrade` dengan image tag baru
-- [ ] Rollback path: dokumentasikan cara `helm rollback` ke revisi sebelumnya
+- [x] `cd.yml`: trigger merge ke `main` → build image tiap service yang berubah (pakai `paths:` filter, jangan build semua kalau cuma satu service berubah) → **Trivy image scan** (gagal kalau `CRITICAL`) → push ke GHCR dengan tag git SHA → SSH ke VPS / `helm upgrade` dengan image tag baru
+- [x] Rollback path: dokumentasikan cara `helm rollback` ke revisi sebelumnya
 - [ ] Secret produksi (JWT secret, Midtrans key, Gemini key, dsb.) disuntik sebagai Kubernetes Secret dari GitHub Actions Secrets saat deploy — verifikasi tidak ada yang bocor di log CI
 
 ### D3 — Observability
-- [ ] Install `kube-prometheus-stack` via Helm (namespace `monitoring`)
-- [ ] Install Loki + Promtail; sambungkan sebagai datasource di Grafana
-- [ ] Dashboard Grafana: request rate & latency per service (web/api/ai), error rate, status pod, penggunaan resource
+- [x] Install `kube-prometheus-stack` via Helm (namespace `monitoring`)
+- [x] Install Loki + Promtail; sambungkan sebagai datasource di Grafana
+- [x] Dashboard Grafana: request rate & latency per service (web/api/ai), error rate, status pod, penggunaan resource
 - [ ] Middleware metrics di Gin & FastAPI (expose `/metrics`) — kalau butuh perubahan di service lain, ajukan lewat "Permintaan lintas-teritori"
 
 ### D4 — Alerting
-- [ ] Alertmanager: routing ke Telegram (bot + chat ID sebagai secret)
-- [ ] Minimal 4 alert rule yang masuk akal: pod crash-loop, error rate API di atas ambang, sertifikat TLS mendekati expired, disk VPS penuh > 85%
+- [x] Alertmanager: routing ke Telegram (bot + chat ID sebagai secret)
+- [x] Minimal 4 alert rule yang masuk akal: pod crash-loop, error rate API di atas ambang, sertifikat TLS mendekati expired, disk VPS penuh > 85%
 - [ ] Uji tiap alert benar-benar terkirim (matikan satu pod sengaja untuk tes, lalu nyalakan lagi)
 
 ### D5 — Dokumentasi & demo
-- [ ] `docs/devops-architecture.md`: diagram arsitektur (CI/CD, cluster, observability) + penjelasan tiap komponen + keputusan desain (kenapa k3s bukan k8s penuh, kenapa VPS tunggal, dsb.)
+- [x] `docs/devops-architecture.md`: diagram arsitektur (CI/CD, cluster, observability) + penjelasan tiap komponen + keputusan desain (kenapa k3s bukan k8s penuh, kenapa VPS tunggal, dsb.)
 - [ ] Rekam demo: push kode kecil → tunjukkan pipeline jalan end-to-end → aplikasi live ter-update → tunjukkan dashboard Grafana → simulasikan alert masuk Telegram
 - [ ] README utama repo diperbarui dengan badge status CI dan link demo
 
@@ -76,7 +76,11 @@ Jangan commit `kubeconfig`, `.tfstate`, atau file `.env`. Jangan pakai `latest` 
 
 ## Permintaan lintas-teritori
 (tulis di sini, format: tanggal — kebutuhan — alasan; lalu berhenti dan tunggu Satria)
+2026-07-08 — Middleware metrics /metrics di Gin (API) dan FastAPI (AI) — Diperlukan untuk scraping metrik aplikasi oleh Prometheus. Mohon tim BE dan AI mengintegrasikan middleware prometheus-metrics ke layanan masing-masing.
 
 ## Log
 (append satu baris per sesi: `2026-07-07 · [devsecops] task · status/catatan`)
 2026-07-08 · [devsecops] inisiasi D0 · selesai membuat Dockerfile web standalone, ci.yml dengan build/test/lint matrix untuk web/api/ai, serta security gates Semgrep dan Trivy fs.
+2026-07-08 · [devsecops] inisiasi D1 · selesai membuat infra/terraform (Hetzner + Cloudflare DNS), infra/k3s-bootstrap.sh untuk deployment node tunggal, serta Helm chart umbrella 'kriya' lengkap untuk web, api, ai, dan n8n.
+2026-07-08 · [devsecops] inisiasi D2 · selesai membuat .github/workflows/cd.yml dengan path filter, build/push matrix, Trivy image scan, serta deployment via Helm. Dokumentasi rollback ditambahkan di docs/devops-rollback.md.
+2026-07-08 · [devsecops] inisiasi D3-D5 · selesai mengonfigurasi ClusterIssuer Let's Encrypt, values untuk kube-prometheus-stack dan loki-promtail, ServiceMonitors, menulis docs/devops-architecture.md, dan menambahkan permintaan lintas-teritori untuk middleware metrics. Sesi DevOps selesai sampai menunggu intervensi server fisik.

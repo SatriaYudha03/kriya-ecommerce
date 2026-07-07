@@ -1,0 +1,9 @@
+# Values override for web frontend
+web:
+  replicaCount: 2
+  env:
+    NEXT_PUBLIC_SUPABASE_URL: "https://kriya-db.supabase.co"
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "prod-anon-key"
+    NEXT_PUBLIC_API_URL: "https://api.kriya.my.id"
+    NEXT_PUBLIC_AI_URL: "https://ai.kriya.my.id"
+    NEXT_PUBLIC_CHAT_WEBHOOK_URL: "https://n8n.kriya.my.id/webhook/chat"

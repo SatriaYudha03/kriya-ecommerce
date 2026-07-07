@@ -1,0 +1,18 @@
+{{- range $serviceName := list "web" "api" "ai" }}
+{{- $serviceValues := index $.Values $serviceName }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app: {{ $serviceName }}
+spec:
+  type: {{ $serviceValues.service.type }}
+  ports:
+    - port: {{ $serviceValues.service.port }}
+      targetPort: {{ $serviceValues.service.port }}
+      protocol: TCP
+  selector:
+    app: {{ $serviceName }}
+---
+{{- end }}

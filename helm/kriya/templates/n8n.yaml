@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  labels:
+    app: n8n
+spec:
+  replicas: {{ .Values.n8n.replicaCount }}
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      containers:
+        - name: n8n
+          image: "{{ .Values.n8n.image.repository }}:{{ .Values.n8n.image.tag }}"
+          imagePullPolicy: {{ .Values.n8n.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.n8n.service.port }}
+          volumeMounts:
+            - name: n8n-storage
+              mountPath: /home/node/.n8n
+          resources:
+            {{- toYaml .Values.n8n.resources | nindent 12 }}
+      volumes:
+        - name: n8n-storage
+          persistentVolumeClaim:
+            claimName: n8n-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n
+  labels:
+    app: n8n
+spec:
+  type: {{ .Values.n8n.service.type }}
+  ports:
+    - port: {{ .Values.n8n.service.port }}
+      targetPort: {{ .Values.n8n.service.port }}
+      protocol: TCP
+  selector:
+    app: n8n
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.n8n.persistence.size }}
+  storageClassName: {{ .Values.n8n.persistence.storageClass }}

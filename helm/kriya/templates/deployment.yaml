@@ -1,0 +1,58 @@
+{{- range $serviceName := list "web" "api" "ai" }}
+{{- $serviceValues := index $.Values $serviceName }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app: {{ $serviceName }}
+spec:
+  replicas: {{ $serviceValues.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $serviceName }}
+    spec:
+      {{- with $.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $serviceName }}
+          image: "{{ $.Values.global.imageRegistry }}/{{ $serviceValues.image.repository }}:{{ $serviceValues.image.tag }}"
+          imagePullPolicy: {{ $serviceValues.image.pullPolicy }}
+          ports:
+            - containerPort: {{ $serviceValues.service.port }}
+          {{- if or $serviceValues.env $serviceValues.secrets }}
+          env:
+            {{- range $key, $value := $serviceValues.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- range $key, $value := $serviceValues.secrets }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $serviceName }}-secrets
+                  key: {{ $key }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml $serviceValues.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ if eq $serviceName "web" }}/{{ else if eq $serviceName "api" }}/api/v1/healthz{{ else if eq $serviceName "ai" }}/healthz{{ end }}
+              port: {{ $serviceValues.service.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ if eq $serviceName "web" }}/{{ else if eq $serviceName "api" }}/api/v1/healthz{{ else if eq $serviceName "ai" }}/healthz{{ end }}
+              port: {{ $serviceValues.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+{{- end }}
