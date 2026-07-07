@@ -85,8 +85,9 @@ Sebuah tugas QA selesai kalau bukti pengujian sudah ada, hasilnya jelas hijau at
 (tulis di sini, format: tanggal — kebutuhan — alasan; lalu berhenti dan tunggu Satria)
 
 ## Log
-
-(append satu baris per sesi: `2026-07-08 · [qa] task · status/catatan`)
-2026-07-08 · [qa] setup agent QA · AGENT-QA dibuat dan KRIYA-MASTER disinkronkan untuk validasi paralel
-2026-07-08 · [qa] validasi M2 · Build sukses, lint bersih, kontrak payload terverifikasi (Zustand persist cart tersinkron ke BE, checkout mengirim payload yang valid ke order API, status pesanan dilacak dan di-polling).
-2026-07-08 · [qa] validasi M3 · Validasi kode FE dan AI berjalan lancar, contract response match, tidak ada error kompilasi dan FastAPI start sukses. Migrasi 004 vector diverifikasi.
+ 
+ (append satu baris per sesi: `2026-07-08 · [qa] task · status/catatan`)
+ 2026-07-08 · [qa] setup agent QA · AGENT-QA dibuat dan KRIYA-MASTER disinkronkan untuk validasi paralel
+ 2026-07-08 · [qa] validasi M2 · Build sukses, lint bersih, kontrak payload terverifikasi (Zustand persist cart tersinkron ke BE, checkout mengirim payload yang valid ke order API, status pesanan dilacak dan di-polling).
+ 2026-07-08 · [qa] validasi M3 · Validasi kode FE dan AI berjalan lancar, contract response match, tidak ada error kompilasi dan FastAPI start sukses. Migrasi 004 vector diverifikasi.
+2026-07-08 · [qa] setup & run E2E Playwright · Menambahkan suite pengujian E2E Playwright mencakup Katalog (M1), Transaksi (M2), AI Search (M3), Chatbot (M4), Halaman Admin (M6), dan verifikasi render gambar Supabase Storage. Semua 12 test case sukses (passed).
