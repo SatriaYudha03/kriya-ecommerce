@@ -33,10 +33,10 @@ Furniture minimal hangat: palet netral (stone/putih gading) + satu aksen terraco
 - [x] State kosong & loading skeleton untuk semua halaman data
 
 ### M2 — Transaksi
-- [ ] `/(auth)`: login & register (supabase-js, email + Google)
-- [ ] Cart drawer + `/cart` (Zustand persist untuk guest; setelah login, sinkron via `PUT /api/v1/cart` dengan debounce)
-- [ ] `/checkout`: form alamat (validasi), pilih zona kirim, ringkasan; submit → `POST /orders` → buka **Snap popup** (`snap.js` sandbox, `snap_token` + `midtrans_client_key` dari respons)
-- [ ] `/pesanan` + `/pesanan/[id]`: daftar & detail, badge status berwarna, polling ringan saat `pending_payment`
+- [x] `/(auth)`: login & register (supabase-js, email + Google)
+- [x] Cart drawer + `/cart` (Zustand persist untuk guest; setelah login, sinkron via `PUT /api/v1/cart` dengan debounce)
+- [x] `/checkout`: form alamat (validasi), pilih zona kirim, ringkasan; submit → `POST /orders` → buka **Snap popup** (`snap.js` sandbox, `snap_token` + `midtrans_client_key` dari respons)
+- [x] `/pesanan` + `/pesanan/[id]`: daftar & detail, badge status berwarna, polling ringan saat `pending_payment`
 
 ### M3 — AI search
 - [ ] Search bar global (debounce 300 ms) → `/cari?q=` memanggil `GET /ai/v1/search`; tampilkan hint kecil bila `meta.mode = "keyword_fallback"`
@@ -61,3 +61,4 @@ Jangan mengganti library UI/state yang sudah ditetapkan. Jangan hardcode URL ser
 ## Log
 (append satu baris per sesi: `2026-07-06 · [fe] task · status/catatan`)
 2026-07-06 · [fe] M1 katalog (layout ala anon) · selesai — home (hero carousel, kategori, rail produk, banner, footer+newsletter), /kategori/[slug] (filter harga+sort+paginasi via URL), /produk/[slug] (galeri, varian, tab), skeleton+empty state semua halaman; fixtures diperluas 24 produk; placeholder monogram untuk foto; next build hijau, lint bersih. Catatan: menambah placeholder /cari (M3) & /cart (M2) + not-found agar shell tidak buntu. Belum di-commit (menunggu Satria).
+2026-07-08 · [fe] M2 transaksi · selesai — auth pages (login/register/callback via supabase-js), cart store (Zustand persist + API sync), cart page UI lengkap, checkout flow (validasi + Midtrans Snap), orders list & detail (polling saat pending). Sonner untuk toast. Next build hijau, lint bersih. Siap di-commit.

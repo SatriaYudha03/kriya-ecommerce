@@ -2,7 +2,7 @@
 // (AGENT-FE). Semua query lewat fetcher lib/api.ts — tidak ada fetch liar.
 
 import { useQuery } from "@tanstack/react-query";
-import { getCategories, getProduct, getProducts, type ProductsQuery } from "./api";
+import { getCategories, getProduct, getProducts, getOrders, getOrder, type ProductsQuery } from "./api";
 
 export function useCategories() {
   return useQuery({
@@ -24,5 +24,20 @@ export function useProduct(slug: string) {
     queryKey: ["product", slug],
     queryFn: () => getProduct(slug),
     enabled: Boolean(slug),
+  });
+}
+
+export function useOrders() {
+  return useQuery({
+    queryKey: ["orders"],
+    queryFn: getOrders,
+  });
+}
+
+export function useOrder(id: string) {
+  return useQuery({
+    queryKey: ["order", id],
+    queryFn: () => getOrder(id),
+    enabled: Boolean(id),
   });
 }

@@ -13,6 +13,8 @@ import type {
   Order,
   ProductDetail,
   ProductListItem,
+  CreateOrderPayload,
+  CreateOrderResponse,
 } from "./types";
 
 const USE_FIXTURES = process.env.NEXT_PUBLIC_USE_FIXTURES === "true";
@@ -135,8 +137,47 @@ export async function getCart(): Promise<Cart> {
   return data;
 }
 
+export async function updateCart(items: { variant_id: string; qty: number }[]): Promise<Cart> {
+  if (USE_FIXTURES) {
+    // In fixture mode, return the static cart but simulate network
+    return new Promise(resolve => setTimeout(() => resolve(fixtures.cart), 500));
+  }
+  const { data } = await request<Envelope<Cart>>("/api/v1/cart", { 
+    method: "PUT",
+    body: { items },
+    auth: true 
+  });
+  return data;
+}
+
+export async function createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+  if (USE_FIXTURES) {
+    return new Promise(resolve => setTimeout(() => resolve({
+      order: fixtures.orders[0],
+      snap_token: "mock_snap_token_123",
+      midtrans_client_key: "mock_client_key"
+    }), 1000));
+  }
+  const { data } = await request<Envelope<CreateOrderResponse>>("/api/v1/orders", {
+    method: "POST",
+    body: payload,
+    auth: true
+  });
+  return data;
+}
+
 export async function getOrders(): Promise<Order[]> {
   if (USE_FIXTURES) return fixtures.orders;
   const { data } = await request<Envelope<Order[]>>("/api/v1/orders", { auth: true });
+  return data;
+}
+
+export async function getOrder(id: string): Promise<Order> {
+  if (USE_FIXTURES) {
+    const order = fixtures.orders.find(o => o.id === id);
+    if (!order) throw new ApiError("not_found", "Pesanan tidak ditemukan", 404);
+    return order;
+  }
+  const { data } = await request<Envelope<Order>>(`/api/v1/orders/${id}`, { auth: true });
   return data;
 }

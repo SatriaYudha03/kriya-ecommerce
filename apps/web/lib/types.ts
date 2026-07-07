@@ -120,3 +120,20 @@ export interface ListEnvelope<T> {
 export interface ApiErrorBody {
   error: { code: string; message: string };
 }
+
+export interface PutCartPayloadItem {
+  variant_id: string;
+  qty: number;
+}
+
+export interface CreateOrderPayload {
+  items: PutCartPayloadItem[];
+  shipping_zone: "jawa_bali" | "luar";
+  shipping_address: ShippingAddress;
+}
+
+export interface CreateOrderResponse {
+  order: Order;
+  snap_token: string;
+  midtrans_client_key: string;
+}

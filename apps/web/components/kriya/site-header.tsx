@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, Search, ShoppingBag, X } from "lucide-react";
+import { LogOut, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { categoryLabel } from "@/lib/category-meta";
 import { cn } from "@/lib/utils";
+import { useAuth } from "./auth-provider";
+import { useCartStore } from "@/stores/cart-store";
 
-// Header toko (gaya anon): logo, pencarian, ikon keranjang, baris nav kategori
-// di desktop, dan menu geser di mobile. Kategori diterima dari layout (server
-// fetch) agar nav siap tanpa waterfall di client.
 export function SiteHeader({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [q, setQ] = useState("");
+  const { user, loading: authLoading, signOut } = useAuth();
+  const itemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.qty, 0));
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -66,12 +67,49 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
             >
               <Search className="h-5 w-5" />
             </Link>
+
+            {!authLoading && (
+              <>
+                {user ? (
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href="/pesanan"
+                      className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-200/60 md:flex"
+                    >
+                      <User className="h-4 w-4" />
+                      <span className="max-w-[120px] truncate">{user.email?.split("@")[0]}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => signOut()}
+                      aria-label="Keluar"
+                      className="rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="hidden rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200/60 md:block"
+                  >
+                    Masuk
+                  </Link>
+                )}
+              </>
+            )}
+
             <Link
               href="/cart"
               aria-label="Keranjang"
-              className="rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60"
+              className="relative rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60"
             >
               <ShoppingBag className="h-5 w-5" />
+              {itemCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
+                  {itemCount > 99 ? "99+" : itemCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>
@@ -132,6 +170,35 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 </Link>
               ))}
             </div>
+            {!authLoading && !user && (
+              <div className="border-t border-neutral-200 pt-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-2 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-200/50"
+                >
+                  Masuk / Daftar
+                </Link>
+              </div>
+            )}
+            {!authLoading && user && (
+              <div className="border-t border-neutral-200 pt-3 space-y-1">
+                <Link
+                  href="/pesanan"
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-2 py-2.5 text-sm text-neutral-700 hover:bg-neutral-200/50"
+                >
+                  Pesanan saya
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => { signOut(); setMenuOpen(false); }}
+                  className="w-full rounded-lg px-2 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-200/50"
+                >
+                  Keluar
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

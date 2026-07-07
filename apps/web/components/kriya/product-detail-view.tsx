@@ -7,6 +7,8 @@ import { categoryLabel } from "@/lib/category-meta";
 import { formatRupiah } from "@/lib/format";
 import { useProduct } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/stores/cart-store";
+import { toast } from "sonner";
 import { Breadcrumbs } from "./breadcrumbs";
 import { EmptyState } from "./empty-state";
 import { ProductGallery } from "./product-gallery";
@@ -17,7 +19,8 @@ export function ProductDetailView({ slug }: { slug: string }) {
   const { data: product, isLoading, isError } = useProduct(slug);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
+  const addItem = useCartStore(state => state.addItem);
+  const loading = useCartStore(state => state.loading);
 
   const selected = useMemo(() => {
     if (!product) return null;
@@ -28,7 +31,27 @@ export function ProductDetailView({ slug }: { slug: string }) {
   const handleSelect = (id: string) => {
     setSelectedId(id);
     setQty(1);
-    setAdded(false);
+  };
+
+  const handleAdd = async () => {
+    if (!product || !selected) return;
+    try {
+      await addItem({
+        variant_id: selected.id,
+        qty,
+        price: selected.price,
+        product: {
+          slug: product.slug,
+          name: product.name,
+          thumbnail_url: product.images[0]?.url || "",
+          color: selected.color,
+          size: selected.size,
+        },
+      });
+      toast.success("Berhasil ditambahkan ke keranjang");
+    } catch {
+      toast.error("Gagal menambahkan ke keranjang");
+    }
   };
 
   if (isLoading) return <PdpSkeleton />;
@@ -132,20 +155,14 @@ export function ProductDetailView({ slug }: { slug: string }) {
 
             <button
               type="button"
-              onClick={() => setAdded(true)}
-              disabled={stock <= 0}
+              onClick={handleAdd}
+              disabled={stock <= 0 || loading}
               className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingBag className="h-4 w-4" />
-              {stock > 0 ? "Tambah ke keranjang" : "Stok habis"}
+              {stock > 0 ? (loading ? "Memproses..." : "Tambah ke keranjang") : "Stok habis"}
             </button>
           </div>
-
-          {added && (
-            <p className="mt-3 text-sm text-neutral-500">
-              Keranjang aktif pada M2 — untuk sekarang aksi ini masih demo.
-            </p>
-          )}
 
           <ul className="mt-8 space-y-2.5 border-t border-neutral-200 pt-6 text-sm text-neutral-600">
             <li className="flex items-center gap-2">

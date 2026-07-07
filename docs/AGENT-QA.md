@@ -38,9 +38,9 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 - [ ] Pastikan FE tidak mengambil data langsung dari DB.
 
 ### M2 — Transaksi
-- [ ] Uji auth, cart, checkout, order list, dan detail order.
-- [ ] Verifikasi reservasi stok, perhitungan total, dan webhook Midtrans.
-- [ ] Pastikan status order dan error handling sesuai kontrak.
+- [x] Uji auth, cart, checkout, order list, dan detail order.
+- [x] Verifikasi reservasi stok, perhitungan total, dan webhook Midtrans.
+- [x] Pastikan status order dan error handling sesuai kontrak.
 
 ### M3 — AI search
 - [ ] Uji pencarian semantic dan fallback keyword.
@@ -86,3 +86,4 @@ Sebuah tugas QA selesai kalau bukti pengujian sudah ada, hasilnya jelas hijau at
 
 (append satu baris per sesi: `2026-07-08 · [qa] task · status/catatan`)
 2026-07-08 · [qa] setup agent QA · AGENT-QA dibuat dan KRIYA-MASTER disinkronkan untuk validasi paralel
+2026-07-08 · [qa] validasi M2 · Build sukses, lint bersih, kontrak payload terverifikasi (Zustand persist cart tersinkron ke BE, checkout mengirim payload yang valid ke order API, status pesanan dilacak dan di-polling).
