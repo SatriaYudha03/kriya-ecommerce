@@ -24,3 +24,5 @@ __pycache__/
 
 # Misc
 .DS_Store
+# Claude instructions
+CLAUDE.md
