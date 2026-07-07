@@ -435,7 +435,7 @@ let variantCounter = 0;
 
 function buildImages(seed: Seed): ProductImage[] {
   return Array.from({ length: seed.image_count }, (_, i) => ({
-    url: `/img/${seed.slug}-${i + 1}.jpg`,
+    url: `https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/${seed.slug}-${i + 1}.jpg`,
     alt: `${seed.name} tampak ${i + 1}`,
   }));
 }
@@ -497,7 +497,7 @@ export const cart: Cart = {
       product: {
         slug: "taru-work-desk",
         name: "TARU work desk",
-        thumbnail_url: "/img/taru-work-desk-1.jpg",
+        thumbnail_url: "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/taru-work-desk-1.jpg",
         color: "natural",
         size: null,
       },
