@@ -48,9 +48,11 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 - [x] Cek respon tetap memakai envelope yang disepakati.
 
 ### M4 — Chatbot
-- [x] Uji webhook chat, sumber jawaban, dan status order lookup.
-- [x] Pastikan jawaban patuh pada konteks retrieval.
-- [x] Validasi error state dan fallback yang ramah.
+**Catatan status (2026-07-08):** item di bawah sebelumnya tercentang penuh, tapi backend AI (`chatbot_system.md`, workflow n8n `chatbot.json`, eval 25 soal) belum dibuat — lihat log AGENT-AI. Validasi sejauh ini baru mencakup shell widget FE (state mengetik, render sources, error state), bukan alur end-to-end ke webhook n8n yang sesungguhnya. Dicentang ulang jadi terbuka sampai backend tersedia untuk diuji end-to-end.
+- [x] Uji shell widget FE (state mengetik, kirim payload sesuai kontrak, render reply/sources) — hanya dengan mock/fixture, bukan webhook n8n asli.
+- [ ] Uji webhook chat asli, sumber jawaban, dan status order lookup end-to-end (menunggu workflow n8n AGENT-AI).
+- [ ] Pastikan jawaban patuh pada konteks retrieval (menunggu `chatbot_system.md` + eval 25 soal).
+- [ ] Validasi error state dan fallback yang ramah end-to-end.
 
 ### M5 — Otomasi
 - [ ] Uji workflow notifikasi dan abandoned cart.

@@ -9,12 +9,14 @@ Repo: `kriya-commerce` · Versi 1.0 · 6 Juli 2026
 ## 0. Cara pakai (WAJIB untuk semua agent)
 
 1. Baca file ini sampai habis.
-2. Baca file teritorimu: `AGENT-FE.md` / `AGENT-BE.md` / `AGENT-AI.md` / `AGENT-QA.md`.
+2. Baca file teritorimu: `AGENT-FE.md` / `AGENT-BE.md` / `AGENT-AI.md` / `AGENT-QA.md` / `AGENT-DEVSECOPS.md`.
 3. Cek bagian **Log** di file teritorimu untuk tahu posisi terakhir.
 4. Kerjakan **SATU task** yang ditunjuk Satria (atau task berikutnya yang belum dicentang di milestone aktif).
 5. Tutup sesi dengan ritual di Bagian 8.
 
-Milestone aktif saat ini: **M2**. Hanya satu milestone terbuka pada satu waktu.
+**Status milestone (per 8 Juli 2026):** M1–M3 tuntas lintas-agent. M6 (Admin) FE/BE/QA tuntas. **M4 (Chatbot) belum tuntas** — FE widget selesai, tetapi backend chat AI (`chatbot_system.md`, workflow n8n `chatbot.json`, eval 25 soal) masih terbuka; validasi QA M4 baru mencakup shell widget FE, bukan alur end-to-end. M5 (Otomasi) belum dimulai. M7 (Rilis) belum dibuka. Prioritas berikut: tuntaskan sisi AGENT-AI di M4 sebelum lanjut M5.
+
+Aturan "satu milestone terbuka" berlaku untuk track produk M0–M7. Track DevSecOps (D0–D5) berjalan **paralel** dan tidak terhitung dalam aturan itu (lihat Bagian 9).
 
 ## 1. Produk (ringkas)
 
@@ -40,7 +42,7 @@ KRIYA menjual furniture flat-pack merek sendiri: katalog per ruangan, varian war
 kriya-commerce/
   CLAUDE.md                # pointer (lihat Bagian 11)
   KRIYA-MASTER.md          # file ini — pemilik: Satria
-  AGENT-FE.md / AGENT-BE.md / AGENT-AI.md / AGENT-QA.md
+  AGENT-FE.md / AGENT-BE.md / AGENT-AI.md / AGENT-QA.md / AGENT-DEVSECOPS.md
   docker-compose.yml       # pemilik: Satria
   .env.example             # pemilik: Satria
   apps/web/                # TERITORI AGENT-FE
@@ -49,10 +51,17 @@ kriya-commerce/
   automation/n8n/          # TERITORI AGENT-AI (ekspor workflow .json)
   data/                    # TERITORI AGENT-AI (seed, KB, prompts, scripts, eval)
   supabase/migrations/     # BERSAMA — lihat aturan Bagian 7
-  docs/                    # PRD, diagram — pemilik: Satria
+  infra/                   # TERITORI AGENT-DEVSECOPS (Terraform, k3s bootstrap)
+  helm/                    # TERITORI AGENT-DEVSECOPS (chart & values k8s)
+  .github/workflows/       # TERITORI AGENT-DEVSECOPS (CI/CD)
+  docs/                    # pemilik: Satria — PENGECUALIAN: AGENT-DEVSECOPS boleh menulis
+                           # docs/devops-*.md (arsitektur, rollback) tanpa sesi diawasi;
+                           # file docs/ lainnya (termasuk PRD.md, KRIYA-MASTER.md) tetap milik Satria
 ```
 
-Aturan emas: **agent hanya menulis di teritorinya sendiri.** File milik Satria boleh ditulis agent hanya dalam sesi yang Satria awasi langsung dan nyatakan eksplisit.
+Aturan emas: **agent hanya menulis di teritorinya sendiri.** File milik Satria boleh ditulis agent hanya dalam sesi yang Satria awasi langsung dan nyatakan eksplisit, kecuali pengecualian `docs/devops-*.md` di atas.
+
+**Catatan gap terbuka:** `docs/PRD.md` dirujuk di Bagian 1, 6, dan 9 tapi belum ada di repo. Sampai Satria membuatnya, kriteria demo per milestone (Bagian 9) belum punya sumber definitif — agent QA memakai kontrak Bagian 6 sebagai acuan sementara.
 
 ## 4. Layanan, port, environment
 
@@ -169,7 +178,9 @@ Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan. Se
 | M6 Admin | halaman admin CRUD | endpoint admin (kontrak difinalkan di gerbang) | — | guard admin + CRUD / status validation |
 | M7 Rilis | polish | polish | polish | smoke lintas service + regresi akhir |
 
-Demo criteria per milestone: lihat `docs/PRD.md` Bagian 6.
+Demo criteria per milestone: lihat `docs/PRD.md` Bagian 6 (lihat catatan gap di Bagian 3 — file ini belum ada).
+
+**Track paralel — DevSecOps (D0–D5, tidak sekuensial dengan M0–M7):** D0 Fondasi CI · D1 Provisioning & cluster · D2 CD otomatis · D3 Observability · D4 Alerting · D5 Dokumentasi & demo. Detail task per tahap: `AGENT-DEVSECOPS.md`. Kematangan D2+ baru relevan setelah ada aplikasi nyata untuk di-deploy (M1–M2 selesai).
 
 ## 10. Larangan global
 
@@ -183,7 +194,7 @@ Isi `CLAUDE.md` di root repo:
 Proyek KRIYA (e-commerce furniture + AI). WAJIB baca KRIYA-MASTER.md
 sebelum melakukan apa pun. Peranmu ditentukan di awal sesi:
 FE -> baca AGENT-FE.md · BE -> baca AGENT-BE.md · AI/data -> baca AGENT-AI.md.
-QA -> baca AGENT-QA.md.
+QA -> baca AGENT-QA.md · DevSecOps -> baca AGENT-DEVSECOPS.md.
 Patuhi teritori, kontrak, dan ritual sesi di KRIYA-MASTER.md.
 Kerjakan hanya SATU task per sesi. Jika butuh perubahan di luar
 teritorimu: berhenti dan tulis di "Permintaan lintas-teritori".
