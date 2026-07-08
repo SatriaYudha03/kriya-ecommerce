@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
@@ -10,7 +11,8 @@ interface Slide {
   title: string;
   subtitle: string;
   cta: { label: string; href: string };
-  word: string;
+  image: string;
+  alt: string;
   gradient: string;
 }
 
@@ -20,7 +22,8 @@ const slides: Slide[] = [
     title: "Ruang yang hangat, dirakit oleh tanganmu.",
     subtitle: "Furniture flat-pack per ruangan dengan harga jujur — tanpa drama.",
     cta: { label: "Jelajahi ruang keluarga", href: "/kategori/living-room" },
-    word: "TAMU",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80&auto=format&fit=crop",
+    alt: "Sofa modern di ruang keluarga yang hangat",
     gradient: "from-brand-tint to-brand-soft",
   },
   {
@@ -28,7 +31,8 @@ const slides: Slide[] = [
     title: "Meja yang menemani kerja dari rumah.",
     subtitle: "Meja, kursi, dan penyimpanan untuk sudut kerja yang rapi.",
     cta: { label: "Lihat ruang kerja", href: "/kategori/workspace" },
-    word: "TARU",
+    image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=800&q=80&auto=format&fit=crop",
+    alt: "Meja kerja minimalis dengan pencahayaan alami",
     gradient: "from-cream to-sand",
   },
   {
@@ -36,7 +40,8 @@ const slides: Slide[] = [
     title: "Cahaya lembut untuk setiap sudut.",
     subtitle: "Lampu lantai, gantung, dan meja bernuansa hangat.",
     cta: { label: "Lihat pencahayaan", href: "/kategori/lighting" },
-    word: "OBOR",
+    image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80&auto=format&fit=crop",
+    alt: "Lampu lantai dengan cahaya hangat di sudut ruangan",
     gradient: "from-cream to-brand-tint",
   },
 ];
@@ -92,14 +97,18 @@ export function Hero() {
           <div
             key={index}
             className={cn(
-              "flex aspect-[4/3] items-center justify-center rounded-2xl bg-linear-to-br ring-1 ring-black/5",
+              "relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-black/5",
               "animate-in fade-in duration-700",
-              slide.gradient,
             )}
           >
-            <span className="text-6xl font-semibold tracking-[0.2em] text-clay/80 uppercase sm:text-7xl">
-              {slide.word}
-            </span>
+            <Image
+              src={slide.image}
+              alt={slide.alt}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+              priority={index === 0}
+            />
           </div>
         </div>
       </div>

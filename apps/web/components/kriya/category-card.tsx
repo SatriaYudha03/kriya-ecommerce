@@ -1,22 +1,34 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Category } from "@/lib/types";
-import { categoryGradients, categoryLabel } from "@/lib/category-meta";
+import { categoryGradients, categoryImages, categoryLabel } from "@/lib/category-meta";
 
 export function CategoryCard({ category }: { category: Category }) {
   const label = categoryLabel(category.slug, category.name);
   const gradient = categoryGradients[category.slug] ?? "from-sand to-cream";
+  const image = categoryImages[category.slug];
   return (
     <Link
       href={`/kategori/${category.slug}`}
       className={`group relative flex aspect-square flex-col justify-between overflow-hidden rounded-2xl bg-linear-to-br ${gradient} p-5 ring-1 ring-black/5 transition-shadow hover:shadow-md`}
     >
-      <span className="text-xs font-medium uppercase tracking-widest text-clay/70">
+      {image && (
+        <Image
+          src={image}
+          alt={label}
+          fill
+          sizes="(min-width: 1024px) 16vw, (min-width: 640px) 33vw, 50vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      )}
+      <span className="absolute inset-0 bg-black/40" />
+      <span className="relative z-10 text-xs font-medium uppercase tracking-widest text-white/70">
         Ruangan
       </span>
-      <span className="flex items-center justify-between">
-        <span className="text-base font-medium text-neutral-900">{label}</span>
-        <ArrowRight className="h-4 w-4 text-clay transition-transform group-hover:translate-x-1" />
+      <span className="relative z-10 flex items-center justify-between">
+        <span className="text-base font-medium text-white">{label}</span>
+        <ArrowRight className="h-4 w-4 text-white transition-transform group-hover:translate-x-1" />
       </span>
     </Link>
   );
