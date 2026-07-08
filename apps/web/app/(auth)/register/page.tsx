@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useCartStore } from "@/stores/cart-store";
+import { SocialLoginButtons } from "@/components/kriya/social-login-buttons";
 
 function RegisterForm() {
   const [email, setEmail] = useState("");
@@ -45,7 +46,20 @@ function RegisterForm() {
 
   return (
     <>
-      <form onSubmit={handleRegister} className="mt-8 space-y-4">
+      <div className="mt-8">
+        <SocialLoginButtons next={next} />
+      </div>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-neutral-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-neutral-400">atau</span>
+        </div>
+      </div>
+
+      <form onSubmit={handleRegister} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-neutral-700">Email</label>
           <input

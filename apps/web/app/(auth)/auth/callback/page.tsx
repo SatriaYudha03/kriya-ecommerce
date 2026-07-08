@@ -21,7 +21,8 @@ function CallbackHandler() {
       if (data.session) {
         await syncFromServer();
       }
-      router.replace("/");
+      const next = searchParams.get("next") || "/";
+      router.replace(next);
     }
     
     handleCallback();
