@@ -172,3 +172,75 @@ export interface CreateOrderResponse {
   snap_token: string;
   midtrans_client_key: string;
 }
+
+// ===== Admin (M6) =====
+
+export interface AdminStats {
+  total_orders: number;
+  revenue: number;
+  active_products: number;
+}
+
+export interface AdminOrdersQuery {
+  status?: OrderStatus;
+  page?: number;
+  limit?: number;
+}
+
+export interface Dimensions {
+  width_cm: number;
+  depth_cm: number;
+  height_cm: number;
+}
+
+export interface VariantInput {
+  sku: string;
+  color: string;
+  size: string | null;
+  price: number;
+  stock: number;
+}
+
+export interface ProductImageInput {
+  storage_path: string;
+  alt: string;
+  is_primary: boolean;
+}
+
+export interface CreateProductPayload {
+  slug: string;
+  name: string;
+  category_slug: string;
+  description: string;
+  materials: string[];
+  dimensions: Dimensions;
+  weight_kg: number;
+  has_assembly_guide: boolean;
+  variants: VariantInput[];
+  images: ProductImageInput[];
+}
+
+// Update produk hanya field level-produk (varian & gambar lewat endpoint terpisah).
+export type UpdateProductPayload = Omit<CreateProductPayload, "variants" | "images">;
+
+export interface AdminProductImage {
+  id: string;
+  storage_path: string;
+  url: string;
+  alt: string;
+  is_primary: boolean;
+}
+
+export interface AdminProductDetail {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  category_slug: string;
+  materials: string[];
+  dimensions: Dimensions;
+  weight_kg: number;
+  has_assembly_guide: boolean;
+  variants: ProductVariant[];
+  images: AdminProductImage[];
+}
