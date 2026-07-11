@@ -239,3 +239,35 @@ type AdminImageRequest struct {
 	Alt         string `json:"alt"`
 	IsPrimary   bool   `json:"is_primary"`
 }
+
+type AdminStatsResponse struct {
+	TotalOrders    int64 `json:"total_orders"`
+	Revenue        int64 `json:"revenue"`
+	ActiveProducts int64 `json:"active_products"`
+}
+
+// AdminImageResponse memuat id + storage_path (bentuk internal, dipakai form edit).
+type AdminImageResponse struct {
+	ID          string `json:"id"`
+	StoragePath string `json:"storage_path"`
+	URL         string `json:"url"`
+	Alt         string `json:"alt"`
+	IsPrimary   bool   `json:"is_primary"`
+}
+
+// AdminProductDetailResponse = bentuk internal produk untuk panel admin:
+// menyertakan id varian & gambar, is_primary, dan storage_path (beda dari
+// kontrak publik yang hanya {url, alt}).
+type AdminProductDetailResponse struct {
+	ID               string               `json:"id"`
+	Slug             string               `json:"slug"`
+	Name             string               `json:"name"`
+	Description      string               `json:"description"`
+	CategorySlug     string               `json:"category_slug"`
+	Materials        []string             `json:"materials"`
+	Dimensions       Dimensions           `json:"dimensions"`
+	WeightKg         float64              `json:"weight_kg"`
+	HasAssemblyGuide bool                 `json:"has_assembly_guide"`
+	Variants         []VariantResponse    `json:"variants"`
+	Images           []AdminImageResponse `json:"images"`
+}

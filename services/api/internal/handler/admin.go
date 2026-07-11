@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kriya-commerce/api/internal/model"
 	"github.com/kriya-commerce/api/internal/repository"
+	"github.com/kriya-commerce/api/internal/storage"
 )
 
 type AdminHandler struct {
@@ -273,4 +274,125 @@ func (h *AdminHandler) DeleteVariant(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": variantID}})
+}
+
+// Stats mengembalikan metrik ringkas untuk dashboard admin.
+func (h *AdminHandler) Stats(c *gin.Context) {
+	totalOrders, revenue, activeProducts, err := h.repo.Stats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "internal", Message: "Gagal mengambil statistik"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, model.Response{Data: model.AdminStatsResponse{
+		TotalOrders:    totalOrders,
+		Revenue:        revenue,
+		ActiveProducts: activeProducts,
+	}})
+}
+
+// GetProduct mengembalikan detail produk bentuk internal (id varian & gambar,
+// is_primary, storage_path) untuk prefill form edit admin.
+func (h *AdminHandler) GetProduct(c *gin.Context) {
+	id := c.Param("id")
+	p, err := h.repo.GetProductByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "not_found", Message: "Produk tidak ditemukan"},
+		})
+		return
+	}
+
+	var materials []string
+	_ = json.Unmarshal(p.Materials, &materials)
+	if materials == nil {
+		materials = []string{}
+	}
+	var dims model.Dimensions
+	_ = json.Unmarshal(p.Dimensions, &dims)
+
+	variants := make([]model.VariantResponse, 0, len(p.Variants))
+	for _, v := range p.Variants {
+		variants = append(variants, model.VariantResponse{
+			ID:    v.ID,
+			Sku:   v.Sku,
+			Color: v.Color,
+			Size:  v.Size,
+			Price: v.Price,
+			Stock: v.Stock,
+		})
+	}
+
+	images := make([]model.AdminImageResponse, 0, len(p.Images))
+	for _, img := range p.Images {
+		images = append(images, model.AdminImageResponse{
+			ID:          img.ID,
+			StoragePath: img.StoragePath,
+			URL:         storage.PublicImageURL(h.supabaseURL, img.StoragePath),
+			Alt:         img.Alt,
+			IsPrimary:   img.IsPrimary,
+		})
+	}
+
+	c.JSON(http.StatusOK, model.Response{Data: model.AdminProductDetailResponse{
+		ID:               p.ID,
+		Slug:             p.Slug,
+		Name:             p.Name,
+		Description:      p.Description,
+		CategorySlug:     p.CategorySlug,
+		Materials:        materials,
+		Dimensions:       dims,
+		WeightKg:         p.WeightKg,
+		HasAssemblyGuide: p.HasAssemblyGuide,
+		Variants:         variants,
+		Images:           images,
+	}})
+}
+
+// AddProductImage menambah gambar ke produk yang sudah ada (dipakai saat edit).
+// storage_path diproduksi FE setelah meng-upload berkas ke Supabase Storage.
+func (h *AdminHandler) AddProductImage(c *gin.Context) {
+	productID := c.Param("id")
+	var req model.AdminImageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		})
+		return
+	}
+
+	img := repository.ProductImage{
+		ID:          uuid.New().String(),
+		ProductID:   productID,
+		StoragePath: req.StoragePath,
+		Alt:         req.Alt,
+		IsPrimary:   req.IsPrimary,
+	}
+	if err := h.repo.CreateImage(&img); err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menambah gambar"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, model.Response{Data: model.AdminImageResponse{
+		ID:          img.ID,
+		StoragePath: img.StoragePath,
+		URL:         storage.PublicImageURL(h.supabaseURL, img.StoragePath),
+		Alt:         img.Alt,
+		IsPrimary:   img.IsPrimary,
+	}})
+}
+
+// DeleteProductImage menghapus satu gambar produk.
+func (h *AdminHandler) DeleteProductImage(c *gin.Context) {
+	imageID := c.Param("image_id")
+	if err := h.repo.DeleteImage(imageID); err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghapus gambar"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": imageID}})
 }
