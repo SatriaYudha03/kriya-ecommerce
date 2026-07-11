@@ -85,6 +85,7 @@ func main() {
 	admin.PUT("/products/:id", adminHandler.UpdateProduct)
 	admin.DELETE("/products/:id", adminHandler.DeleteProduct)
 	admin.POST("/products/:id/images", adminHandler.AddProductImage)
+	admin.PUT("/products/:id/images/:image_id", adminHandler.UpdateProductImage)
 	admin.DELETE("/products/:id/images/:image_id", adminHandler.DeleteProductImage)
 	admin.POST("/products/:id/variants", adminHandler.CreateVariant)
 	admin.PUT("/products/:id/variants/:variant_id", adminHandler.UpdateVariant)

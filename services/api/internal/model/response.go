@@ -230,14 +230,21 @@ type AdminVariantRequest struct {
 	Sku   string  `json:"sku" binding:"required"`
 	Color string  `json:"color"`
 	Size  *string `json:"size"`
-	Price int     `json:"price" binding:"required,min=0"`
-	Stock int     `json:"stock" binding:"required,min=0"`
+	Price int     `json:"price" binding:"required,min=1"`
+	// Stock TIDAK pakai `required`: validator Go menganggap 0 sebagai "kosong",
+	// padahal stok 0 (habis) valid. Cukup min=0.
+	Stock int `json:"stock" binding:"min=0"`
 }
 
 type AdminImageRequest struct {
 	StoragePath string `json:"storage_path" binding:"required"`
 	Alt         string `json:"alt"`
 	IsPrimary   bool   `json:"is_primary"`
+}
+
+type AdminImageUpdateRequest struct {
+	Alt       string `json:"alt"`
+	IsPrimary bool   `json:"is_primary"`
 }
 
 type AdminStatsResponse struct {

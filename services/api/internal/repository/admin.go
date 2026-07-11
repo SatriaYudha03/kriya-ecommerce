@@ -147,6 +147,25 @@ func (r *AdminRepository) CreateImage(img *ProductImage) error {
 	})
 }
 
+// UpdateImage memperbarui alt & is_primary satu gambar. Bila jadi primary,
+// gambar lain produk yang sama di-set non-primary dalam satu transaksi.
+func (r *AdminRepository) UpdateImage(id, alt string, isPrimary bool) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var img ProductImage
+		if err := tx.Where("id = ?", id).First(&img).Error; err != nil {
+			return err
+		}
+		if isPrimary {
+			if err := tx.Model(&ProductImage{}).Where("product_id = ?", img.ProductID).
+				Update("is_primary", false).Error; err != nil {
+				return err
+			}
+		}
+		return tx.Model(&ProductImage{}).Where("id = ?", id).
+			Updates(map[string]interface{}{"alt": alt, "is_primary": isPrimary}).Error
+	})
+}
+
 // DeleteImage menghapus satu baris gambar produk.
 func (r *AdminRepository) DeleteImage(id string) error {
 	return r.db.Where("id = ?", id).Delete(&ProductImage{}).Error

@@ -385,6 +385,25 @@ func (h *AdminHandler) AddProductImage(c *gin.Context) {
 	}})
 }
 
+// UpdateProductImage memperbarui alt / is_primary satu gambar (dipakai saat edit).
+func (h *AdminHandler) UpdateProductImage(c *gin.Context) {
+	imageID := c.Param("image_id")
+	var req model.AdminImageUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		})
+		return
+	}
+	if err := h.repo.UpdateImage(imageID, req.Alt, req.IsPrimary); err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memperbarui gambar"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": imageID}})
+}
+
 // DeleteProductImage menghapus satu gambar produk.
 func (h *AdminHandler) DeleteProductImage(c *gin.Context) {
 	imageID := c.Param("image_id")
