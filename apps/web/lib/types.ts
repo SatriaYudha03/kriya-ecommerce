@@ -81,6 +81,19 @@ export interface ShippingAddress {
   postal_code: string;
 }
 
+// Data diri + alamat default user (endpoint /api/v1/profile).
+// Dipakai untuk prefill checkout agar tidak mengetik ulang alamat.
+export interface Profile {
+  full_name: string;
+  phone: string;
+  address_line: string;
+  city: string;
+  province: string;
+  postal_code: string;
+}
+
+export type UpdateProfilePayload = Profile;
+
 export interface OrderItem {
   name: string;
   color: string;

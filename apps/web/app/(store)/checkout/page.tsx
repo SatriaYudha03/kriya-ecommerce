@@ -7,6 +7,7 @@ import Script from "next/script";
 import { MoveLeft, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { useCartStore } from "@/stores/cart-store";
+import { useProfile } from "@/lib/queries";
 import { createOrder } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import { toast } from "sonner";
@@ -52,6 +53,42 @@ export default function CheckoutPage() {
     province: "",
     postal_code: "",
   });
+
+  // Prefill alamat dari profil tersimpan agar user tak mengetik ulang.
+  // Seeding dilakukan saat render (guarded sekali) mengikuti pola React 19,
+  // bukan di dalam effect.
+  const { data: profile } = useProfile(Boolean(user));
+  const [prefilled, setPrefilled] = useState(false);
+  if (profile && !prefilled) {
+    setPrefilled(true);
+    const hasSaved =
+      profile.full_name ||
+      profile.phone ||
+      profile.address_line ||
+      profile.city ||
+      profile.province ||
+      profile.postal_code;
+    if (hasSaved) {
+      setAddress((prev) => {
+        const untouched =
+          !prev.recipient &&
+          !prev.phone &&
+          !prev.address_line &&
+          !prev.city &&
+          !prev.province &&
+          !prev.postal_code;
+        if (!untouched) return prev;
+        return {
+          recipient: profile.full_name,
+          phone: profile.phone,
+          address_line: profile.address_line,
+          city: profile.city,
+          province: profile.province,
+          postal_code: profile.postal_code,
+        };
+      });
+    }
+  }
 
   const total = subtotal + ZONES[zone].cost;
 
@@ -128,7 +165,12 @@ export default function CheckoutPage() {
         <form onSubmit={handleCheckout} className="grid gap-12 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-7 space-y-8">
             <section>
-              <h2 className="text-lg font-medium text-neutral-900">1. Alamat Pengiriman</h2>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-medium text-neutral-900">1. Alamat Pengiriman</h2>
+                <Link href="/profil" className="text-sm font-medium text-brand hover:text-brand-strong">
+                  Kelola alamat tersimpan
+                </Link>
+              </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-neutral-700">Nama Penerima</label>

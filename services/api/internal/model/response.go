@@ -165,6 +165,28 @@ type CreateOrderResponse struct {
 	MidtransClientKey string        `json:"midtrans_client_key"`
 }
 
+// ===== Profile (data diri + alamat default) =====
+
+// ProfileResponse: data diri + alamat default user, dipakai FE untuk prefill checkout.
+type ProfileResponse struct {
+	FullName    string `json:"full_name"`
+	Phone       string `json:"phone"`
+	AddressLine string `json:"address_line"`
+	City        string `json:"city"`
+	Province    string `json:"province"`
+	PostalCode  string `json:"postal_code"`
+}
+
+// UpdateProfileRequest: semua field opsional (profil boleh diisi bertahap).
+type UpdateProfileRequest struct {
+	FullName    string `json:"full_name"`
+	Phone       string `json:"phone"`
+	AddressLine string `json:"address_line"`
+	City        string `json:"city"`
+	Province    string `json:"province"`
+	PostalCode  string `json:"postal_code"`
+}
+
 // ===== Internal =====
 
 type InternalOrderStatusResponse struct {

@@ -13,6 +13,8 @@ import type {
   Order,
   ProductDetail,
   ProductListItem,
+  Profile,
+  UpdateProfilePayload,
   CreateOrderPayload,
   CreateOrderResponse,
   SearchEnvelope,
@@ -130,6 +132,24 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
     return detail;
   }
   const { data } = await request<Envelope<ProductDetail>>(`/api/v1/products/${slug}`);
+  return data;
+}
+
+export async function getProfile(): Promise<Profile> {
+  if (USE_FIXTURES) return fixtures.profile;
+  const { data } = await request<Envelope<Profile>>("/api/v1/profile", { auth: true });
+  return data;
+}
+
+export async function updateProfile(payload: UpdateProfilePayload): Promise<Profile> {
+  if (USE_FIXTURES) {
+    return new Promise((resolve) => setTimeout(() => resolve(payload), 400));
+  }
+  const { data } = await request<Envelope<Profile>>("/api/v1/profile", {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
   return data;
 }
 

@@ -73,11 +73,17 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 {user ? (
                   <div className="flex items-center gap-1">
                     <Link
-                      href="/pesanan"
+                      href="/profil"
                       className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-200/60 md:flex"
                     >
                       <User className="h-4 w-4" />
                       <span className="max-w-[120px] truncate">{user.email?.split("@")[0]}</span>
+                    </Link>
+                    <Link
+                      href="/pesanan"
+                      className="hidden rounded-full px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-200/60 md:block"
+                    >
+                      Pesanan
                     </Link>
                     <button
                       type="button"
@@ -183,6 +189,13 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
             )}
             {!authLoading && user && (
               <div className="border-t border-neutral-200 pt-3 space-y-1">
+                <Link
+                  href="/profil"
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-lg px-2 py-2.5 text-sm text-neutral-700 hover:bg-neutral-200/50"
+                >
+                  Profil saya
+                </Link>
                 <Link
                   href="/pesanan"
                   onClick={() => setMenuOpen(false)}

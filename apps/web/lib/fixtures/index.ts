@@ -15,6 +15,7 @@ import type {
   ProductImage,
   ProductListItem,
   ProductVariant,
+  Profile,
 } from "../types";
 
 export const categories: Category[] = [
@@ -535,6 +536,15 @@ export const orders: Order[] = [
   },
 ];
 
+export const profile: Profile = {
+  full_name: "Satria Yudha",
+  phone: "081200000000",
+  address_line: "Jl. Melati No. 10",
+  city: "Bandung",
+  province: "Jawa Barat",
+  postal_code: "40123",
+};
+
 export const fixtures = {
   categories,
   productList,
@@ -542,4 +552,5 @@ export const fixtures = {
   productDetails,
   cart,
   orders,
+  profile,
 };

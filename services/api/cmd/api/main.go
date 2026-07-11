@@ -43,6 +43,9 @@ func main() {
 	adminRepo := repository.NewAdminRepository(database)
 	adminHandler := handler.NewAdminHandler(adminRepo, orderRepo, cfg.SupabaseURL)
 
+	profileRepo := repository.NewProfileRepository(database)
+	profileHandler := handler.NewProfileHandler(profileRepo)
+
 	v1 := r.Group("/api/v1")
 	v1.GET("/healthz", handler.Health)
 
@@ -60,6 +63,9 @@ func main() {
 	}
 	authed := v1.Group("")
 	authed.Use(middleware.Auth(jwksURL, cfg.SupabaseJWTSecret))
+
+	authed.GET("/profile", profileHandler.GetProfile)
+	authed.PUT("/profile", profileHandler.PutProfile)
 
 	authed.GET("/cart", cartHandler.GetCart)
 	authed.PUT("/cart", cartHandler.PutCart)
