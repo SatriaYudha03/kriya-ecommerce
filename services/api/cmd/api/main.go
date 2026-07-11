@@ -54,8 +54,12 @@ func main() {
 	v1.POST("/payments/midtrans/notification", paymentHandler.MidtransNotification)
 
 	// Grup butuh auth.
+	jwksURL := ""
+	if cfg.SupabaseURL != "" {
+		jwksURL = cfg.SupabaseURL + "/auth/v1/.well-known/jwks.json"
+	}
 	authed := v1.Group("")
-	authed.Use(middleware.Auth(cfg.SupabaseJWTSecret))
+	authed.Use(middleware.Auth(jwksURL, cfg.SupabaseJWTSecret))
 
 	authed.GET("/cart", cartHandler.GetCart)
 	authed.PUT("/cart", cartHandler.PutCart)

@@ -153,13 +153,6 @@ export async function updateCart(items: { variant_id: string; qty: number }[]): 
 }
 
 export async function createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
-  if (USE_FIXTURES) {
-    return new Promise(resolve => setTimeout(() => resolve({
-      order: fixtures.orders[0],
-      snap_token: "mock_snap_token_123",
-      midtrans_client_key: "mock_client_key"
-    }), 1000));
-  }
   const { data } = await request<Envelope<CreateOrderResponse>>("/api/v1/orders", {
     method: "POST",
     body: payload,
