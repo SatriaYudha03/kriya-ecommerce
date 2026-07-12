@@ -146,7 +146,7 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.Response{Data: p})
+	c.JSON(http.StatusCreated, model.Response{Data: gin.H{"id": productID}})
 }
 
 // UpdateProduct memperbarui properti produk (tidak termasuk varian & gambar).

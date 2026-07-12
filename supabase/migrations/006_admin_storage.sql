@@ -28,6 +28,14 @@ CREATE POLICY "admin insert products" ON storage.objects
     FOR INSERT TO authenticated
     WITH CHECK (bucket_id = 'products' AND public.is_admin());
 
+-- SELECT untuk admin via API 'authenticated' — dibutuhkan agar operasi
+-- update/delete storage bisa menemukan objek lebih dulu. Baca publik (anon)
+-- untuk menampilkan gambar tetap lewat URL publik, tidak terpengaruh policy ini.
+DROP POLICY IF EXISTS "admin select products" ON storage.objects;
+CREATE POLICY "admin select products" ON storage.objects
+    FOR SELECT TO authenticated
+    USING (bucket_id = 'products' AND public.is_admin());
+
 DROP POLICY IF EXISTS "admin update products" ON storage.objects;
 CREATE POLICY "admin update products" ON storage.objects
     FOR UPDATE TO authenticated
