@@ -3,29 +3,31 @@
 import { SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductsQuery } from "@/lib/api";
+import type { MessageKey } from "@/lib/i18n";
+import { useLanguage } from "./language-provider";
 
 export type SortValue = NonNullable<ProductsQuery["sort"]>;
 
 export interface PricePreset {
   key: string;
-  label: string;
+  labelKey: MessageKey;
   min?: number;
   max?: number;
 }
 
 // Rentang harga preset (rupiah). Dipetakan ke min_price/max_price kontrak.
 export const pricePresets: PricePreset[] = [
-  { key: "all", label: "Semua harga" },
-  { key: "lt1", label: "Di bawah Rp1 jt", max: 999999 },
-  { key: "1-3", label: "Rp1–3 jt", min: 1000000, max: 3000000 },
-  { key: "3-5", label: "Rp3–5 jt", min: 3000000, max: 5000000 },
-  { key: "gt5", label: "Di atas Rp5 jt", min: 5000001 },
+  { key: "all", labelKey: "filter.price.all" },
+  { key: "lt1", labelKey: "filter.price.lt1", max: 999999 },
+  { key: "1-3", labelKey: "filter.price.1-3", min: 1000000, max: 3000000 },
+  { key: "3-5", labelKey: "filter.price.3-5", min: 3000000, max: 5000000 },
+  { key: "gt5", labelKey: "filter.price.gt5", min: 5000001 },
 ];
 
-const sortOptions: { value: SortValue; label: string }[] = [
-  { value: "newest", label: "Terbaru" },
-  { value: "price_asc", label: "Harga terendah" },
-  { value: "price_desc", label: "Harga tertinggi" },
+const sortOptions: { value: SortValue; labelKey: MessageKey }[] = [
+  { value: "newest", labelKey: "sort.newest" },
+  { value: "price_asc", labelKey: "sort.price_asc" },
+  { value: "price_desc", labelKey: "sort.price_desc" },
 ];
 
 export function FilterBar({
@@ -39,12 +41,13 @@ export function FilterBar({
   onSort: (v: SortValue) => void;
   onPrice: (key: string) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-4 border-y border-neutral-200 py-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex flex-wrap items-center gap-2">
         <span className="mr-1 hidden items-center gap-1.5 text-sm text-neutral-500 sm:inline-flex">
           <SlidersHorizontal className="h-4 w-4" />
-          Harga
+          {t("filter.price")}
         </span>
         {pricePresets.map((p) => (
           <button
@@ -58,14 +61,14 @@ export function FilterBar({
                 : "border-neutral-300 text-neutral-600 hover:border-neutral-400",
             )}
           >
-            {p.label}
+            {t(p.labelKey)}
           </button>
         ))}
       </div>
 
       <div className="flex items-center gap-2">
         <label htmlFor="sort" className="text-sm text-neutral-500">
-          Urutkan
+          {t("filter.sort")}
         </label>
         <select
           id="sort"
@@ -75,7 +78,7 @@ export function FilterBar({
         >
           {sortOptions.map((o) => (
             <option key={o.value} value={o.value}>
-              {o.label}
+              {t(o.labelKey)}
             </option>
           ))}
         </select>

@@ -1,0 +1,276 @@
+{
+  "_note": "Overlay terjemahan Bahasa Indonesia untuk products.json. Dikonsumsi cmd/seed. Field yang tak ada di sini otomatis fallback ke teks English base. Nama merek (TAMU, RUMA, dst.) dipertahankan; hanya deskriptor generik diterjemahkan.",
+  "categories": {
+    "living-room": "Ruang keluarga",
+    "bedroom": "Kamar tidur",
+    "workspace": "Ruang kerja",
+    "dining-room": "Ruang makan",
+    "storage": "Penyimpanan",
+    "lighting": "Pencahayaan"
+  },
+  "colors": {
+    "natural": "natural",
+    "grey": "abu-abu",
+    "oak": "oak",
+    "walnut": "walnut",
+    "cream": "krem",
+    "white": "putih",
+    "black": "hitam"
+  },
+  "materials": {
+    "polyester fabric": "kain poliester",
+    "pine wood": "kayu pinus",
+    "teak wood": "kayu jati",
+    "steel": "baja",
+    "laminated MDF": "MDF laminasi",
+    "bamboo": "bambu",
+    "mahogany": "kayu mahoni",
+    "tempered glass": "kaca tempered",
+    "synthetic leather": "kulit sintetis",
+    "aluminum": "aluminium",
+    "rattan": "rotan",
+    "synthetic marble": "marmer sintetis"
+  },
+  "products": {
+    "tamu-sofa": {
+      "name": "Sofa TAMU",
+      "description": "Sofa tiga dudukan yang nyaman dengan rangka kayu pinus solid dan pelapis poliester yang lembut. Desain Skandinavia minimalis yang menyatu dengan gaya ruang keluarga mana pun."
+    },
+    "ruma-coffee-table": {
+      "name": "Meja kopi RUMA",
+      "description": "Meja kopi elegan yang memadukan permukaan kayu jati dengan kaki baja ramping. Titik pusat sempurna untuk ruang keluarga modern."
+    },
+    "sari-TV-console": {
+      "name": "Konsol TV SARI",
+      "description": "Konsol TV lapang dengan manajemen kabel dan dua rak terbuka. Garis bersih dari MDF laminasi dengan rangka baja lapis bubuk."
+    },
+    "bumi-armchair": {
+      "name": "Kursi berlengan BUMI",
+      "description": "Kursi berlengan tunggal yang nyaman dengan bantalan tebal dan sandaran tangan lebar. Kaki kayu pinus menambah sentuhan hangat dan alami pada ruang Anda."
+    },
+    "nala-side-table": {
+      "name": "Meja samping NALA",
+      "description": "Meja samping bambu ringkas dengan alas baja. Ideal diletakkan di samping sofa atau kursi baca."
+    },
+    "wira-bookshelf": {
+      "name": "Rak buku WIRA",
+      "description": "Rak buku terbuka yang tinggi dengan lima tingkat dari kayu pinus solid. Perabot serbaguna untuk buku, tanaman, dan dekorasi."
+    },
+    "kala-floor-rug": {
+      "name": "Karpet lantai KALA",
+      "description": "Karpet lantai poliester tenun yang lembut dengan pola geometris halus. Menambah kehangatan dan tekstur pada lantai ruang keluarga mana pun."
+    },
+    "dara-accent-cabinet": {
+      "name": "Lemari aksen DARA",
+      "description": "Lemari aksen menawan dengan badan kayu mahoni dan pintu kaca tempered. Pamerkan koleksi favorit Anda di balik panel kaca yang elegan."
+    },
+    "pura-wall-shelf-set": {
+      "name": "Set rak dinding PURA",
+      "description": "Set tiga rak dinding melayang dari kayu pinus dengan braket baja. Mudah dipasang dan disusun dalam konfigurasi apa pun."
+    },
+    "mega-lounge-chair": {
+      "name": "Kursi santai MEGA",
+      "description": "Kursi santai premium berpelapis kulit sintetis dengan alas baja krom. Perabot pernyataan untuk ruang keluarga yang berkelas."
+    },
+    "nira-bed-frame": {
+      "name": "Rangka tempat tidur NIRA",
+      "description": "Rangka tempat tidur ukuran queen yang kokoh dari kayu pinus solid dengan alas bilah. Sandaran kepala bergaya Skandinavia untuk tampilan kamar yang bersih."
+    },
+    "gala-wardrobe": {
+      "name": "Lemari pakaian GALA",
+      "description": "Lemari pakaian dua pintu setinggi penuh dengan rak interior dan batang gantungan. MDF laminasi memastikan ketahanan dan perawatan yang mudah."
+    },
+    "sena-nightstand": {
+      "name": "Nakas SENA",
+      "description": "Nakas kayu jati ringkas dengan satu laci dan rak terbuka. Nuansa hangat melengkapi palet kamar tidur mana pun."
+    },
+    "loka-dresser": {
+      "name": "Lemari laci LOKA",
+      "description": "Lemari laci enam laras dari kayu mahoni yang kaya dengan pegangan berfinishing kuningan. Penyimpanan luas untuk kamar tidur yang rapi dan tertata."
+    },
+    "awan-vanity-desk": {
+      "name": "Meja rias AWAN",
+      "description": "Meja rias elegan dengan permukaan kaca tempered dan rangka kayu pinus. Dilengkapi laci kecil untuk aksesori."
+    },
+    "tara-bedside-lamp-table": {
+      "name": "Meja lampu samping TARA",
+      "description": "Meja lampu bambu ramping yang dirancang muat di samping tempat tidur mana pun. Ringan namun stabil dengan tekstur tenun alami."
+    },
+    "rasi-clothing-rack": {
+      "name": "Rak pakaian RASI",
+      "description": "Rak pakaian terbuka dengan rangka baja dan rak kayu pinus di bagian bawah. Sempurna untuk memamerkan busana favorit Anda."
+    },
+    "bayu-mattress-topper": {
+      "name": "Alas kasur BAYU",
+      "description": "Alas kasur poliester yang empuk dan menambah lapisan kenyamanan ekstra. Cocok untuk tempat tidur ukuran queen standar."
+    },
+    "cala-storage-bench": {
+      "name": "Bangku penyimpanan CALA",
+      "description": "Bangku penyimpanan berpelapis dengan dudukan yang dapat diangkat dan kaki kayu pinus. Diletakkan di kaki tempat tidur untuk penyimpanan selimut ekstra."
+    },
+    "dian-full-length-mirror": {
+      "name": "Cermin badan DIAN",
+      "description": "Cermin berdiri setinggi badan dengan rangka kayu pinus solid. Sandarkan ke dinding untuk estetika modern yang santai."
+    },
+    "taru-work-desk": {
+      "name": "Meja kerja TARU",
+      "description": "Meja kerja lapang dengan permukaan kayu pinus dan kaki baja yang kokoh. Baki kabel bawaan menjaga ruang kerja tetap rapi."
+    },
+    "raka-wall-shelf": {
+      "name": "Rak dinding RAKA",
+      "description": "Rak dinding melayang dengan braket baja dan papan kayu pinus. Pasang di atas meja untuk buku dan perlengkapan."
+    },
+    "jati-office-chair": {
+      "name": "Kursi kantor JATI",
+      "description": "Kursi kantor ergonomis dengan sandaran jaring poliester yang breathable dan ketinggian yang dapat disetel. Alas baja dengan roda yang bergulir mulus."
+    },
+    "kasa-filing-cabinet": {
+      "name": "Lemari arsip KASA",
+      "description": "Lemari arsip baja tiga laci dengan mekanisme kunci. Ukuran ringkas yang muat di bawah sebagian besar meja."
+    },
+    "sula-monitor-stand": {
+      "name": "Dudukan monitor SULA",
+      "description": "Peninggi monitor bambu dengan ruang penyimpanan di bawahnya untuk keyboard dan alat tulis. Mendukung ketinggian layar yang ergonomis."
+    },
+    "meru-standing-desk": {
+      "name": "Meja berdiri MERU",
+      "description": "Meja berdiri dengan ketinggian yang dapat disetel melalui mekanisme engkol. Permukaan MDF laminasi di atas rangka baja yang kokoh untuk pemakaian harian."
+    },
+    "pena-desk-organizer": {
+      "name": "Pengatur meja PENA",
+      "description": "Pengatur meja bambu multi-kompartemen untuk pena, catatan, dan gawai. Finishing natural menambah kehangatan pada ruang kerja Anda."
+    },
+    "guna-task-lamp": {
+      "name": "Lampu kerja GUNA",
+      "description": "Lampu kerja aluminium yang dapat disetel dengan leher fleksibel dan alas baja berbobot. Memberi pencahayaan terfokus untuk kerja larut malam."
+    },
+    "lipi-pegboard-panel": {
+      "name": "Panel pegboard LIPI",
+      "description": "Panel pegboard modular dengan kait dan rak yang disertakan. Pasang di dinding mana pun untuk menyesuaikan penyimpanan ruang kerja Anda."
+    },
+    "saba-printer-stand": {
+      "name": "Dudukan printer SABA",
+      "description": "Dudukan printer ringkas dengan rak bawah untuk perlengkapan kertas. Permukaan kayu pinus dan kaki baja dengan kaki penyetel."
+    },
+    "meja-dining-table": {
+      "name": "Meja makan MEJA",
+      "description": "Meja makan kayu jati solid untuk hingga enam orang. Kaki meruncing dan permukaan halus berfinishing minyak untuk santapan sehari-hari."
+    },
+    "ruji-dining-chair": {
+      "name": "Kursi makan RUJI",
+      "description": "Kursi makan kayu pinus dengan bantalan dudukan poliester yang empuk. Desain yang dapat ditumpuk menghemat ruang saat tidak digunakan."
+    },
+    "padi-bench-seat": {
+      "name": "Bangku duduk PADI",
+      "description": "Bangku makan kayu jati yang berpasangan dengan meja MEJA. Nyaman untuk dua hingga tiga orang."
+    },
+    "nusa-buffet-sideboard": {
+      "name": "Bufet sisi NUSA",
+      "description": "Bufet mahoni yang lapang dengan pintu geser dan rak interior. Kaki baja mengangkatnya dari lantai untuk profil yang ringan."
+    },
+    "lara-bar-cart": {
+      "name": "Kereta bar LARA",
+      "description": "Kereta bar dua tingkat dengan rak kaca tempered dan rangka baja. Bergulir mulus di atas roda pengunci."
+    },
+    "kopi-kitchen-island": {
+      "name": "Island dapur KOPI",
+      "description": "Island dapur serbaguna dengan permukaan talenan kayu pinus dan rak baja di bawahnya. Menambah ruang persiapan dan penyimpanan."
+    },
+    "tera-plate-rack": {
+      "name": "Rak piring TERA",
+      "description": "Rak piring bambu terbuka yang menampung hingga dua belas piring makan. Keringkan atau pamerkan peralatan makan favorit Anda."
+    },
+    "gili-wine-rack": {
+      "name": "Rak anggur GILI",
+      "description": "Rak anggur kayu pinus vertikal dengan dua belas slot botol. Desain ringkas yang muat di sudut dapur atau ruang makan."
+    },
+    "halu-serving-tray-table": {
+      "name": "Meja nampan saji HALU",
+      "description": "Meja nampan lipat dengan permukaan kayu jati yang dapat dilepas. Ideal untuk menyajikan tamu atau sebagai meja samping tambahan."
+    },
+    "waja-stool-set": {
+      "name": "Set bangku WAJA",
+      "description": "Set dua bangku bar kayu pinus solid dengan pijakan kaki. Garis bersih membulat yang cocok untuk dapur modern maupun rustik."
+    },
+    "kobu-cube-shelf": {
+      "name": "Rak kubus KOBU",
+      "description": "Unit rak terbuka empat kubus dari MDF laminasi. Desain modular memungkinkan Anda menumpuk beberapa unit untuk dinding penyimpanan yang lebih besar."
+    },
+    "laci-drawer-unit": {
+      "name": "Unit laci LACI",
+      "description": "Unit penyimpanan kayu pinus tiga laci beroda. Muat di bawah meja atau di samping tempat tidur untuk penyimpanan ekstra yang fleksibel."
+    },
+    "bale-storage-box-set": {
+      "name": "Set kotak penyimpanan BALE",
+      "description": "Set tiga kotak penyimpanan bambu bersusun dengan tutup. Jaga rak tetap rapi dan tertata dengan tampilan alami."
+    },
+    "kodi-wardrobe-organizer": {
+      "name": "Pengatur lemari KODI",
+      "description": "Pengatur lemari gantung dengan enam kompartemen kain pada kait baja. Maksimalkan ruang lemari vertikal Anda."
+    },
+    "peti-trunk-chest": {
+      "name": "Peti penyimpanan PETI",
+      "description": "Peti kayu pinus rustik dengan braket sudut baja dan permukaan datar. Berfungsi ganda sebagai meja kopi atau bangku pintu masuk."
+    },
+    "raga-basket-set": {
+      "name": "Set keranjang RAGA",
+      "description": "Set tiga keranjang rotan anyaman tangan dalam ukuran bertingkat. Penyimpanan terbuka yang indah untuk selimut, mainan, atau majalah."
+    },
+    "siku-corner-shelf": {
+      "name": "Rak sudut SIKU",
+      "description": "Rak sudut yang tinggi dengan lima tingkat. Mengubah sudut yang tak terpakai menjadi ruang pajang dan penyimpanan dengan kayu pinus yang hangat."
+    },
+    "tali-wall-hook-rack": {
+      "name": "Rak gantungan dinding TALI",
+      "description": "Rak dinding kayu pinus dengan lima kait baja. Pasang di pintu masuk, kamar tidur, atau kamar mandi untuk mantel, tas, dan handuk."
+    },
+    "ubin-shoe-rack": {
+      "name": "Rak sepatu UBIN",
+      "description": "Rak sepatu bambu tiga tingkat dengan rangka baja. Menampung hingga sembilan pasang dan menjaga pintu masuk tetap rapi."
+    },
+    "watu-modular-cabinet": {
+      "name": "Lemari modular WATU",
+      "description": "Lemari modular yang dapat ditumpuk dengan satu pintu dan satu rak terbuka. Gabungkan unit untuk membangun sistem penyimpanan Anda sendiri."
+    },
+    "suru-pendant-lamp": {
+      "name": "Lampu gantung SURU",
+      "description": "Lampu gantung rotan anyaman tangan yang memancarkan bayangan hangat berpola. Perangkat suspensi baja disertakan untuk pemasangan yang mudah."
+    },
+    "obor-floor-lamp": {
+      "name": "Lampu lantai OBOR",
+      "description": "Lampu lantai yang tinggi dengan kap kain berbentuk drum dan tiang baja ramping. Pencahayaan ambient lembut untuk ruang keluarga dan kamar tidur."
+    },
+    "gita-table-lamp": {
+      "name": "Lampu meja GITA",
+      "description": "Lampu meja dengan alas marmer sintetis dan kap kain. Menambah sentuhan keanggunan pada nakas dan konsol."
+    },
+    "luma-wall-sconce": {
+      "name": "Lampu dinding LUMA",
+      "description": "Lampu dinding aluminium minimalis dengan arah cahaya ke atas. Hemat energi dan ideal untuk lorong dan kamar tidur."
+    },
+    "kila-desk-lamp": {
+      "name": "Lampu meja kerja KILA",
+      "description": "Lampu meja bergaya industrial dengan lengan yang dapat disetel dan kap baja. Sorotan terfokus untuk membaca dan pekerjaan detail."
+    },
+    "bina-string-lights": {
+      "name": "Lampu untai BINA",
+      "description": "Lampu untai LED putih hangat dengan bohlam kecil bercangkang baja. Panjang lima meter untuk penggunaan dalam ruangan dan luar ruangan beratap."
+    },
+    "rani-chandelier": {
+      "name": "Lampu gantung kristal RANI",
+      "description": "Lampu gantung lima lengan modern dengan kap kaca tempered dan rangka baja matte. Pencahayaan pernyataan untuk area makan."
+    },
+    "teju-lantern": {
+      "name": "Lentera TEJU",
+      "description": "Lentera bambu dekoratif dengan panel kaca tempered. Gunakan dengan lilin atau LED untuk suasana yang nyaman."
+    },
+    "pijar-spotlight-set": {
+      "name": "Set lampu sorot PIJAR",
+      "description": "Set tiga lampu sorot aluminium yang dapat disetel pada rel baja. Arahkan cahaya ke karya seni, rak, atau dinding aksen."
+    },
+    "lentera-outdoor-lamp": {
+      "name": "Lampu luar ruangan LENTERA",
+      "description": "Lampu luar ruangan baja tahan cuaca dengan penutup kaca tempered. Dipasang di dinding atau tiang untuk pencahayaan teras."
+    }
+  }
+}

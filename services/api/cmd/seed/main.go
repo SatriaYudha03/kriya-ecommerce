@@ -97,6 +97,39 @@ type ProductImage struct {
 	IsPrimary   bool
 }
 
+// Translations overlay (data/seed/translations-id.json). Field yang tak ada
+// otomatis fallback ke teks English base — tidak ada lagi placeholder " (ID)".
+type Translations struct {
+	Categories map[string]string             `json:"categories"`
+	Colors     map[string]string             `json:"colors"`
+	Materials  map[string]string             `json:"materials"`
+	Products   map[string]ProductTranslation `json:"products"`
+}
+
+type ProductTranslation struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// i18nJSON membangun {"en":..,"id":..}; id fallback ke en bila kosong.
+func i18nJSON(en, id string) []byte {
+	if id == "" {
+		id = en
+	}
+	b, _ := json.Marshal(map[string]string{"en": en, "id": id})
+	return b
+}
+
+// trOr mengembalikan m[key] bila ada & tak kosong, selain itu "".
+func trOr(m map[string]string, key string) string {
+	if m != nil {
+		if v, ok := m[key]; ok {
+			return v
+		}
+	}
+	return ""
+}
+
 func main() {
 	dbURL := os.Getenv("SUPABASE_DB_URL")
 	if dbURL == "" {
@@ -119,9 +152,20 @@ func main() {
 		log.Fatalf("Failed to unmarshal seed data: %v", err)
 	}
 
+	// Load Indonesian translation overlay (opsional; fallback ke EN bila absen).
+	var tr Translations
+	trFile := "../../data/seed/translations-id.json"
+	if trData, err := os.ReadFile(trFile); err == nil {
+		if err := json.Unmarshal(trData, &tr); err != nil {
+			log.Printf("Warning: gagal parse %s: %v — ID akan fallback ke EN", trFile, err)
+		}
+	} else {
+		log.Printf("Warning: %s tidak ditemukan — ID akan fallback ke EN", trFile)
+	}
+
 	// Insert Categories
 	for _, catSeed := range seed.Categories {
-		nameI18n, _ := json.Marshal(map[string]string{"en": catSeed.Name, "id": catSeed.Name + " (ID)"})
+		nameI18n := i18nJSON(catSeed.Name, trOr(tr.Categories, catSeed.Slug))
 		cat := Category{
 			Slug:     catSeed.Slug,
 			Name:     catSeed.Name,
@@ -141,12 +185,18 @@ func main() {
 	for _, prodSeed := range seed.Products {
 		materialsJSON, _ := json.Marshal(prodSeed.Materials)
 		dimensionsJSON, _ := json.Marshal(prodSeed.Dimensions)
-		nameI18n, _ := json.Marshal(map[string]string{"en": prodSeed.Name, "id": prodSeed.Name + " (ID)"})
-		descI18n, _ := json.Marshal(map[string]string{"en": prodSeed.Description, "id": prodSeed.Description + " (ID)"})
-		
+
+		pt := tr.Products[prodSeed.Slug]
+		nameI18n := i18nJSON(prodSeed.Name, pt.Name)
+		descI18n := i18nJSON(prodSeed.Description, pt.Description)
+
 		materialsId := make([]string, len(prodSeed.Materials))
 		for i, m := range prodSeed.Materials {
-			materialsId[i] = m + " (ID)"
+			if idm := trOr(tr.Materials, m); idm != "" {
+				materialsId[i] = idm
+			} else {
+				materialsId[i] = m // fallback ke istilah EN
+			}
 		}
 		materialsI18nMap := map[string][]string{
 			"en": prodSeed.Materials,
@@ -186,10 +236,10 @@ func main() {
 
 		// Insert Variants
 		for _, varSeed := range prodSeed.Variants {
-			colorI18n, _ := json.Marshal(map[string]string{"en": varSeed.Color, "id": varSeed.Color + " (ID)"})
+			colorI18n := i18nJSON(varSeed.Color, trOr(tr.Colors, varSeed.Color))
 			var sizeI18n []byte
 			if varSeed.Size != nil {
-				sizeI18n, _ = json.Marshal(map[string]string{"en": *varSeed.Size, "id": *varSeed.Size + " (ID)"})
+				sizeI18n = i18nJSON(*varSeed.Size, "") // tak ada glosarium size; fallback ke EN
 			}
 			variant := ProductVariant{
 				ProductID: dbProd.ID,
@@ -217,7 +267,11 @@ func main() {
 		for i, imgSeed := range prodSeed.Images {
 			var altI18n []byte
 			if imgSeed.Alt != "" {
-				altI18n, _ = json.Marshal(map[string]string{"en": imgSeed.Alt, "id": imgSeed.Alt + " (ID)"})
+				altID := imgSeed.Alt
+				if pt.Name != "" {
+					altID = fmt.Sprintf("%s — tampilan %d", pt.Name, i+1)
+				}
+				altI18n = i18nJSON(imgSeed.Alt, altID)
 			}
 			img := ProductImage{
 				ProductID:   dbProd.ID,

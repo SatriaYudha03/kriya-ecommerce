@@ -39,6 +39,29 @@ export const id = {
   // Category
   "category.room": "Ruangan",
 
+  // Category listing
+  "category.count": "{count} produk",
+  "category.loading": "Memuat produk…",
+  "category.error.title": "Gagal memuat produk",
+  "category.error.hint": "Terjadi kendala saat mengambil data. Coba muat ulang halaman.",
+  "category.emptyPrice.title": "Tidak ada produk pada rentang harga ini",
+  "category.emptyPrice.hint": "Coba pilih rentang harga lain atau reset filter.",
+  "category.resetFilter": "Reset filter",
+  "category.emptyRoom.title": "Belum ada produk di ruangan ini",
+  "category.emptyRoom.hint": "Katalog masih diisi. Jelajahi ruangan lain untuk sementara.",
+
+  // Filter & sort
+  "filter.price": "Harga",
+  "filter.price.all": "Semua harga",
+  "filter.price.lt1": "Di bawah Rp1 jt",
+  "filter.price.1-3": "Rp1–3 jt",
+  "filter.price.3-5": "Rp3–5 jt",
+  "filter.price.gt5": "Di atas Rp5 jt",
+  "filter.sort": "Urutkan",
+  "sort.newest": "Terbaru",
+  "sort.price_asc": "Harga terendah",
+  "sort.price_desc": "Harga tertinggi",
+
   // Header / Topbar
   "topbar.promo": "Gratis ongkir Jawa–Bali untuk pesanan pertama · Data demo, pembayaran sandbox",
   
@@ -131,6 +154,18 @@ export const id = {
   "product.loadError": "Gagal memuat produk. Coba muat ulang halaman.",
   "product.empty": "Belum ada produk di seksi ini.",
   "common.seeAll": "Lihat semua",
+
+  // Product detail (PDP) — label statis; deskripsi/material tetap dari API
+  "product.tab.description": "Deskripsi",
+  "product.tab.specs": "Dimensi & material",
+  "product.tab.assembly": "Panduan perakitan",
+  "product.dim.width": "Lebar",
+  "product.dim.depth": "Dalam",
+  "product.dim.height": "Tinggi",
+  "product.dim.weight": "Berat",
+  "product.materials": "Material",
+  "product.assembly.included": "Produk ini dilengkapi panduan perakitan langkah demi langkah. Panduan interaktif lengkap akan tampil di sini setelah katalog terhubung ke layanan konten.",
+  "product.assembly.none": "Produk ini tidak memerlukan perakitan — langsung siap dipakai setelah tiba.",
 
   "home.features.delivery": "Pengiriman nasional",
   "home.features.deliveryDesc": "Jawa-Bali & luar pulau",

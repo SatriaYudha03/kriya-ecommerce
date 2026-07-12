@@ -39,6 +39,29 @@ export const en: typeof import("./id").id = {
   // Category
   "category.room": "Room",
 
+  // Category listing
+  "category.count": "{count} products",
+  "category.loading": "Loading products…",
+  "category.error.title": "Failed to load products",
+  "category.error.hint": "Something went wrong while fetching data. Please reload the page.",
+  "category.emptyPrice.title": "No products in this price range",
+  "category.emptyPrice.hint": "Try another price range or reset the filter.",
+  "category.resetFilter": "Reset filter",
+  "category.emptyRoom.title": "No products in this room yet",
+  "category.emptyRoom.hint": "The catalog is still being filled. Explore other rooms for now.",
+
+  // Filter & sort
+  "filter.price": "Price",
+  "filter.price.all": "All prices",
+  "filter.price.lt1": "Under Rp1M",
+  "filter.price.1-3": "Rp1–3M",
+  "filter.price.3-5": "Rp3–5M",
+  "filter.price.gt5": "Above Rp5M",
+  "filter.sort": "Sort",
+  "sort.newest": "Newest",
+  "sort.price_asc": "Lowest price",
+  "sort.price_desc": "Highest price",
+
   // Header / Topbar
   "topbar.promo": "Free shipping Java–Bali for first order · Demo data, sandbox payment",
   
@@ -131,6 +154,18 @@ export const en: typeof import("./id").id = {
   "product.loadError": "Failed to load products. Try refreshing the page.",
   "product.empty": "No products in this section yet.",
   "common.seeAll": "See all",
+
+  // Product detail (PDP) — static labels; description/materials still come from the API
+  "product.tab.description": "Description",
+  "product.tab.specs": "Dimensions & materials",
+  "product.tab.assembly": "Assembly guide",
+  "product.dim.width": "Width",
+  "product.dim.depth": "Depth",
+  "product.dim.height": "Height",
+  "product.dim.weight": "Weight",
+  "product.materials": "Materials",
+  "product.assembly.included": "This product comes with a step-by-step assembly guide. The full interactive guide will appear here once the catalog is connected to the content service.",
+  "product.assembly.none": "This product needs no assembly — it's ready to use as soon as it arrives.",
 
   "home.features.delivery": "Nationwide shipping",
   "home.features.deliveryDesc": "Java-Bali & beyond",

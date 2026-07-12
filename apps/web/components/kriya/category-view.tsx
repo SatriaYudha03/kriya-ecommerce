@@ -8,6 +8,7 @@ import { EmptyState } from "./empty-state";
 import { FilterBar, pricePresets, type SortValue } from "./filter-bar";
 import { Pagination } from "./pagination";
 import { ProductGrid, ProductGridSkeleton } from "./product-grid";
+import { useLanguage } from "./language-provider";
 
 const LIMIT = 6;
 const SORTS: SortValue[] = ["newest", "price_asc", "price_desc"];
@@ -28,10 +29,12 @@ export function CategoryView({ slug }: { slug: string }) {
   const page = Math.max(1, Number(searchParams.get("hal")) || 1);
   const preset = pricePresets.find((p) => p.key === priceKey)!;
 
+  const { locale, t } = useLanguage();
   const { data: categories } = useCategories();
   const name = categoryLabel(
     slug,
     categories?.find((c) => c.slug === slug)?.name ?? slug,
+    locale,
   );
 
   const { data, isLoading, isError } = useProducts({
@@ -84,12 +87,12 @@ export function CategoryView({ slug }: { slug: string }) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <Breadcrumbs items={[{ label: "Beranda", href: "/" }, { label: name }]} />
+      <Breadcrumbs items={[{ label: t("nav.home"), href: "/" }, { label: name }]} />
 
       <header className="mt-4">
         <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">{name}</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          {isLoading ? "Memuat produk…" : `${total} produk`}
+          {isLoading ? t("category.loading") : t("category.count", { count: total })}
         </p>
       </header>
 
@@ -102,8 +105,8 @@ export function CategoryView({ slug }: { slug: string }) {
           <ProductGridSkeleton count={LIMIT} />
         ) : isError ? (
           <EmptyState
-            title="Gagal memuat produk"
-            hint="Terjadi kendala saat mengambil data. Coba muat ulang halaman."
+            title={t("category.error.title")}
+            hint={t("category.error.hint")}
           />
         ) : products.length > 0 ? (
           <>
@@ -114,22 +117,22 @@ export function CategoryView({ slug }: { slug: string }) {
           </>
         ) : filtered ? (
           <EmptyState
-            title="Tidak ada produk pada rentang harga ini"
-            hint="Coba pilih rentang harga lain atau reset filter."
+            title={t("category.emptyPrice.title")}
+            hint={t("category.emptyPrice.hint")}
             action={
               <button
                 type="button"
                 onClick={resetFilters}
                 className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
               >
-                Reset filter
+                {t("category.resetFilter")}
               </button>
             }
           />
         ) : (
           <EmptyState
-            title="Belum ada produk di ruangan ini"
-            hint="Katalog masih diisi. Jelajahi ruangan lain untuk sementara."
+            title={t("category.emptyRoom.title")}
+            hint={t("category.emptyRoom.hint")}
           />
         )}
       </div>

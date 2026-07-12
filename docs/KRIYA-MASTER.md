@@ -88,16 +88,19 @@ Secret hanya hidup di `.env` (tidak pernah di-commit) dan di kredensial n8n. `IN
 - CORS: izinkan origin `WEB_ORIGIN` saja.
 - **FE dilarang query tabel Supabase langsung** (pengecualian: Auth via supabase-js, dan upload Storage di halaman admin). Semua data lewat API Gin/FastAPI.
 - n8n boleh akses DB langsung: **read semua tabel; write HANYA kolom bertanda n8n-writable** (Bagian 7).
-- Seluruh teks UI berbahasa Indonesia.
+- UI mendukung dua bahasa EN/ID; default `id`. Locale disimpan di cookie `kriya-locale`.
 
 ## 6. Kontrak API (M1–M4 — DIKUNCI; admin M6 difinalkan di gerbang M6)
 
 ### Gin — publik
-- `GET /api/v1/categories` → `{"data": [{"id", "slug", "name"}]}`
-- `GET /api/v1/products?category=&q=&min_price=&max_price=&sort=&page=&limit=`
+- `GET /api/v1/categories?lang=en|id` → `{"data": [{"id", "slug", "name"}]}`
+  `lang` opsional (default `id`), juga bisa via header `Accept-Language`. Server memilih locale untuk field `name`. Bentuk respons tetap (`name` = string).
+- `GET /api/v1/products?category=&q=&min_price=&max_price=&sort=&page=&limit=&lang=en|id`
   `sort`: `newest` (default) | `price_asc` | `price_desc`. `q` = keyword ILIKE sederhana (pencarian pintar ada di FastAPI).
+  `lang` opsional (default `id`). Server memilih locale untuk field `name`.
   → item list: `{"id", "slug", "name", "category_slug", "price_min", "thumbnail_url"}`
-- `GET /api/v1/products/{slug}` →
+- `GET /api/v1/products/{slug}?lang=en|id` →
+  `lang` opsional (default `id`). Server memilih locale untuk field `name`, `description`, `materials`, `variants[].color`, `variants[].size`, `images[].alt`. Bentuk respons tetap (semua field tetap `string`).
   `{"data": {"id", "slug", "name", "description", "category": {"slug", "name"}, "materials": ["kayu jati"], "dimensions": {"width_cm", "depth_cm", "height_cm"}, "weight_kg", "images": [{"url", "alt"}], "variants": [{"id", "sku", "color", "size", "price", "stock"}], "has_assembly_guide": true}`
 
 ### Gin — butuh auth
@@ -106,7 +109,7 @@ Secret hanya hidup di `.env` (tidak pernah di-commit) dan di kredensial n8n. `IN
 - `POST /api/v1/orders` body `{"items": [{"variant_id", "qty"}], "shipping_zone": "jawa_bali" | "luar", "shipping_address": {"recipient", "phone", "address_line", "city", "province", "postal_code"}}` →
   `{"data": {"order": <order>, "snap_token", "midtrans_client_key"}}`
   Ongkir flat (konstanta server): `jawa_bali` = 150000, `luar` = 300000.
-- `GET /api/v1/orders` (milik user) dan `GET /api/v1/orders/{id}` →
+- `GET /api/v1/orders?lang=en|id` (milik user) dan `GET /api/v1/orders/{id}?lang=en|id` →
   `<order>` = `{"id", "status", "items": [{"name", "color", "size", "qty", "price", "subtotal"}], "subtotal", "shipping_cost", "total", "shipping_address": {...}, "created_at"}`
 
 ### Gin — webhook & internal

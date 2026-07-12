@@ -2,36 +2,39 @@
 
 import { useState } from "react";
 import type { ProductDetail } from "@/lib/types";
+import type { MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "./language-provider";
 
 type TabKey = "deskripsi" | "spesifikasi" | "perakitan";
 
-const tabs: { key: TabKey; label: string }[] = [
-  { key: "deskripsi", label: "Deskripsi" },
-  { key: "spesifikasi", label: "Dimensi & material" },
-  { key: "perakitan", label: "Panduan perakitan" },
+const tabs: { key: TabKey; labelKey: MessageKey }[] = [
+  { key: "deskripsi", labelKey: "product.tab.description" },
+  { key: "spesifikasi", labelKey: "product.tab.specs" },
+  { key: "perakitan", labelKey: "product.tab.assembly" },
 ];
 
 export function ProductTabs({ product }: { product: ProductDetail }) {
+  const { t } = useLanguage();
   const [tab, setTab] = useState<TabKey>("deskripsi");
   const d = product.dimensions;
 
   return (
     <div>
       <div className="flex gap-6 border-b border-neutral-200">
-        {tabs.map((t) => (
+        {tabs.map((item) => (
           <button
-            key={t.key}
+            key={item.key}
             type="button"
-            onClick={() => setTab(t.key)}
+            onClick={() => setTab(item.key)}
             className={cn(
               "-mb-px border-b-2 py-3 text-sm font-medium transition-colors",
-              tab === t.key
+              tab === item.key
                 ? "border-brand text-neutral-900"
                 : "border-transparent text-neutral-500 hover:text-neutral-800",
             )}
           >
-            {t.label}
+            {t(item.labelKey)}
           </button>
         ))}
       </div>
@@ -42,13 +45,13 @@ export function ProductTabs({ product }: { product: ProductDetail }) {
         {tab === "spesifikasi" && (
           <div className="grid max-w-xl gap-6 sm:grid-cols-2">
             <dl className="space-y-2">
-              <Row label="Lebar" value={`${d.width_cm} cm`} />
-              <Row label="Dalam" value={`${d.depth_cm} cm`} />
-              <Row label="Tinggi" value={`${d.height_cm} cm`} />
-              <Row label="Berat" value={`${product.weight_kg} kg`} />
+              <Row label={t("product.dim.width")} value={`${d.width_cm} cm`} />
+              <Row label={t("product.dim.depth")} value={`${d.depth_cm} cm`} />
+              <Row label={t("product.dim.height")} value={`${d.height_cm} cm`} />
+              <Row label={t("product.dim.weight")} value={`${product.weight_kg} kg`} />
             </dl>
             <div>
-              <p className="text-neutral-900">Material</p>
+              <p className="text-neutral-900">{t("product.materials")}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {product.materials.map((m) => (
                   <span
@@ -65,14 +68,9 @@ export function ProductTabs({ product }: { product: ProductDetail }) {
 
         {tab === "perakitan" &&
           (product.has_assembly_guide ? (
-            <p className="max-w-2xl">
-              Produk ini dilengkapi panduan perakitan langkah demi langkah. Panduan interaktif
-              lengkap akan tampil di sini setelah katalog terhubung ke layanan konten.
-            </p>
+            <p className="max-w-2xl">{t("product.assembly.included")}</p>
           ) : (
-            <p className="max-w-2xl">
-              Produk ini tidak memerlukan perakitan — langsung siap dipakai setelah tiba.
-            </p>
+            <p className="max-w-2xl">{t("product.assembly.none")}</p>
           ))}
       </div>
     </div>

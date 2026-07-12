@@ -8,7 +8,7 @@ import { useLanguage } from "./language-provider";
 
 // Footer toko: kolom belanja + bantuan + langganan (gaya anon), Bahasa Indonesia.
 export function SiteFooter({ categories }: { categories: Category[] }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   return (
     <footer className="mt-16 border-t border-neutral-200 bg-cream">
       <div className="mx-auto max-w-6xl px-4 py-14">
@@ -31,7 +31,7 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
               {categories.map((c) => (
                 <li key={c.slug}>
                   <Link href={`/categories/${c.slug}`} className="hover:text-neutral-900">
-                    {categoryLabel(c.slug, c.name)}
+                    {categoryLabel(c.slug, c.name, locale)}
                   </Link>
                 </li>
               ))}

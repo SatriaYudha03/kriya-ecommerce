@@ -9,7 +9,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const name = categoryLabels[slug] ?? slug;
+  const name = categoryLabels.id[slug] ?? slug;
   return {
     title: `${name} — KRIYA`,
     description: `Katalog ${name.toLowerCase()} furniture flat-pack KRIYA.`,

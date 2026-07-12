@@ -15,6 +15,7 @@ import { ProductGallery } from "./product-gallery";
 import { ProductTabs } from "./product-tabs";
 import { VariantSelector } from "./variant-selector";
 import { ProductCard } from "./product-card";
+import { useLanguage } from "./language-provider";
 
 function SimilarProducts({ productId }: { productId: string }) {
   const { data, isLoading } = useSimilarProducts(productId);
@@ -44,6 +45,7 @@ function SimilarProducts({ productId }: { productId: string }) {
 }
 
 export function ProductDetailView({ slug }: { slug: string }) {
+  const { locale } = useLanguage();
   const { data: product, isLoading, isError } = useProduct(slug);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
@@ -113,7 +115,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
       <Breadcrumbs
         items={[
           { label: "Beranda", href: "/" },
-          { label: categoryLabel(product.category.slug, product.category.name), href: `/categories/${product.category.slug}` },
+          { label: categoryLabel(product.category.slug, product.category.name, locale), href: `/categories/${product.category.slug}` },
           { label: product.name },
         ]}
       />
@@ -126,7 +128,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
             href={`/categories/${product.category.slug}`}
             className="text-sm font-medium text-brand-strong hover:underline"
           >
-            {categoryLabel(product.category.slug, product.category.name)}
+            {categoryLabel(product.category.slug, product.category.name, locale)}
           </Link>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
             {product.name}

@@ -6,8 +6,8 @@ import { categoryGradients, categoryImages, categoryLabel } from "@/lib/category
 import { useLanguage } from "./language-provider";
 
 export function CategoryCard({ category }: { category: Category }) {
-  const { t } = useLanguage();
-  const label = categoryLabel(category.slug, category.name);
+  const { t, locale } = useLanguage();
+  const label = categoryLabel(category.slug, category.name, locale);
   const gradient = categoryGradients[category.slug] ?? "from-sand to-cream";
   const image = categoryImages[category.slug];
   return (

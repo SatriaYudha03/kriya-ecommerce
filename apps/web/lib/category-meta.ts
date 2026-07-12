@@ -1,13 +1,25 @@
-// Label & aksen ruangan berbahasa Indonesia (KRIYA-MASTER: teks UI Indonesia).
+// Label & aksen ruangan per bahasa (KRIYA-MASTER: UI dua bahasa EN/ID, default id).
 // Slug kategori mengikuti kontrak (6 kategori final).
 
-export const categoryLabels: Record<string, string> = {
-  "living-room": "Ruang keluarga",
-  bedroom: "Kamar tidur",
-  workspace: "Ruang kerja",
-  "dining-room": "Ruang makan",
-  storage: "Penyimpanan",
-  lighting: "Pencahayaan",
+import type { Locale } from "@/lib/i18n";
+
+export const categoryLabels: Record<Locale, Record<string, string>> = {
+  id: {
+    "living-room": "Ruang keluarga",
+    bedroom: "Kamar tidur",
+    workspace: "Ruang kerja",
+    "dining-room": "Ruang makan",
+    storage: "Penyimpanan",
+    lighting: "Pencahayaan",
+  },
+  en: {
+    "living-room": "Living room",
+    bedroom: "Bedroom",
+    workspace: "Workspace",
+    "dining-room": "Dining room",
+    storage: "Storage",
+    lighting: "Lighting",
+  },
 };
 
 export const categoryGradients: Record<string, string> = {
@@ -34,6 +46,6 @@ export const categoryImages: Record<string, string> = {
     "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=400&q=80&auto=format&fit=crop",
 };
 
-export function categoryLabel(slug: string, fallback: string): string {
-  return categoryLabels[slug] ?? fallback;
+export function categoryLabel(slug: string, fallback: string, locale: Locale = "id"): string {
+  return categoryLabels[locale]?.[slug] ?? categoryLabels.id[slug] ?? fallback;
 }

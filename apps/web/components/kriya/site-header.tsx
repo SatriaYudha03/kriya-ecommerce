@@ -151,7 +151,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 isActive(c.slug) && "font-medium text-brand-strong",
               )}
             >
-              {categoryLabel(c.slug, c.name)}
+              {categoryLabel(c.slug, c.name, locale)}
             </Link>
           ))}
         </nav>
@@ -184,7 +184,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                     isActive(c.slug) && "font-medium text-brand-strong",
                   )}
                 >
-                  {categoryLabel(c.slug, c.name)}
+                  {categoryLabel(c.slug, c.name, locale)}
                 </Link>
               ))}
             </div>
