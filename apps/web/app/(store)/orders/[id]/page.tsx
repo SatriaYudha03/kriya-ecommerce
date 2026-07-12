@@ -49,7 +49,7 @@ export default function OrderDetailPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6">
-        <Link href="/pesanan" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900">
+        <Link href="/orders" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900">
           <MoveLeft className="h-4 w-4" />
           Kembali ke daftar pesanan
         </Link>

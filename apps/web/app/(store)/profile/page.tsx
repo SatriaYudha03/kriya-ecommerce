@@ -35,7 +35,7 @@ export default function ProfilePage() {
   // Arahkan ke login bila belum masuk.
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace("/login?next=/profil");
+      router.replace("/login?next=/profile");
     }
   }, [authLoading, user, router]);
 
@@ -200,7 +200,7 @@ export default function ProfilePage() {
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <Link
-              href="/pesanan"
+              href="/orders"
               className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-neutral-900"
             >
               <Package className="h-4 w-4" />

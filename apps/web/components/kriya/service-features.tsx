@@ -1,13 +1,17 @@
-import { Headphones, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+"use client";
 
-const features = [
-  { icon: Truck, title: "Pengiriman nasional", desc: "Jawa–Bali & luar pulau" },
-  { icon: RotateCcw, title: "Retur 30 hari", desc: "Belum pas? Tukar mudah" },
-  { icon: ShieldCheck, title: "Pembayaran aman", desc: "Midtrans (mode sandbox)" },
-  { icon: Headphones, title: "Bantuan perakitan", desc: "Panduan & tanya kapan saja" },
-];
+import { Headphones, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { useLanguage } from "./language-provider";
 
 export function ServiceFeatures() {
+  const { t } = useLanguage();
+  const features = [
+    { icon: Truck, title: t("home.features.delivery" as any), desc: t("home.features.deliveryDesc" as any) },
+    { icon: RotateCcw, title: t("home.features.return" as any), desc: t("home.features.returnDesc" as any) },
+    { icon: ShieldCheck, title: t("home.features.payment" as any), desc: t("home.features.paymentDesc" as any) },
+    { icon: Headphones, title: t("home.features.support" as any), desc: t("home.features.supportDesc" as any) },
+  ];
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10">
       <div className="grid grid-cols-2 gap-4 rounded-2xl border border-neutral-200 bg-white p-4 sm:p-6 lg:grid-cols-4">

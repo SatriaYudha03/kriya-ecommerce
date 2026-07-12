@@ -26,6 +26,7 @@ func NewOrderHandler(repo *repository.OrderRepository, midtrans *service.Midtran
 }
 
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
+	lang := resolveLocale(c)
 	userID := c.GetString("user_id")
 
 	var req model.CreateOrderRequest
@@ -62,7 +63,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	order, orderItems, err := h.repo.CreateOrder(userID, items, req.ShippingZone, shippingCost, shippingAddressJSON, midtransOrderID)
+	order, orderItems, err := h.repo.CreateOrder(userID, items, req.ShippingZone, shippingCost, shippingAddressJSON, midtransOrderID, lang)
 	if err != nil {
 		var stockErr *repository.InsufficientStockError
 		var notFoundErr *repository.VariantNotFoundError

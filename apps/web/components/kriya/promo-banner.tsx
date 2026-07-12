@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Clock, Percent } from "lucide-react";
+import { useLanguage } from "./language-provider";
 
 // Banner penawaran (gaya "deal of the day" anon) dengan hitung mundur ke tengah
 // malam. Countdown dihitung setelah mount agar tidak ada mismatch hidrasi.
@@ -29,19 +30,20 @@ function useCountdownToMidnight() {
 
 export function PromoBanner() {
   const left = useCountdownToMidnight();
+  const { t } = useLanguage();
   return (
     <section className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-col items-start gap-6 overflow-hidden rounded-3xl bg-clay px-6 py-10 text-cream sm:px-10 md:flex-row md:items-center md:justify-between">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-cream/15 px-3 py-1 text-xs font-medium tracking-wide">
             <Percent className="h-3.5 w-3.5" />
-            Penawaran hari ini
+            {t("home.promo.badge" as any)}
           </span>
           <h2 className="mt-4 max-w-lg text-2xl font-semibold tracking-tight sm:text-3xl">
-            Hemat hingga 20% untuk set ruang kerja
+            {t("home.promo.title" as any)}
           </h2>
           <p className="mt-2 max-w-md text-sm text-cream/80">
-            Meja, kursi, dan penyimpanan pilihan. Berlaku terbatas.
+            {t("home.promo.desc" as any)}
           </p>
         </div>
         <div className="flex flex-col items-start gap-4 md:items-end">
@@ -50,10 +52,10 @@ export function PromoBanner() {
             {left ?? "--:--:--"}
           </div>
           <Link
-            href="/kategori/workspace"
+            href="/categories/workspace"
             className="rounded-full bg-cream px-6 py-3 text-sm font-medium text-clay transition-colors hover:bg-white"
           >
-            Belanja ruang kerja
+            {t("home.promo.cta" as any)}
           </Link>
         </div>
       </div>

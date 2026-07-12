@@ -30,6 +30,8 @@ import type {
   ProductImageInput,
 } from "./types";
 
+import { t, type Locale } from "./i18n";
+
 const USE_FIXTURES = process.env.NEXT_PUBLIC_USE_FIXTURES === "true";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const AI_URL = process.env.NEXT_PUBLIC_AI_URL ?? "";
@@ -56,11 +58,24 @@ interface FetchOpts {
   method?: string;
   body?: unknown;
   auth?: boolean;
+  lang?: string;
+}
+
+function getLocaleCookie(): string {
+  if (typeof window !== "undefined") {
+    const match = document.cookie.match(new RegExp('(^| )kriya-locale=([^;]+)'));
+    if (match) return match[2];
+  }
+  return "id";
 }
 
 async function request<T>(path: string, opts: FetchOpts = {}): Promise<T> {
   const baseUrl = opts.base === "ai" ? AI_URL : API_URL;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
+  
+  const lang = opts.lang || getLocaleCookie();
+  headers["Accept-Language"] = lang;
+
   if (opts.auth) {
     const token = await accessTokenGetter();
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -75,7 +90,7 @@ async function request<T>(path: string, opts: FetchOpts = {}): Promise<T> {
     const err = (json as ApiErrorBody | null)?.error;
     throw new ApiError(
       err?.code ?? "internal",
-      err?.message ?? "Terjadi kesalahan tak terduga",
+      err?.message ?? t(lang as Locale, "error.unexpected"),
       res.status,
     );
   }
@@ -137,7 +152,7 @@ export async function getProducts(
 export async function getProduct(slug: string): Promise<ProductDetail> {
   if (USE_FIXTURES) {
     const detail = fixtures.productDetails[slug];
-    if (!detail) throw new ApiError("not_found", "Produk tidak ditemukan", 404);
+    if (!detail) throw new ApiError("not_found", "Product not found", 404);
     return detail;
   }
   const { data } = await request<Envelope<ProductDetail>>(`/api/v1/products/${slug}`);
@@ -199,7 +214,7 @@ export async function getOrders(): Promise<Order[]> {
 export async function getOrder(id: string): Promise<Order> {
   if (USE_FIXTURES) {
     const order = fixtures.orders.find(o => o.id === id);
-    if (!order) throw new ApiError("not_found", "Pesanan tidak ditemukan", 404);
+    if (!order) throw new ApiError("not_found", "Order not found", 404);
     return order;
   }
   const { data } = await request<Envelope<Order>>(`/api/v1/orders/${id}`, { auth: true });

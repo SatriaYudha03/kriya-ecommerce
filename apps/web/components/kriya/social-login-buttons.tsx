@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Provider } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { useLanguage } from "./language-provider";
 
 const providers: { id: Provider; label: string; icon: React.ReactNode }[] = [
   {
@@ -34,6 +35,7 @@ const providers: { id: Provider; label: string; icon: React.ReactNode }[] = [
 
 export function SocialLoginButtons({ next = "/" }: { next?: string }) {
   const [loadingProvider, setLoadingProvider] = useState<Provider | null>(null);
+  const { t } = useLanguage();
 
   const handleSocialLogin = async (provider: Provider) => {
     setLoadingProvider(provider);
@@ -47,7 +49,7 @@ export function SocialLoginButtons({ next = "/" }: { next?: string }) {
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(
-        error instanceof Error ? error.message : "Gagal masuk dengan SSO"
+        error instanceof Error ? error.message : t("auth.error.sso" as any)
       );
       setLoadingProvider(null);
     }
@@ -68,7 +70,7 @@ export function SocialLoginButtons({ next = "/" }: { next?: string }) {
           ) : (
             icon
           )}
-          Lanjutkan dengan {label}
+          {t("auth.continueWith" as any)} {label}
         </button>
       ))}
     </div>

@@ -1,12 +1,32 @@
 package repository
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+func getI18nString(data []byte, locale string, fallback string) string {
+	if len(data) == 0 || string(data) == "{}" {
+		return fallback
+	}
+	var m map[string]string
+	if err := json.Unmarshal(data, &m); err == nil {
+		if val, ok := m[locale]; ok && val != "" {
+			return val
+		}
+		if val, ok := m["id"]; ok && val != "" {
+			return val
+		}
+		if val, ok := m["en"]; ok && val != "" {
+			return val
+		}
+	}
+	return fallback
+}
 
 type Order struct {
 	ID              string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -83,8 +103,11 @@ type variantLockRow struct {
 	Price       int
 	Stock       int
 	Color       string
+	ColorI18n   []byte `gorm:"column:color_i18n;type:jsonb"`
 	Size        *string
+	SizeI18n    []byte `gorm:"column:size_i18n;type:jsonb"`
 	ProductName string
+	NameI18n    []byte `gorm:"column:name_i18n;type:jsonb"`
 }
 
 // CreateOrder mengunci baris varian, cek+kurangi stok, buat order+items+payment,
@@ -96,6 +119,7 @@ func (r *OrderRepository) CreateOrder(
 	shippingCost int,
 	shippingAddressJSON []byte,
 	midtransOrderID string,
+	locale string,
 ) (*Order, []OrderItem, error) {
 	var order Order
 	var orderItems []OrderItem
@@ -108,7 +132,7 @@ func (r *OrderRepository) CreateOrder(
 			var v variantLockRow
 			err := tx.Clauses(clause.Locking{Strength: "UPDATE", Table: clause.Table{Name: "pv"}}).
 				Table("product_variants AS pv").
-				Select("pv.id, pv.price, pv.stock, pv.color, pv.size, p.name AS product_name").
+				Select("pv.id, pv.price, pv.stock, pv.color, pv.color_i18n, pv.size, pv.size_i18n, p.name AS product_name, p.name_i18n").
 				Joins("JOIN products p ON p.id = pv.product_id").
 				Where("pv.id = ?", item.VariantID).
 				Scan(&v).Error
@@ -129,11 +153,18 @@ func (r *OrderRepository) CreateOrder(
 
 			lineSubtotal := v.Price * item.Qty
 			subtotal += lineSubtotal
+
+			var size *string
+			if v.Size != nil {
+				s := getI18nString(v.SizeI18n, locale, *v.Size)
+				size = &s
+			}
+
 			orderItems = append(orderItems, OrderItem{
 				VariantID: v.ID,
-				Name:      v.ProductName,
-				Color:     v.Color,
-				Size:      v.Size,
+				Name:      getI18nString(v.NameI18n, locale, v.ProductName),
+				Color:     getI18nString(v.ColorI18n, locale, v.Color),
+				Size:      size,
 				Qty:       item.Qty,
 				Price:     v.Price,
 				Subtotal:  lineSubtotal,

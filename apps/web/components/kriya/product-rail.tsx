@@ -4,6 +4,7 @@ import type { ProductsQuery } from "@/lib/api";
 import { useProducts } from "@/lib/queries";
 import { ProductGrid, ProductGridSkeleton } from "./product-grid";
 import { SectionHeading } from "./section-heading";
+import { useLanguage } from "./language-provider";
 
 // Seksi baris produk untuk home: memuat via TanStack Query dengan skeleton.
 export function ProductRail({
@@ -21,6 +22,7 @@ export function ProductRail({
 }) {
   const { data, isLoading, isError } = useProducts(params);
   const products = data?.data ?? [];
+  const { t } = useLanguage();
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8">
@@ -29,11 +31,11 @@ export function ProductRail({
         {isLoading ? (
           <ProductGridSkeleton count={skeletonCount} />
         ) : isError ? (
-          <p className="text-sm text-neutral-500">Gagal memuat produk. Coba muat ulang halaman.</p>
+          <p className="text-sm text-neutral-500">{t("product.loadError" as any)}</p>
         ) : products.length > 0 ? (
           <ProductGrid products={products} />
         ) : (
-          <p className="text-sm text-neutral-500">Belum ada produk di seksi ini.</p>
+          <p className="text-sm text-neutral-500">{t("product.empty" as any)}</p>
         )}
       </div>
     </section>

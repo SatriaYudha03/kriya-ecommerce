@@ -4,24 +4,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
+import { useLanguage } from "@/components/kriya/language-provider";
 import { formatRupiah } from "@/lib/format";
 import { EmptyState } from "@/components/kriya/empty-state";
 
 export default function CartPage() {
   const { items, total, updateQty, removeItem, loading } = useCartStore();
+  const { t } = useLanguage();
 
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20">
         <EmptyState
-          title="Keranjang Kosong"
-          hint="Kamu belum memasukkan produk apapun ke dalam keranjang."
+          title={t("cart.empty.title" as any)}
+          hint={t("cart.empty.hint" as any)}
           action={
             <Link
               href="/"
               className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
             >
-              Mulai Belanja
+              {t("cart.empty.action" as any)}
             </Link>
           }
         />
@@ -31,7 +33,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Keranjang Belanja</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t("cart.title" as any)}</h1>
       
       <div className="mt-8 grid gap-8 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-8">
@@ -51,7 +53,7 @@ export default function CartPage() {
                   <div className="flex justify-between">
                     <div>
                       <h3 className="text-sm font-medium text-neutral-900">
-                        <Link href={`/produk/${item.product.slug}`}>{item.product.name}</Link>
+                        <Link href={`/products/${item.product.slug}`}>{item.product.name}</Link>
                       </h3>
                       <p className="mt-1 text-sm text-neutral-500">
                         {item.product.color} {item.product.size && `· ${item.product.size}`}
@@ -88,7 +90,7 @@ export default function CartPage() {
                       className="flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong disabled:opacity-50"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span>Hapus</span>
+                      <span>{t("cart.remove" as any)}</span>
                     </button>
                   </div>
                 </div>
@@ -98,19 +100,19 @@ export default function CartPage() {
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 lg:col-span-4 lg:p-8">
-          <h2 className="text-lg font-medium text-neutral-900">Ringkasan pesanan</h2>
+          <h2 className="text-lg font-medium text-neutral-900">{t("cart.summary" as any)}</h2>
           
           <dl className="mt-6 space-y-4 text-sm text-neutral-600">
             <div className="flex justify-between">
-              <dt>Subtotal</dt>
+              <dt>{t("cart.subtotal" as any)}</dt>
               <dd className="font-medium text-neutral-900">{formatRupiah(total)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt>Pengiriman</dt>
-              <dd>Dihitung di checkout</dd>
+              <dt>{t("cart.shipping" as any)}</dt>
+              <dd>{t("cart.shippingCalc" as any)}</dd>
             </div>
             <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
-              <dt className="text-base font-medium text-neutral-900">Total belanja</dt>
+              <dt className="text-base font-medium text-neutral-900">{t("cart.total" as any)}</dt>
               <dd className="text-base font-semibold text-neutral-900">{formatRupiah(total)}</dd>
             </div>
           </dl>
@@ -119,12 +121,12 @@ export default function CartPage() {
             href="/checkout"
             className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-neutral-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:outline-none"
           >
-            Lanjut ke Checkout
+            {t("cart.checkout" as any)}
             <ShoppingBag className="h-4 w-4" />
           </Link>
           
           <div className="mt-4 text-center">
-            <p className="text-xs text-neutral-500">Belum termasuk biaya pengiriman</p>
+            <p className="text-xs text-neutral-500">{t("cart.taxNote" as any)}</p>
           </div>
         </div>
       </div>

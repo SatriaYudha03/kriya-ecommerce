@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useCartStore } from "@/stores/cart-store";
 import { SocialLoginButtons } from "@/components/kriya/social-login-buttons";
+import { useLanguage } from "@/components/kriya/language-provider";
 
 function RegisterForm() {
   const [email, setEmail] = useState("");
@@ -16,6 +17,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
   const syncFromServer = useCartStore((s) => s.syncFromServer);
+  const { t } = useLanguage();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +33,14 @@ function RegisterForm() {
       
       if (data.session) {
         await syncFromServer();
-        toast.success("Pendaftaran berhasil");
+        toast.success(t("auth.register.success" as any));
         router.push(next);
       } else {
-        toast.success("Silakan periksa email kamu untuk konfirmasi akun");
+        toast.success(t("auth.register.checkEmail" as any));
         router.push("/login");
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Gagal mendaftar");
+      toast.error(error instanceof Error ? error.message : t("auth.register.error" as any));
     } finally {
       setLoading(false);
     }
@@ -55,13 +57,13 @@ function RegisterForm() {
           <div className="w-full border-t border-neutral-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-neutral-400">atau</span>
+          <span className="bg-white px-2 text-neutral-400">{t("auth.login.or" as any)}</span>
         </div>
       </div>
 
       <form onSubmit={handleRegister} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700">Email</label>
+          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.email" as any)}</label>
           <input
             type="email"
             value={email}
@@ -71,7 +73,7 @@ function RegisterForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700">Password</label>
+          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.password" as any)}</label>
           <input
             type="password"
             value={password}
@@ -86,14 +88,14 @@ function RegisterForm() {
           disabled={loading}
           className="w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
         >
-          {loading ? "Memproses..." : "Daftar"}
+          {loading ? t("auth.login.processing" as any) : t("auth.register.submit" as any)}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-neutral-600">
-        Sudah punya akun?{" "}
+        {t("auth.register.hasAccount" as any)}{" "}
         <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-medium text-brand-strong hover:underline">
-          Masuk di sini
+          {t("auth.register.loginHere" as any)}
         </Link>
       </p>
     </>
@@ -101,13 +103,14 @@ function RegisterForm() {
 }
 
 export default function RegisterPage() {
+  const { t } = useLanguage();
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Daftar Akun Baru</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{t("auth.register.title" as any)}</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        Buat akun KRIYA untuk pengalaman belanja yang lebih baik.
+        {t("auth.register.subtitle" as any)}
       </p>
-      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">Memuat...</div>}>
+      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">{t("auth.loading" as any)}</div>}>
         <RegisterForm />
       </Suspense>
     </div>

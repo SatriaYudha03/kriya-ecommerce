@@ -1,18 +1,24 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useLanguage } from "./language-provider";
 
 // Judul seksi dengan link "lihat semua" opsional.
 export function SectionHeading({
   title,
   subtitle,
   href,
-  linkLabel = "Lihat semua",
+  linkLabel,
 }: {
   title: string;
   subtitle?: string;
   href?: string;
   linkLabel?: string;
 }) {
+  const { t } = useLanguage();
+  const label = linkLabel || t("common.seeAll" as any);
+  
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
@@ -26,7 +32,7 @@ export function SectionHeading({
           href={href}
           className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-brand-strong hover:gap-2"
         >
-          {linkLabel}
+          {label}
           <ArrowRight className="h-4 w-4" />
         </Link>
       )}

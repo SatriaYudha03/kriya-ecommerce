@@ -11,6 +11,25 @@ import (
 	"github.com/kriya-commerce/api/internal/storage"
 )
 
+func getI18nArray(data []byte, locale string, fallback []byte) []byte {
+	if len(data) == 0 || string(data) == "{}" {
+		return fallback
+	}
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(data, &m); err == nil {
+		if val, ok := m[locale]; ok && len(val) > 0 {
+			return val
+		}
+		if val, ok := m["id"]; ok && len(val) > 0 {
+			return val
+		}
+		if val, ok := m["en"]; ok && len(val) > 0 {
+			return val
+		}
+	}
+	return fallback
+}
+
 type CatalogHandler struct {
 	repo        *repository.CatalogRepository
 	supabaseURL string
@@ -21,6 +40,7 @@ func NewCatalogHandler(repo *repository.CatalogRepository, supabaseURL string) *
 }
 
 func (h *CatalogHandler) GetCategories(c *gin.Context) {
+	lang := resolveLocale(c)
 	categories, err := h.repo.GetCategories()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
@@ -34,7 +54,7 @@ func (h *CatalogHandler) GetCategories(c *gin.Context) {
 		res = append(res, model.CategoryResponse{
 			ID:   cat.ID,
 			Slug: cat.Slug,
-			Name: cat.Name,
+			Name: getI18nString(cat.NameI18n, lang, cat.Name),
 		})
 	}
 
@@ -42,6 +62,7 @@ func (h *CatalogHandler) GetCategories(c *gin.Context) {
 }
 
 func (h *CatalogHandler) GetProducts(c *gin.Context) {
+	lang := resolveLocale(c)
 	category := c.Query("category")
 	q := c.Query("q")
 	sort := c.Query("sort")
@@ -86,7 +107,7 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 		res = append(res, model.ProductListResponse{
 			ID:           p.ID,
 			Slug:         p.Slug,
-			Name:         p.Name,
+			Name:         getI18nString(p.NameI18n, lang, p.Name),
 			CategorySlug: p.CategorySlug,
 			PriceMin:     minP,
 			ThumbnailURL: thumb,
@@ -108,6 +129,7 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 }
 
 func (h *CatalogHandler) GetProduct(c *gin.Context) {
+	lang := resolveLocale(c)
 	slug := c.Param("slug")
 	p, err := h.repo.GetProductBySlug(slug)
 	if err != nil {
@@ -118,8 +140,9 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 	}
 
 	var materials []string
-	if len(p.Materials) > 0 {
-		json.Unmarshal(p.Materials, &materials)
+	materialsData := getI18nArray(p.MaterialsI18n, lang, p.Materials)
+	if len(materialsData) > 0 {
+		json.Unmarshal(materialsData, &materials)
 	}
 
 	var dims model.Dimensions
@@ -131,17 +154,22 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 	for _, img := range p.Images {
 		images = append(images, model.ImageResponse{
 			URL: storage.PublicImageURL(h.supabaseURL, img.StoragePath),
-			Alt: img.Alt,
+			Alt: getI18nString(img.AltI18n, lang, img.Alt),
 		})
 	}
 
 	var variants []model.VariantResponse
 	for _, v := range p.Variants {
+		var size *string
+		if v.Size != nil {
+			s := getI18nString(v.SizeI18n, lang, *v.Size)
+			size = &s
+		}
 		variants = append(variants, model.VariantResponse{
 			ID:    v.ID,
 			Sku:   v.Sku,
-			Color: v.Color,
-			Size:  v.Size,
+			Color: getI18nString(v.ColorI18n, lang, v.Color),
+			Size:  size,
 			Price: v.Price,
 			Stock: v.Stock,
 		})
@@ -150,11 +178,11 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 	res := model.ProductDetailResponse{
 		ID:          p.ID,
 		Slug:        p.Slug,
-		Name:        p.Name,
-		Description: p.Description,
+		Name:        getI18nString(p.NameI18n, lang, p.Name),
+		Description: getI18nString(p.DescriptionI18n, lang, p.Description),
 		Category: model.CategoryRef{
 			Slug: p.Category.Slug,
-			Name: p.Category.Name,
+			Name: getI18nString(p.Category.NameI18n, lang, p.Category.Name),
 		},
 		Materials:        materials,
 		Dimensions:       dims,

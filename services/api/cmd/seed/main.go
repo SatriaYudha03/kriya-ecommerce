@@ -53,20 +53,24 @@ type VariantSeed struct {
 	Stock int     `json:"stock"`
 }
 
-// DB Models mapped to 001_commerce_core.sql
+// DB Models mapped to 001_commerce_core.sql + 007_i18n_content.sql
 type Category struct {
-	ID   string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Slug string `gorm:"uniqueIndex"`
-	Name string
+	ID       string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Slug     string `gorm:"uniqueIndex"`
+	Name     string
+	NameI18n []byte `gorm:"column:name_i18n;type:jsonb"`
 }
 
 type Product struct {
 	ID               string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Slug             string `gorm:"uniqueIndex"`
 	Name             string
+	NameI18n         []byte `gorm:"column:name_i18n;type:jsonb"`
 	CategorySlug     string
 	Description      string
+	DescriptionI18n  []byte `gorm:"column:description_i18n;type:jsonb"`
 	Materials        []byte `gorm:"type:jsonb"` // Store as JSONB []string
+	MaterialsI18n    []byte `gorm:"column:materials_i18n;type:jsonb"`
 	Dimensions       []byte `gorm:"type:jsonb"` // Store as JSONB Dimensions
 	WeightKg         float64
 	HasAssemblyGuide bool
@@ -77,7 +81,9 @@ type ProductVariant struct {
 	ProductID string `gorm:"type:uuid"`
 	Sku       string `gorm:"uniqueIndex"`
 	Color     string
+	ColorI18n []byte `gorm:"column:color_i18n;type:jsonb"`
 	Size      *string
+	SizeI18n  []byte `gorm:"column:size_i18n;type:jsonb"`
 	Price     int
 	Stock     int
 }
@@ -87,6 +93,7 @@ type ProductImage struct {
 	ProductID   string `gorm:"type:uuid"`
 	StoragePath string
 	Alt         string
+	AltI18n     []byte `gorm:"column:alt_i18n;type:jsonb"`
 	IsPrimary   bool
 }
 
@@ -114,14 +121,16 @@ func main() {
 
 	// Insert Categories
 	for _, catSeed := range seed.Categories {
+		nameI18n, _ := json.Marshal(map[string]string{"en": catSeed.Name, "id": catSeed.Name + " (ID)"})
 		cat := Category{
-			Slug: catSeed.Slug,
-			Name: catSeed.Name,
+			Slug:     catSeed.Slug,
+			Name:     catSeed.Name,
+			NameI18n: nameI18n,
 		}
 		// Upsert based on slug
 		err := db.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "slug"}},
-			DoUpdates: clause.AssignmentColumns([]string{"name"}),
+			DoUpdates: clause.AssignmentColumns([]string{"name", "name_i18n"}),
 		}).Create(&cat).Error
 		if err != nil {
 			log.Printf("Error seeding category %s: %v", cat.Slug, err)
@@ -132,13 +141,28 @@ func main() {
 	for _, prodSeed := range seed.Products {
 		materialsJSON, _ := json.Marshal(prodSeed.Materials)
 		dimensionsJSON, _ := json.Marshal(prodSeed.Dimensions)
+		nameI18n, _ := json.Marshal(map[string]string{"en": prodSeed.Name, "id": prodSeed.Name + " (ID)"})
+		descI18n, _ := json.Marshal(map[string]string{"en": prodSeed.Description, "id": prodSeed.Description + " (ID)"})
+		
+		materialsId := make([]string, len(prodSeed.Materials))
+		for i, m := range prodSeed.Materials {
+			materialsId[i] = m + " (ID)"
+		}
+		materialsI18nMap := map[string][]string{
+			"en": prodSeed.Materials,
+			"id": materialsId,
+		}
+		materialsI18nJSON, _ := json.Marshal(materialsI18nMap)
 
 		prod := Product{
 			Slug:             prodSeed.Slug,
 			Name:             prodSeed.Name,
+			NameI18n:         nameI18n,
 			CategorySlug:     prodSeed.CategorySlug,
 			Description:      prodSeed.Description,
+			DescriptionI18n:  descI18n,
 			Materials:        materialsJSON,
+			MaterialsI18n:    materialsI18nJSON,
 			Dimensions:       dimensionsJSON,
 			WeightKg:         prodSeed.WeightKg,
 			HasAssemblyGuide: prodSeed.HasAssemblyGuide,
@@ -147,7 +171,7 @@ func main() {
 		err := db.Clauses(clause.OnConflict{
 			Columns: []clause.Column{{Name: "slug"}},
 			DoUpdates: clause.AssignmentColumns([]string{
-				"name", "category_slug", "description", "materials",
+				"name", "name_i18n", "category_slug", "description", "description_i18n", "materials", "materials_i18n",
 				"dimensions", "weight_kg", "has_assembly_guide",
 			}),
 		}).Create(&prod).Error
@@ -162,17 +186,24 @@ func main() {
 
 		// Insert Variants
 		for _, varSeed := range prodSeed.Variants {
+			colorI18n, _ := json.Marshal(map[string]string{"en": varSeed.Color, "id": varSeed.Color + " (ID)"})
+			var sizeI18n []byte
+			if varSeed.Size != nil {
+				sizeI18n, _ = json.Marshal(map[string]string{"en": *varSeed.Size, "id": *varSeed.Size + " (ID)"})
+			}
 			variant := ProductVariant{
 				ProductID: dbProd.ID,
 				Sku:       varSeed.Sku,
 				Color:     varSeed.Color,
+				ColorI18n: colorI18n,
 				Size:      varSeed.Size,
+				SizeI18n:  sizeI18n,
 				Price:     varSeed.Price,
 				Stock:     varSeed.Stock,
 			}
 			err := db.Clauses(clause.OnConflict{
 				Columns:   []clause.Column{{Name: "sku"}},
-				DoUpdates: clause.AssignmentColumns([]string{"color", "size", "price", "stock"}),
+				DoUpdates: clause.AssignmentColumns([]string{"color", "color_i18n", "size", "size_i18n", "price", "stock"}),
 			}).Create(&variant).Error
 			if err != nil {
 				log.Printf("Error seeding variant %s: %v", variant.Sku, err)
@@ -184,10 +215,15 @@ func main() {
 
 		// Insert Images
 		for i, imgSeed := range prodSeed.Images {
+			var altI18n []byte
+			if imgSeed.Alt != "" {
+				altI18n, _ = json.Marshal(map[string]string{"en": imgSeed.Alt, "id": imgSeed.Alt + " (ID)"})
+			}
 			img := ProductImage{
 				ProductID:   dbProd.ID,
 				StoragePath: imgSeed.StoragePath,
 				Alt:         imgSeed.Alt,
+				AltI18n:     altI18n,
 				IsPrimary:   i == 0,
 			}
 			db.Create(&img)

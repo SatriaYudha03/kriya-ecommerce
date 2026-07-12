@@ -25,10 +25,13 @@ type VariantWithProduct struct {
 	Price         int
 	Stock         int
 	Color         string
+	ColorI18n     []byte `gorm:"column:color_i18n;type:jsonb"`
 	Size          *string
+	SizeI18n      []byte `gorm:"column:size_i18n;type:jsonb"`
 	ProductID     string
 	ProductSlug   string
 	ProductName   string
+	NameI18n      []byte `gorm:"column:name_i18n;type:jsonb"`
 	ThumbnailPath string
 }
 
@@ -76,8 +79,8 @@ func (r *CartRepository) GetVariantsByIDs(ids []string) ([]VariantWithProduct, e
 	}
 	var rows []VariantWithProduct
 	err := r.db.Table("product_variants AS pv").
-		Select(`pv.id AS variant_id, pv.price, pv.stock, pv.color, pv.size,
-			p.id AS product_id, p.slug AS product_slug, p.name AS product_name,
+		Select(`pv.id AS variant_id, pv.price, pv.stock, pv.color, pv.color_i18n, pv.size, pv.size_i18n,
+			p.id AS product_id, p.slug AS product_slug, p.name AS product_name, p.name_i18n,
 			(SELECT pi.storage_path FROM product_images pi
 			 WHERE pi.product_id = p.id
 			 ORDER BY pi.is_primary DESC, pi.created_at ASC LIMIT 1) AS thumbnail_path`).

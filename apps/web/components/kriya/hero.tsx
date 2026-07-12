@@ -16,39 +16,43 @@ interface Slide {
   gradient: string;
 }
 
-const slides: Slide[] = [
-  {
-    eyebrow: "Koleksi ruang keluarga",
-    title: "Ruang yang hangat, dirakit oleh tanganmu.",
-    subtitle: "Furniture flat-pack per ruangan dengan harga jujur — tanpa drama.",
-    cta: { label: "Jelajahi ruang keluarga", href: "/kategori/living-room" },
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80&auto=format&fit=crop",
-    alt: "Sofa modern di ruang keluarga yang hangat",
-    gradient: "from-brand-tint to-brand-soft",
-  },
-  {
-    eyebrow: "Ruang kerja",
-    title: "Meja yang menemani kerja dari rumah.",
-    subtitle: "Meja, kursi, dan penyimpanan untuk sudut kerja yang rapi.",
-    cta: { label: "Lihat ruang kerja", href: "/kategori/workspace" },
-    image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=800&q=80&auto=format&fit=crop",
-    alt: "Meja kerja minimalis dengan pencahayaan alami",
-    gradient: "from-cream to-sand",
-  },
-  {
-    eyebrow: "Pencahayaan",
-    title: "Cahaya lembut untuk setiap sudut.",
-    subtitle: "Lampu lantai, gantung, dan meja bernuansa hangat.",
-    cta: { label: "Lihat pencahayaan", href: "/kategori/lighting" },
-    image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80&auto=format&fit=crop",
-    alt: "Lampu lantai dengan cahaya hangat di sudut ruangan",
-    gradient: "from-cream to-brand-tint",
-  },
-];
+import { useLanguage } from "./language-provider";
 
 export function Hero() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const { t } = useLanguage();
+
+  const slides: Slide[] = [
+    {
+      eyebrow: t("home.hero.eyebrow1" as any),
+      title: t("home.hero.title1" as any),
+      subtitle: t("home.hero.subtitle1" as any),
+      cta: { label: t("home.hero.cta1" as any), href: "/categories/living-room" },
+      image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80&auto=format&fit=crop",
+      alt: "Sofa modern di ruang keluarga yang hangat",
+      gradient: "from-brand-tint to-brand-soft",
+    },
+    {
+      eyebrow: t("home.hero.eyebrow2" as any),
+      title: t("home.hero.title2" as any),
+      subtitle: t("home.hero.subtitle2" as any),
+      cta: { label: t("home.hero.cta2" as any), href: "/categories/workspace" },
+      image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=800&q=80&auto=format&fit=crop",
+      alt: "Meja kerja minimalis dengan pencahayaan alami",
+      gradient: "from-cream to-sand",
+    },
+    {
+      eyebrow: t("home.hero.eyebrow3" as any),
+      title: t("home.hero.title3" as any),
+      subtitle: t("home.hero.subtitle3" as any),
+      cta: { label: t("home.hero.cta3" as any), href: "/categories/lighting" },
+      image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80&auto=format&fit=crop",
+      alt: "Lampu lantai dengan cahaya hangat di sudut ruangan",
+      gradient: "from-cream to-brand-tint",
+    },
+  ];
+
   const count = slides.length;
 
   const go = useCallback((n: number) => setIndex((i) => (i + n + count) % count), [count]);
@@ -84,11 +88,11 @@ export function Hero() {
               {slide.cta.label}
             </Link>
             <Link
-              href="/cari"
+              href="/search"
               className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-6 py-3 text-sm font-medium text-neutral-800 transition-colors hover:border-neutral-400"
             >
               <Search className="h-4 w-4" />
-              Cari furniture
+              {t("nav.search")}
             </Link>
           </div>
         </div>
@@ -117,7 +121,7 @@ export function Hero() {
         <button
           type="button"
           onClick={() => go(-1)}
-          aria-label="Slide sebelumnya"
+          aria-label={t("action.prev")}
           className="rounded-full border border-neutral-300 p-2 text-neutral-600 hover:border-neutral-400"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -128,7 +132,7 @@ export function Hero() {
               key={i}
               type="button"
               onClick={() => setIndex(i)}
-              aria-label={`Ke slide ${i + 1}`}
+              aria-label={`Slide ${i + 1}`}
               aria-current={i === index}
               className={cn(
                 "h-2 rounded-full transition-all",
@@ -140,7 +144,7 @@ export function Hero() {
         <button
           type="button"
           onClick={() => go(1)}
-          aria-label="Slide berikutnya"
+          aria-label={t("action.next")}
           className="rounded-full border border-neutral-300 p-2 text-neutral-600 hover:border-neutral-400"
         >
           <ChevronRight className="h-4 w-4" />

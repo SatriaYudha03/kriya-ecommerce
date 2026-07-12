@@ -8,6 +8,7 @@ import type { Category } from "@/lib/types";
 import { categoryLabel } from "@/lib/category-meta";
 import { cn } from "@/lib/utils";
 import { useAuth } from "./auth-provider";
+import { useLanguage } from "./language-provider";
 import { useCartStore } from "@/stores/cart-store";
 
 export function SiteHeader({ categories }: { categories: Category[] }) {
@@ -16,16 +17,17 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [q, setQ] = useState("");
   const { user, loading: authLoading, signOut } = useAuth();
+  const { t, locale, setLocale } = useLanguage();
   const itemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.qty, 0));
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
     const query = q.trim();
-    router.push(query ? `/cari?q=${encodeURIComponent(query)}` : "/cari");
+    router.push(query ? `/search?q=${encodeURIComponent(query)}` : "/search");
     setMenuOpen(false);
   }
 
-  const isActive = (slug: string) => pathname === `/kategori/${slug}`;
+  const isActive = (slug: string) => pathname === `/categories/${slug}`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-cream/90 backdrop-blur">
@@ -52,8 +54,8 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Cari furniture, mis. meja kerja"
-                aria-label="Cari furniture"
+                placeholder={t("nav.searchPlaceholder" as any)}
+                aria-label={t("nav.search")}
                 className="w-full rounded-full border border-neutral-300 bg-white py-2 pr-4 pl-9 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               />
             </div>
@@ -61,7 +63,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
 
           <div className="ml-auto flex items-center gap-1">
             <Link
-              href="/cari"
+              href="/search"
               aria-label="Cari"
               className="rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60 md:hidden"
             >
@@ -73,22 +75,22 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 {user ? (
                   <div className="flex items-center gap-1">
                     <Link
-                      href="/profil"
+                      href="/profile"
                       className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-200/60 md:flex"
                     >
                       <User className="h-4 w-4" />
                       <span className="max-w-[120px] truncate">{user.email?.split("@")[0]}</span>
                     </Link>
                     <Link
-                      href="/pesanan"
+                      href="/orders"
                       className="hidden rounded-full px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-200/60 md:block"
                     >
-                      Pesanan
+                      {t("nav.orders")}
                     </Link>
                     <button
                       type="button"
                       onClick={() => signOut()}
-                      aria-label="Keluar"
+                      aria-label={t("nav.logout")}
                       className="rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60"
                     >
                       <LogOut className="h-5 w-5" />
@@ -99,16 +101,26 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                     href="/login"
                     className="hidden rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200/60 md:block"
                   >
-                    Masuk
+                    {t("nav.login")}
                   </Link>
                 )}
               </>
             )}
 
+            <div className="ml-2 flex items-center border-l border-neutral-300 pl-3">
+              <button
+                type="button"
+                onClick={() => setLocale(locale === "en" ? "id" : "en")}
+                className="rounded text-xs font-semibold text-neutral-600 hover:text-neutral-900"
+              >
+                {locale.toUpperCase()}
+              </button>
+            </div>
+
             <Link
               href="/cart"
-              aria-label="Keranjang"
-              className="relative rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60"
+              aria-label={t("nav.cart")}
+              className="relative ml-2 rounded-full p-2 text-neutral-700 hover:bg-neutral-200/60"
             >
               <ShoppingBag className="h-5 w-5" />
               {itemCount > 0 && (
@@ -128,12 +140,12 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
               pathname === "/" && "text-neutral-900",
             )}
           >
-            Beranda
+            {t("nav.home")}
           </Link>
           {categories.map((c) => (
             <Link
               key={c.slug}
-              href={`/kategori/${c.slug}`}
+                  href={`/categories/${c.slug}`}
               className={cn(
                 "text-neutral-600 hover:text-neutral-900",
                 isActive(c.slug) && "font-medium text-brand-strong",
@@ -155,8 +167,8 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                   type="search"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Cari furniture…"
-                  aria-label="Cari furniture"
+                  placeholder={t("nav.searchMobilePlaceholder" as any)}
+                  aria-label={t("nav.search")}
                   className="w-full rounded-full border border-neutral-300 bg-white py-2 pr-4 pl-9 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                 />
               </div>
@@ -165,7 +177,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
               {categories.map((c) => (
                 <Link
                   key={c.slug}
-                  href={`/kategori/${c.slug}`}
+              href={`/categories/${c.slug}`}
                   onClick={() => setMenuOpen(false)}
                   className={cn(
                     "rounded-lg px-2 py-2.5 text-sm text-neutral-700 hover:bg-neutral-200/50",
@@ -183,35 +195,47 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                   onClick={() => setMenuOpen(false)}
                   className="block rounded-lg px-2 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-200/50"
                 >
-                  Masuk / Daftar
+                  {t("nav.login")}
                 </Link>
               </div>
             )}
             {!authLoading && user && (
               <div className="border-t border-neutral-200 pt-3 space-y-1">
                 <Link
-                  href="/profil"
+                  href="/profile"
                   onClick={() => setMenuOpen(false)}
                   className="block rounded-lg px-2 py-2.5 text-sm text-neutral-700 hover:bg-neutral-200/50"
                 >
-                  Profil saya
+                  {t("nav.profile")}
                 </Link>
                 <Link
-                  href="/pesanan"
+                  href="/orders"
                   onClick={() => setMenuOpen(false)}
                   className="block rounded-lg px-2 py-2.5 text-sm text-neutral-700 hover:bg-neutral-200/50"
                 >
-                  Pesanan saya
+                  {t("nav.orders")}
                 </Link>
                 <button
                   type="button"
                   onClick={() => { signOut(); setMenuOpen(false); }}
                   className="w-full rounded-lg px-2 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-200/50"
                 >
-                  Keluar
+                  {t("nav.logout")}
                 </button>
               </div>
             )}
+            <div className="border-t border-neutral-200 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setLocale(locale === "en" ? "id" : "en");
+                  setMenuOpen(false);
+                }}
+                className="w-full rounded-lg px-2 py-2.5 text-left text-sm font-medium text-neutral-700 hover:bg-neutral-200/50"
+              >
+                {t("nav.switchLang" as any)}: {locale === "en" ? "Indonesia" : "English"}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -26,6 +26,7 @@ type rawCartItem struct {
 }
 
 func (h *CartHandler) GetCart(c *gin.Context) {
+	lang := resolveLocale(c)
 	userID := c.GetString("user_id")
 
 	cart, err := h.repo.GetByUserID(userID)
@@ -41,7 +42,7 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 		json.Unmarshal(cart.Items, &items)
 	}
 
-	res, err := h.buildCartResponse(items)
+	res, err := h.buildCartResponse(items, lang)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
@@ -53,6 +54,7 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 }
 
 func (h *CartHandler) PutCart(c *gin.Context) {
+	lang := resolveLocale(c)
 	userID := c.GetString("user_id")
 
 	var req model.PutCartRequest
@@ -101,7 +103,7 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 		return
 	}
 
-	res, err := h.buildCartResponse(items)
+	res, err := h.buildCartResponse(items, lang)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
 			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
@@ -114,7 +116,7 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 
 // buildCartResponse menghitung ulang harga/subtotal/total dari data varian TERBARU di DB.
 // Item yang variant_id-nya sudah tidak ada (mis. dihapus admin) di-skip diam-diam saat GET.
-func (h *CartHandler) buildCartResponse(items []rawCartItem) (model.CartResponse, error) {
+func (h *CartHandler) buildCartResponse(items []rawCartItem, locale string) (model.CartResponse, error) {
 	ids := make([]string, 0, len(items))
 	for _, it := range items {
 		ids = append(ids, it.VariantID)
@@ -138,6 +140,11 @@ func (h *CartHandler) buildCartResponse(items []rawCartItem) (model.CartResponse
 		}
 		subtotal := v.Price * it.Qty
 		total += subtotal
+		var size *string
+		if v.Size != nil {
+			s := getI18nString(v.SizeI18n, locale, *v.Size)
+			size = &s
+		}
 		res.Items = append(res.Items, model.CartItemResponse{
 			VariantID: it.VariantID,
 			Qty:       it.Qty,
@@ -145,10 +152,10 @@ func (h *CartHandler) buildCartResponse(items []rawCartItem) (model.CartResponse
 			Subtotal:  subtotal,
 			Product: model.CartProductResponse{
 				Slug:         v.ProductSlug,
-				Name:         v.ProductName,
+				Name:         getI18nString(v.NameI18n, locale, v.ProductName),
 				ThumbnailURL: storage.PublicImageURL(h.supabaseURL, v.ThumbnailPath),
-				Color:        v.Color,
-				Size:         v.Size,
+				Color:        getI18nString(v.ColorI18n, locale, v.Color),
+				Size:         size,
 			},
 		})
 	}

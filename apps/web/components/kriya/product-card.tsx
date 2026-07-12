@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { formatRupiah } from "@/lib/format";
 import type { ProductListItem } from "@/lib/types";
 import { ProductMedia } from "./product-media";
+import { useLanguage } from "./language-provider";
 
-// Kartu produk katalog. Rasio media 4:5 (AGENT-FE). Presentasional — dipakai
+// Kartu produk katalog. Rasio media 4:5 (AGENT-FE). Presentasional ?" dipakai
 // baik di server maupun client component.
 export function ProductCard({ product }: { product: ProductListItem }) {
+  const { t } = useLanguage();
   return (
-    <Link href={`/produk/${product.slug}`} className="group block">
+    <Link href={`/products/${product.slug}`} className="group block">
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-sand">
         <ProductMedia
           name={product.name}
@@ -20,7 +24,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
           {product.name}
         </h3>
         <p className="mt-0.5 text-sm text-neutral-500">
-          Mulai {formatRupiah(product.price_min)}
+          {t("product.startsFrom" as any)} {formatRupiah(product.price_min)}
         </p>
       </div>
     </Link>

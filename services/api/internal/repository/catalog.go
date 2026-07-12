@@ -14,18 +14,22 @@ func NewCatalogRepository(db *gorm.DB) *CatalogRepository {
 
 // Reuse models from seed/main.go for db structures
 type Category struct {
-	ID   string
-	Slug string
-	Name string
+	ID       string
+	Slug     string
+	Name     string
+	NameI18n []byte `gorm:"type:jsonb"`
 }
 
 type Product struct {
 	ID               string
 	Slug             string
 	Name             string
+	NameI18n         []byte `gorm:"type:jsonb"`
 	CategorySlug     string
 	Description      string
+	DescriptionI18n  []byte `gorm:"type:jsonb"`
 	Materials        []byte
+	MaterialsI18n    []byte `gorm:"type:jsonb"`
 	Dimensions       []byte
 	WeightKg         float64
 	HasAssemblyGuide bool
@@ -39,7 +43,9 @@ type ProductVariant struct {
 	ProductID string
 	Sku       string
 	Color     string
+	ColorI18n []byte `gorm:"type:jsonb"`
 	Size      *string
+	SizeI18n  []byte `gorm:"type:jsonb"`
 	Price     int
 	Stock     int
 }
@@ -49,6 +55,7 @@ type ProductImage struct {
 	ProductID   string
 	StoragePath string
 	Alt         string
+	AltI18n     []byte `gorm:"type:jsonb"`
 	IsPrimary   bool
 }
 

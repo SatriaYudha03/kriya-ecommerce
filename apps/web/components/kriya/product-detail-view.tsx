@@ -113,7 +113,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
       <Breadcrumbs
         items={[
           { label: "Beranda", href: "/" },
-          { label: categoryLabel(product.category.slug, product.category.name), href: `/kategori/${product.category.slug}` },
+          { label: categoryLabel(product.category.slug, product.category.name), href: `/categories/${product.category.slug}` },
           { label: product.name },
         ]}
       />
@@ -123,7 +123,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
 
         <div>
           <Link
-            href={`/kategori/${product.category.slug}`}
+            href={`/categories/${product.category.slug}`}
             className="text-sm font-medium text-brand-strong hover:underline"
           >
             {categoryLabel(product.category.slug, product.category.name)}

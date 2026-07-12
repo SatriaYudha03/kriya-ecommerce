@@ -114,12 +114,12 @@ export default function CheckoutPage() {
         onSuccess: async () => {
           await clearCart();
           toast.success("Pembayaran berhasil!");
-          router.push(`/pesanan/${res.order.id}`);
+          router.push(`/orders/${res.order.id}`);
         },
         onPending: async () => {
           await clearCart();
           toast.success("Pesanan dibuat. Menunggu pembayaran.");
-          router.push(`/pesanan/${res.order.id}`);
+          router.push(`/orders/${res.order.id}`);
         },
         onError: () => {
           toast.error("Pembayaran gagal. Silakan coba lagi.");
@@ -128,7 +128,7 @@ export default function CheckoutPage() {
         onClose: async () => {
           await clearCart();
           toast.info("Pembayaran ditutup, pesanan tersimpan.");
-          router.push(`/pesanan/${res.order.id}`);
+          router.push(`/orders/${res.order.id}`);
         }
       });
 
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
             <section>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="text-lg font-medium text-neutral-900">1. Alamat Pengiriman</h2>
-                <Link href="/profil" className="text-sm font-medium text-brand hover:text-brand-strong">
+                <Link href="/profile" className="text-sm font-medium text-brand hover:text-brand-strong">
                   Kelola alamat tersimpan
                 </Link>
               </div>

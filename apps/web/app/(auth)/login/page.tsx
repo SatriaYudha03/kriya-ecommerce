@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
 import { SocialLoginButtons } from "@/components/kriya/social-login-buttons";
+import { useLanguage } from "@/components/kriya/language-provider";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -16,6 +17,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
   const syncFromServer = useCartStore((s) => s.syncFromServer);
+  const { t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +33,11 @@ function LoginForm() {
       
       if (data.session) {
         await syncFromServer(); // Sync cart from server
-        toast.success("Berhasil masuk");
+        toast.success(t("auth.login.success" as any));
         router.push(next);
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Gagal masuk");
+      toast.error(error instanceof Error ? error.message : t("auth.login.error" as any));
     } finally {
       setLoading(false);
     }
@@ -52,13 +54,13 @@ function LoginForm() {
           <div className="w-full border-t border-neutral-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-neutral-400">atau</span>
+          <span className="bg-white px-2 text-neutral-400">{t("auth.login.or" as any)}</span>
         </div>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700">Email</label>
+          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.email" as any)}</label>
           <input
             type="email"
             value={email}
@@ -68,7 +70,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700">Password</label>
+          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.password" as any)}</label>
           <input
             type="password"
             value={password}
@@ -82,14 +84,14 @@ function LoginForm() {
           disabled={loading}
           className="w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
         >
-          {loading ? "Memproses..." : "Masuk"}
+          {loading ? t("auth.login.processing" as any) : t("auth.login.submit" as any)}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-neutral-600">
-        Belum punya akun?{" "}
+        {t("auth.login.noAccount" as any)}{" "}
         <Link href={`/register?next=${encodeURIComponent(next)}`} className="font-medium text-brand-strong hover:underline">
-          Daftar sekarang
+          {t("auth.login.registerNow" as any)}
         </Link>
       </p>
     </>
@@ -97,13 +99,14 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Masuk ke KRIYA</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{t("auth.login.title2" as any)}</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        Silakan masuk untuk melanjutkan belanja dan melihat pesanan.
+        {t("auth.login.subtitle" as any)}
       </p>
-      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">Memuat...</div>}>
+      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">{t("auth.loading" as any)}</div>}>
         <LoginForm />
       </Suspense>
     </div>

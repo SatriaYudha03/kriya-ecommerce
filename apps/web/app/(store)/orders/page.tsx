@@ -80,7 +80,7 @@ export default function OrdersPage() {
                   {order.items.length} macam produk
                 </p>
                 <Link
-                  href={`/pesanan/${order.id}`}
+                  href={`/orders/${order.id}`}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-strong"
                 >
                   Lihat detail
