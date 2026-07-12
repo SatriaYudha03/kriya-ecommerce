@@ -11,6 +11,7 @@ import type {
   Envelope,
   ListEnvelope,
   Order,
+  OrderStatus,
   ProductDetail,
   ProductListItem,
   Profile,
@@ -19,6 +20,14 @@ import type {
   CreateOrderResponse,
   SearchEnvelope,
   SimilarEnvelope,
+  AdminStats,
+  AdminOrdersQuery,
+  AdminProductDetail,
+  AdminProductImage,
+  CreateProductPayload,
+  UpdateProductPayload,
+  VariantInput,
+  ProductImageInput,
 } from "./types";
 
 const USE_FIXTURES = process.env.NEXT_PUBLIC_USE_FIXTURES === "true";
@@ -218,4 +227,118 @@ export async function getSimilarProducts(id: string): Promise<SimilarEnvelope> {
     }), 500));
   }
   return request<SimilarEnvelope>(`/ai/v1/products/${id}/similar`, { base: "ai" });
+}
+
+// ===== Admin (M6) =====
+// Fitur admin hanya berjalan terhadap API live (butuh role admin di server);
+// tidak ada mode fixtures di sini.
+
+export async function getAdminStats(): Promise<AdminStats> {
+  const { data } = await request<Envelope<AdminStats>>("/api/v1/admin/stats", { auth: true });
+  return data;
+}
+
+export async function getAdminOrders(
+  query: AdminOrdersQuery = {},
+): Promise<ListEnvelope<Order>> {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== "") params.set(k, String(v));
+  }
+  const qs = params.toString();
+  return request<ListEnvelope<Order>>(`/api/v1/admin/orders${qs ? `?${qs}` : ""}`, { auth: true });
+}
+
+export async function updateAdminOrderStatus(id: string, status: OrderStatus): Promise<void> {
+  await request<Envelope<{ status: string }>>(`/api/v1/admin/orders/${id}/status`, {
+    method: "PUT",
+    body: { status },
+    auth: true,
+  });
+}
+
+export async function getAdminProduct(id: string): Promise<AdminProductDetail> {
+  const { data } = await request<Envelope<AdminProductDetail>>(`/api/v1/admin/products/${id}`, {
+    auth: true,
+  });
+  return data;
+}
+
+export async function createProduct(payload: CreateProductPayload): Promise<{ id: string }> {
+  const { data } = await request<Envelope<{ id: string }>>("/api/v1/admin/products", {
+    method: "POST",
+    body: payload,
+    auth: true,
+  });
+  return data;
+}
+
+export async function updateProduct(id: string, payload: UpdateProductPayload): Promise<void> {
+  await request<Envelope<{ id: string }>>(`/api/v1/admin/products/${id}`, {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  await request<Envelope<{ id: string }>>(`/api/v1/admin/products/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+export async function createVariant(productId: string, payload: VariantInput): Promise<void> {
+  await request<Envelope<unknown>>(`/api/v1/admin/products/${productId}/variants`, {
+    method: "POST",
+    body: payload,
+    auth: true,
+  });
+}
+
+export async function updateVariant(
+  productId: string,
+  variantId: string,
+  payload: VariantInput,
+): Promise<void> {
+  await request<Envelope<unknown>>(
+    `/api/v1/admin/products/${productId}/variants/${variantId}`,
+    { method: "PUT", body: payload, auth: true },
+  );
+}
+
+export async function deleteVariant(productId: string, variantId: string): Promise<void> {
+  await request<Envelope<unknown>>(
+    `/api/v1/admin/products/${productId}/variants/${variantId}`,
+    { method: "DELETE", auth: true },
+  );
+}
+
+export async function addProductImage(
+  productId: string,
+  payload: ProductImageInput,
+): Promise<AdminProductImage> {
+  const { data } = await request<Envelope<AdminProductImage>>(
+    `/api/v1/admin/products/${productId}/images`,
+    { method: "POST", body: payload, auth: true },
+  );
+  return data;
+}
+
+export async function updateProductImage(
+  productId: string,
+  imageId: string,
+  payload: { alt: string; is_primary: boolean },
+): Promise<void> {
+  await request<Envelope<{ id: string }>>(
+    `/api/v1/admin/products/${productId}/images/${imageId}`,
+    { method: "PUT", body: payload, auth: true },
+  );
+}
+
+export async function deleteProductImage(productId: string, imageId: string): Promise<void> {
+  await request<Envelope<{ id: string }>>(
+    `/api/v1/admin/products/${productId}/images/${imageId}`,
+    { method: "DELETE", auth: true },
+  );
 }

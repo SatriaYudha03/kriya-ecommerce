@@ -105,3 +105,68 @@ func (r *AdminRepository) DeleteVariant(id string) error {
 
 	return r.db.Where("id = ?", id).Delete(&ProductVariant{}).Error
 }
+
+// Stats menghitung metrik ringkas untuk dashboard admin.
+// revenue = total dari order yang sudah/menuju terpenuhi (bukan pending/cancel/expired).
+func (r *AdminRepository) Stats() (totalOrders, revenue, activeProducts int64, err error) {
+	if err = r.db.Model(&Order{}).Count(&totalOrders).Error; err != nil {
+		return
+	}
+	if err = r.db.Model(&Order{}).
+		Where("status IN ?", []string{"paid", "processing", "shipped", "completed"}).
+		Select("COALESCE(SUM(total), 0)").Scan(&revenue).Error; err != nil {
+		return
+	}
+	if err = r.db.Model(&Product{}).Count(&activeProducts).Error; err != nil {
+		return
+	}
+	return
+}
+
+// GetProductByID mengambil satu produk lengkap dengan varian & gambar (bentuk internal admin).
+func (r *AdminRepository) GetProductByID(id string) (*Product, error) {
+	var p Product
+	err := r.db.Preload("Variants").Preload("Images").Where("id = ?", id).First(&p).Error
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+// CreateImage menambah baris gambar produk. Bila is_primary, gambar lain produk
+// yang sama di-set non-primary dalam satu transaksi.
+func (r *AdminRepository) CreateImage(img *ProductImage) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if img.IsPrimary {
+			if err := tx.Model(&ProductImage{}).Where("product_id = ?", img.ProductID).
+				Update("is_primary", false).Error; err != nil {
+				return err
+			}
+		}
+		return tx.Create(img).Error
+	})
+}
+
+// UpdateImage memperbarui alt & is_primary satu gambar. Bila jadi primary,
+// gambar lain produk yang sama di-set non-primary dalam satu transaksi.
+func (r *AdminRepository) UpdateImage(id, alt string, isPrimary bool) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var img ProductImage
+		if err := tx.Where("id = ?", id).First(&img).Error; err != nil {
+			return err
+		}
+		if isPrimary {
+			if err := tx.Model(&ProductImage{}).Where("product_id = ?", img.ProductID).
+				Update("is_primary", false).Error; err != nil {
+				return err
+			}
+		}
+		return tx.Model(&ProductImage{}).Where("id = ?", id).
+			Updates(map[string]interface{}{"alt": alt, "is_primary": isPrimary}).Error
+	})
+}
+
+// DeleteImage menghapus satu baris gambar produk.
+func (r *AdminRepository) DeleteImage(id string) error {
+	return r.db.Where("id = ?", id).Delete(&ProductImage{}).Error
+}
