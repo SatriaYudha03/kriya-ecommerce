@@ -49,7 +49,7 @@ export function SocialLoginButtons({ next = "/" }: { next?: string }) {
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(
-        error instanceof Error ? error.message : t("auth.error.sso" as any)
+        error instanceof Error ? error.message : t("auth.error.sso")
       );
       setLoadingProvider(null);
     }
@@ -70,7 +70,7 @@ export function SocialLoginButtons({ next = "/" }: { next?: string }) {
           ) : (
             icon
           )}
-          {t("auth.continueWith" as any)} {label}
+          {t("auth.continueWith")} {label}
         </button>
       ))}
     </div>

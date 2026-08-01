@@ -24,6 +24,11 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 - Backend Python: test, smoke endpoint, dan validasi response envelope.
 - Data / seed / migrasi: verifikasi idempoten, kontrak data, dan integritas skema.
 - Integrasi: alur guest, auth, cart, checkout, search, chatbot, dan admin sesuai milestone.
+- **Disiplin tipe (lintas-agent, master Bagian 5):** setiap validasi wajib memeriksa tidak ada `any` baru dan tidak ada aturan lint yang dibungkam. Perintah cek cepat:
+  - FE: `npx tsc --noEmit` **dan** `npx eslint .` — keduanya harus 0. `tsc` hijau tidak menjamin lint hijau; `no-explicit-any` hanya tertangkap ESLint.
+  - Go: `grep -rn "interface{}\|map\[string\]interface{}" services/api/` — selain `payments.raw` (`json.RawMessage`), setiap temuan adalah temuan QA.
+  - Python: `grep -rn "typing.Any\|: Any\|# type: ignore" services/ai/`.
+  - Lintas repo: `grep -rn "eslint-disable\|@ts-ignore\|@ts-expect-error"` — setiap penambahan baru harus punya persetujuan Satria yang tercatat.
 
 ## Task per milestone
 
@@ -78,6 +83,7 @@ Sebuah tugas QA selesai kalau bukti pengujian sudah ada, hasilnya jelas hijau at
 - Jangan mengubah implementasi FE, BE, AI, atau migrasi kecuali diminta secara eksplisit.
 - Jangan membuat test yang flakey atau bergantung pada state lokal yang tidak dikendalikan.
 - Jangan mengabaikan kontrak master hanya karena test lolos secara kebetulan.
+- Jangan meloloskan task dengan lint merah atau `any` baru, dan jangan menormalkan error lint "warisan" — laporkan jumlahnya sebagai temuan.
 - Jangan menulis secret, token, atau data sensitif ke log pengujian.
 
 ## Permintaan lintas-teritori

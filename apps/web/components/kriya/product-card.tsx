@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
           {product.name}
         </h3>
         <p className="mt-0.5 text-sm text-neutral-500">
-          {t("product.startsFrom" as any)} {formatRupiah(product.price_min)}
+          {t("product.startsFrom")} {formatRupiah(product.price_min)}
         </p>
       </div>
     </Link>

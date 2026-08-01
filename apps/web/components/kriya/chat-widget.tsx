@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Send, Minus } from "lucide-react";
+import { MessageCircle, Send, Minus } from "lucide-react";
 import { useAuth } from "./auth-provider";
 import { useLanguage } from "./language-provider";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ export function ChatWidget() {
     {
       id: "1",
       role: "bot",
-      content: t("chat.greeting" as any),
+      content: t("chat.greeting"),
     }
   ]);
   const [input, setInput] = useState("");
@@ -68,7 +68,7 @@ export function ChatWidget() {
             {
               id: Date.now().toString(),
               role: "bot",
-              content: t("chat.offline" as any),
+              content: t("chat.offline"),
             }
           ]);
           setLoading(false);
@@ -99,13 +99,13 @@ export function ChatWidget() {
           sources: data.sources,
         },
       ]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
           role: "bot",
-          content: t("chat.error" as any),
+          content: t("chat.error"),
         },
       ]);
     } finally {
@@ -133,8 +133,8 @@ export function ChatWidget() {
       >
         <div className="flex items-center justify-between bg-brand-strong px-4 py-3 text-white">
           <div>
-            <h3 className="font-semibold text-sm">{t("chat.title" as any)}</h3>
-            <p className="text-xs text-brand-tint/80">{t("chat.subtitle" as any)}</p>
+            <h3 className="font-semibold text-sm">{t("chat.title")}</h3>
+            <p className="text-xs text-brand-tint/80">{t("chat.subtitle")}</p>
           </div>
           <button
             onClick={() => setIsOpen(false)}
@@ -198,7 +198,7 @@ export function ChatWidget() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t("chat.placeholder" as any)}
+              placeholder={t("chat.placeholder")}
               className="w-full rounded-full border border-neutral-300 bg-neutral-50 py-2.5 pl-4 pr-12 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
               disabled={loading}
             />

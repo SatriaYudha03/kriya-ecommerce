@@ -16,14 +16,14 @@ export default function CartPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20">
         <EmptyState
-          title={t("cart.empty.title" as any)}
-          hint={t("cart.empty.hint" as any)}
+          title={t("cart.empty.title")}
+          hint={t("cart.empty.hint")}
           action={
             <Link
               href="/"
               className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
             >
-              {t("cart.empty.action" as any)}
+              {t("cart.empty.action")}
             </Link>
           }
         />
@@ -33,7 +33,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t("cart.title" as any)}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t("cart.title")}</h1>
       
       <div className="mt-8 grid gap-8 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-8">
@@ -90,7 +90,7 @@ export default function CartPage() {
                       className="flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong disabled:opacity-50"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span>{t("cart.remove" as any)}</span>
+                      <span>{t("cart.remove")}</span>
                     </button>
                   </div>
                 </div>
@@ -100,19 +100,19 @@ export default function CartPage() {
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 lg:col-span-4 lg:p-8">
-          <h2 className="text-lg font-medium text-neutral-900">{t("cart.summary" as any)}</h2>
+          <h2 className="text-lg font-medium text-neutral-900">{t("cart.summary")}</h2>
           
           <dl className="mt-6 space-y-4 text-sm text-neutral-600">
             <div className="flex justify-between">
-              <dt>{t("cart.subtotal" as any)}</dt>
+              <dt>{t("cart.subtotal")}</dt>
               <dd className="font-medium text-neutral-900">{formatRupiah(total)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt>{t("cart.shipping" as any)}</dt>
-              <dd>{t("cart.shippingCalc" as any)}</dd>
+              <dt>{t("cart.shipping")}</dt>
+              <dd>{t("cart.shippingCalc")}</dd>
             </div>
             <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
-              <dt className="text-base font-medium text-neutral-900">{t("cart.total" as any)}</dt>
+              <dt className="text-base font-medium text-neutral-900">{t("cart.total")}</dt>
               <dd className="text-base font-semibold text-neutral-900">{formatRupiah(total)}</dd>
             </div>
           </dl>
@@ -121,12 +121,12 @@ export default function CartPage() {
             href="/checkout"
             className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-neutral-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:outline-none"
           >
-            {t("cart.checkout" as any)}
+            {t("cart.checkout")}
             <ShoppingBag className="h-4 w-4" />
           </Link>
           
           <div className="mt-4 text-center">
-            <p className="text-xs text-neutral-500">{t("cart.taxNote" as any)}</p>
+            <p className="text-xs text-neutral-500">{t("cart.taxNote")}</p>
           </div>
         </div>
       </div>

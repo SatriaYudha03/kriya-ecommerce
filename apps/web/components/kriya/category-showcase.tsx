@@ -10,8 +10,8 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
   return (
     <section className="mx-auto max-w-6xl px-4 py-8">
       <SectionHeading
-        title={t("home.showcase.title" as any)}
-        subtitle={t("home.showcase.subtitle" as any)}
+        title={t("home.showcase.title")}
+        subtitle={t("home.showcase.subtitle")}
       />
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {categories.map((c) => (

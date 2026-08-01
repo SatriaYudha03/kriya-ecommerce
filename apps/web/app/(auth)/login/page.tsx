@@ -33,11 +33,11 @@ function LoginForm() {
       
       if (data.session) {
         await syncFromServer(); // Sync cart from server
-        toast.success(t("auth.login.success" as any));
+        toast.success(t("auth.login.success"));
         router.push(next);
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : t("auth.login.error" as any));
+      toast.error(error instanceof Error ? error.message : t("auth.login.error"));
     } finally {
       setLoading(false);
     }
@@ -54,13 +54,13 @@ function LoginForm() {
           <div className="w-full border-t border-neutral-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-neutral-400">{t("auth.login.or" as any)}</span>
+          <span className="bg-white px-2 text-neutral-400">{t("auth.login.or")}</span>
         </div>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.email" as any)}</label>
+          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.email")}</label>
           <input
             type="email"
             value={email}
@@ -70,7 +70,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.password" as any)}</label>
+          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.password")}</label>
           <input
             type="password"
             value={password}
@@ -84,14 +84,14 @@ function LoginForm() {
           disabled={loading}
           className="w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
         >
-          {loading ? t("auth.login.processing" as any) : t("auth.login.submit" as any)}
+          {loading ? t("auth.login.processing") : t("auth.login.submit")}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-neutral-600">
-        {t("auth.login.noAccount" as any)}{" "}
+        {t("auth.login.noAccount")}{" "}
         <Link href={`/register?next=${encodeURIComponent(next)}`} className="font-medium text-brand-strong hover:underline">
-          {t("auth.login.registerNow" as any)}
+          {t("auth.login.registerNow")}
         </Link>
       </p>
     </>
@@ -102,11 +102,11 @@ export default function LoginPage() {
   const { t } = useLanguage();
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{t("auth.login.title2" as any)}</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{t("auth.login.title2")}</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        {t("auth.login.subtitle" as any)}
+        {t("auth.login.subtitle")}
       </p>
-      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">{t("auth.loading" as any)}</div>}>
+      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">{t("auth.loading")}</div>}>
         <LoginForm />
       </Suspense>
     </div>

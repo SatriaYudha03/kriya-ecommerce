@@ -54,7 +54,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder={t("nav.searchPlaceholder" as any)}
+                placeholder={t("nav.searchPlaceholder")}
                 aria-label={t("nav.search")}
                 className="w-full rounded-full border border-neutral-300 bg-white py-2 pr-4 pl-9 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               />
@@ -167,7 +167,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                   type="search"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder={t("nav.searchMobilePlaceholder" as any)}
+                  placeholder={t("nav.searchMobilePlaceholder")}
                   aria-label={t("nav.search")}
                   className="w-full rounded-full border border-neutral-300 bg-white py-2 pr-4 pl-9 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                 />
@@ -233,7 +233,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
                 }}
                 className="w-full rounded-lg px-2 py-2.5 text-left text-sm font-medium text-neutral-700 hover:bg-neutral-200/50"
               >
-                {t("nav.switchLang" as any)}: {locale === "en" ? "Indonesia" : "English"}
+                {t("nav.switchLang")}: {locale === "en" ? "Indonesia" : "English"}
               </button>
             </div>
           </div>

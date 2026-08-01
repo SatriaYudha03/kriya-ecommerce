@@ -2,8 +2,6 @@ import { getCategories } from "@/lib/api";
 import { Hero } from "@/components/kriya/hero";
 import { ServiceFeatures } from "@/components/kriya/service-features";
 import { CategoryShowcase } from "@/components/kriya/category-showcase";
-import { ProductRail } from "@/components/kriya/product-rail";
-import { PromoBanner } from "@/components/kriya/promo-banner";
 import { ClientProductRails } from "./client-product-rails";
 
 // Home M1 (fixtures +' live): hero, fitur layanan, grid ruangan, baris produk,

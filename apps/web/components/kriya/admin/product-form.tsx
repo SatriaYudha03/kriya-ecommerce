@@ -4,7 +4,7 @@
 // - Create: kirim field + varian + gambar (upload Storage) sekaligus via createProduct.
 // - Edit: field via updateProduct; varian & gambar direkonsiliasi ke endpoint masing-masing.
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X, Plus, Trash2, Star, Loader2, ImagePlus } from "lucide-react";
@@ -81,9 +81,13 @@ export function ProductForm({
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // Prefill saat edit.
-  useEffect(() => {
-    if (!detail) return;
+  // Prefill saat edit. Seeding dilakukan saat render (guarded sekali) mengikuti
+  // pola React 19 yang sama dengan /checkout & /profile, bukan di dalam effect —
+  // menghindari cascading render. Guard `seeded` juga mencegah refetch
+  // (mis. window focus) menimpa suntingan yang belum disimpan.
+  const [seeded, setSeeded] = useState(false);
+  if (detail && !seeded) {
+    setSeeded(true);
     setName(detail.name);
     setSlug(detail.slug);
     setSlugTouched(true);
@@ -116,7 +120,7 @@ export function ProductForm({
         origAlt: img.alt ?? "",
       })),
     );
-  }, [detail]);
+  }
 
   const effectiveSlug = slugTouched ? slug : slugify(name);
 
@@ -229,20 +233,24 @@ export function ProductForm({
         }
 
         // Gambar: hapus, upload+tambah yang baru, lalu rekonsiliasi alt/primary.
+        // Id gambar baru dikumpulkan ke array lokal `persisted` — objek di state
+        // `images` tidak dimutasi (react-hooks/immutability).
         for (const id of removedImageIds) await deleteProductImage(pid, id);
+        const persisted: { id: string; alt: string; is_primary: boolean }[] = [];
         for (const r of images) {
-          if (!r.id && r.file) {
+          if (r.id) {
+            persisted.push({ id: r.id, alt: r.alt, is_primary: r.is_primary });
+          } else if (r.file) {
             const storage_path = await uploadProductImage(r.file, effectiveSlug);
             const created = await addProductImage(pid, { storage_path, alt: r.alt, is_primary: false });
-            r.id = created.id;
+            persisted.push({ id: created.id, alt: r.alt, is_primary: r.is_primary });
           }
         }
-        const withIds = images.filter((r) => r.id);
-        const primary = withIds.find((r) => r.is_primary) ?? withIds[0];
-        for (const r of withIds) {
-          if (r !== primary) await updateProductImage(pid, r.id!, { alt: r.alt, is_primary: false });
+        const primary = persisted.find((r) => r.is_primary) ?? persisted[0];
+        for (const r of persisted) {
+          if (r !== primary) await updateProductImage(pid, r.id, { alt: r.alt, is_primary: false });
         }
-        if (primary?.id) await updateProductImage(pid, primary.id, { alt: primary.alt, is_primary: true });
+        if (primary) await updateProductImage(pid, primary.id, { alt: primary.alt, is_primary: true });
       }
 
       toast.success(isEdit ? "Produk diperbarui" : "Produk dibuat");

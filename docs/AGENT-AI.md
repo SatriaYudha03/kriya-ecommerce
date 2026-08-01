@@ -7,6 +7,7 @@ Kamu adalah agent AI & data. Baca `KRIYA-MASTER.md` dulu (kontrak Bagian 6, skem
 - Python 3.11+, FastAPI, pydantic v2 + pydantic-settings, httpx, uvicorn, psycopg3 + adapter pgvector. Koneksi DB via `SUPABASE_DB_URL`.
 - Embedding: **Gemini `text-embedding-004`, 768 dimensi** (`GEMINI_API_KEY`) — dipakai di ingest, search, similar, dan node embedding n8n. DILARANG diganti; mengganti = re-ingest semua dan hanya Satria yang memutuskan.
 - Semua respons memakai envelope & kode error master Bagian 5; field snake_case.
+- **`typing.Any` DILARANG** (master Bagian 5). Request/response FastAPI selalu lewat model pydantic v2 (`response_model=` diisi), bukan dict polos. Baris seed/KB dan hasil query psycopg diberi bentuk lewat model pydantic atau `TypedDict`. Respons Gemini/LLM di-parse ke model, bukan diteruskan sebagai dict mentah. Butuh perilaku lintas-tipe → generic (`TypeVar`), bukan `Any`. Nilai yang benar-benar tak diketahui → `object` lalu dipersempit.
 - Struktur:
   ```
   services/ai/app/          # main, config, db, embeddings, routers/
@@ -52,7 +53,7 @@ Kamu adalah agent AI & data. Baca `KRIYA-MASTER.md` dulu (kontrak Bagian 6, skem
 Service jalan via uvicorn/Docker, bentuk respons persis kontrak (sertakan contoh curl di commit message), ingest bisa diulang dengan `--reset`, workflow n8n selalu diekspor ke repo, tidak menyentuh file di luar teritori, log terisi.
 
 ## Larangan spesifik
-Jangan sentuh `apps/web/` dan `services/api/`. Tabel commerce: **read boleh, write dilarang** kecuali kolom bertanda n8n-writable. Jangan ganti model embedding/dimensi. Jangan taruh API key di kode. Jangan biarkan chatbot menjawab di luar konteks retrieval. Jangan memakai gambar tanpa lisensi bebas.
+Jangan sentuh `apps/web/` dan `services/api/`. Tabel commerce: **read boleh, write dilarang** kecuali kolom bertanda n8n-writable. Jangan ganti model embedding/dimensi. Jangan taruh API key di kode. Jangan memakai `typing.Any` atau dict tanpa skema untuk payload berkontrak, dan jangan bungkam type checker dengan `# type: ignore` (master Bagian 5). Jangan biarkan chatbot menjawab di luar konteks retrieval. Jangan memakai gambar tanpa lisensi bebas.
 
 ## Permintaan lintas-teritori
 (tulis di sini, format: tanggal — kebutuhan — alasan; lalu berhenti dan tunggu Satria)
@@ -66,4 +67,4 @@ Jangan sentuh `apps/web/` dan `services/api/`. Tabel commerce: **read boleh, wri
 2026-07-06 · [ai] task M0+M1 · FastAPI healthz scaffold, product_generator.md, generate_products.py (60 produk/6 kategori sesuai kontrak), 10 assembly guide, faq.md, policies.md, fetch_images.py (Pexels) + image_credits.md — selesai, dikerjakan bersama sesi [be] 2026-07-06 (commit 7bf2c3d), checklist & log baru diisi retroaktif saat audit M0/M1.
 2026-07-06 · [ai] fix bug path Storage double-prefix · `fetch_images.py` diperbaiki (object_key() melepas prefix bucket dari storage_path) dan 125 objek existing dipindahkan ke path kanonik `products/{file}` via Storage API — selesai, ditemukan & diperbaiki saat audit lintas-teritori oleh sesi [be].
 2026-07-08 · [ai] M3 AI search · selesai — Migrasi 004 vector dibuat. Modul `embeddings.py` (Gemini API batchEmbedContents via httpx) dan `db.py` (psycopg3 + pgvector) diimplementasikan. Script `ingest.py` untuk chunking dan embedding dibuat. Endpoint `/ai/v1/search`, `/ai/v1/products/{id}/similar`, dan `/ai/v1/embed` dibuat. Server sukses berjalan.
-2026-07-12 � [ai] Fase 4 Rencana Multi-bahasa � selesai � update cmd/seed/main.go untuk mem-parse dan meng-ingest kolom *_i18n saat proses seeding ke DB.
+2026-07-12 � [ai] Fase 4 Rencana Multi-bahasa � selesai � update cmd/seed/main.go untuk mem-parse dan meng-ingest kolom *_i18n saat proses seeding ke DB.

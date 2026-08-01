@@ -89,6 +89,14 @@ Secret hanya hidup di `.env` (tidak pernah di-commit) dan di kredensial n8n. `IN
 - **FE dilarang query tabel Supabase langsung** (pengecualian: Auth via supabase-js, dan upload Storage di halaman admin). Semua data lewat API Gin/FastAPI.
 - n8n boleh akses DB langsung: **read semua tabel; write HANYA kolom bertanda n8n-writable** (Bagian 7).
 - UI mendukung dua bahasa EN/ID; default `id`. Locale disimpan di cookie `kriya-locale`.
+- **Tipe data wajib eksplisit — `any` DILARANG di semua bahasa.** Setiap payload yang menyeberangi batas (HTTP, seed, storage, props komponen) harus punya tipe/struct/model konkret yang mengikuti kontrak Bagian 6.
+  | Bahasa | Dilarang | Pakai ini |
+  |---|---|---|
+  | TypeScript | `any`, `as any`, `<any>`, `any[]` | tipe/`interface` konkret · `unknown` + penyempitan (`instanceof`, type guard) · generic · union literal |
+  | Go | `interface{}` / `any` untuk payload berkontrak, `map[string]interface{}` | struct dengan tag json snake_case · `json.RawMessage` bila memang payload mentah (mis. `payments.raw`) · generic |
+  | Python | `typing.Any`, dict tanpa skema | model pydantic v2 · `TypedDict` · generic · `object` + penyempitan |
+
+  Data yang bentuknya sungguh-sungguh tidak diketahui (respons pihak ketiga, `catch`/`except`) masuk sebagai `unknown` / `error` / `Exception` lalu **dipersempit sebelum dipakai** — bukan `any`. Kalau sebuah tipe terasa mustahil dibuat, itu gejala kontrak atau desainnya yang perlu diperbaiki: **berhenti dan ajukan lewat "Permintaan lintas-teritori"**, jangan ditambal `any`. Cast `as any` untuk membungkam compiler adalah pelanggaran, bukan solusi sementara.
 
 ## 6. Kontrak API (M1–M4 — DIKUNCI; admin M6 difinalkan di gerbang M6)
 
@@ -187,7 +195,7 @@ Demo criteria per milestone: lihat `docs/PRD.md` Bagian 6 (lihat catatan gap di 
 
 ## 10. Larangan global
 
-Jangan commit `.env`/secret/`node_modules`/venv. Jangan ubah file milik Satria (master, compose, .env.example) tanpa sesi yang diawasi. Jangan menambah dependency besar atau mengganti library inti tanpa persetujuan. Jangan menulis di teritori agent lain. Jangan membuat mock/fixture yang menyimpang dari kontrak. Jangan memakai nama produk IKEA atau brand nyata. Jangan menaruh API key di kode. Jangan pakai `AutoMigrate` — semua perubahan skema lewat file migrasi.
+Jangan commit `.env`/secret/`node_modules`/venv. Jangan ubah file milik Satria (master, compose, .env.example) tanpa sesi yang diawasi. Jangan menambah dependency besar atau mengganti library inti tanpa persetujuan. Jangan menulis di teritori agent lain. Jangan membuat mock/fixture yang menyimpang dari kontrak. Jangan memakai nama produk IKEA atau brand nyata. Jangan menaruh API key di kode. Jangan pakai `AutoMigrate` — semua perubahan skema lewat file migrasi. Jangan memakai `any` / `interface{}` / `typing.Any` sebagai jalan pintas tipe, dan jangan mematikan aturan lint yang menjaganya (`eslint-disable`, `@ts-ignore`, `@ts-expect-error`, `# type: ignore`) tanpa persetujuan Satria — lihat Bagian 5.
 
 ## 11. Setup Claude Code
 
@@ -201,4 +209,9 @@ QA -> baca AGENT-QA.md · DevSecOps -> baca AGENT-DEVSECOPS.md.
 Patuhi teritori, kontrak, dan ritual sesi di KRIYA-MASTER.md.
 Kerjakan hanya SATU task per sesi. Jika butuh perubahan di luar
 teritorimu: berhenti dan tulis di "Permintaan lintas-teritori".
+TIPE DATA WAJIB EKSPLISIT: `any` (TS), `interface{}` (Go), `typing.Any`
+(Python) DILARANG — lihat KRIYA-MASTER.md Bagian 5. Dilarang juga
+membungkam lint/type checker (`as any`, `@ts-ignore`, `eslint-disable`,
+`# type: ignore`). Tipe terasa mustahil dibuat? Itu masalah kontrak:
+berhenti dan ajukan lintas-teritori.
 ```

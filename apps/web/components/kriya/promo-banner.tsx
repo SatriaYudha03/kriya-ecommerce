@@ -37,13 +37,13 @@ export function PromoBanner() {
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-cream/15 px-3 py-1 text-xs font-medium tracking-wide">
             <Percent className="h-3.5 w-3.5" />
-            {t("home.promo.badge" as any)}
+            {t("home.promo.badge")}
           </span>
           <h2 className="mt-4 max-w-lg text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t("home.promo.title" as any)}
+            {t("home.promo.title")}
           </h2>
           <p className="mt-2 max-w-md text-sm text-cream/80">
-            {t("home.promo.desc" as any)}
+            {t("home.promo.desc")}
           </p>
         </div>
         <div className="flex flex-col items-start gap-4 md:items-end">
@@ -55,7 +55,7 @@ export function PromoBanner() {
             href="/categories/workspace"
             className="rounded-full bg-cream px-6 py-3 text-sm font-medium text-clay transition-colors hover:bg-white"
           >
-            {t("home.promo.cta" as any)}
+            {t("home.promo.cta")}
           </Link>
         </div>
       </div>

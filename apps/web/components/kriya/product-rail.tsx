@@ -31,11 +31,11 @@ export function ProductRail({
         {isLoading ? (
           <ProductGridSkeleton count={skeletonCount} />
         ) : isError ? (
-          <p className="text-sm text-neutral-500">{t("product.loadError" as any)}</p>
+          <p className="text-sm text-neutral-500">{t("product.loadError")}</p>
         ) : products.length > 0 ? (
           <ProductGrid products={products} />
         ) : (
-          <p className="text-sm text-neutral-500">{t("product.empty" as any)}</p>
+          <p className="text-sm text-neutral-500">{t("product.empty")}</p>
         )}
       </div>
     </section>

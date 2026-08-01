@@ -6,10 +6,10 @@ import { useLanguage } from "./language-provider";
 export function ServiceFeatures() {
   const { t } = useLanguage();
   const features = [
-    { icon: Truck, title: t("home.features.delivery" as any), desc: t("home.features.deliveryDesc" as any) },
-    { icon: RotateCcw, title: t("home.features.return" as any), desc: t("home.features.returnDesc" as any) },
-    { icon: ShieldCheck, title: t("home.features.payment" as any), desc: t("home.features.paymentDesc" as any) },
-    { icon: Headphones, title: t("home.features.support" as any), desc: t("home.features.supportDesc" as any) },
+    { icon: Truck, title: t("home.features.delivery"), desc: t("home.features.deliveryDesc") },
+    { icon: RotateCcw, title: t("home.features.return"), desc: t("home.features.returnDesc") },
+    { icon: ShieldCheck, title: t("home.features.payment"), desc: t("home.features.paymentDesc") },
+    { icon: Headphones, title: t("home.features.support"), desc: t("home.features.supportDesc") },
   ];
 
   return (

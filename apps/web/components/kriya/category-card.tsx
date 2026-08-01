@@ -26,7 +26,7 @@ export function CategoryCard({ category }: { category: Category }) {
       )}
       <span className="absolute inset-0 bg-black/40" />
       <span className="relative z-10 text-xs font-medium uppercase tracking-widest text-white/70">
-        {t("category.room" as any)}
+        {t("category.room")}
       </span>
       <span className="relative z-10 flex items-center justify-between">
         <span className="text-base font-medium text-white">{label}</span>

@@ -17,7 +17,7 @@ export function SectionHeading({
   linkLabel?: string;
 }) {
   const { t } = useLanguage();
-  const label = linkLabel || t("common.seeAll" as any);
+  const label = linkLabel || t("common.seeAll");
   
   return (
     <div className="flex items-end justify-between gap-4">

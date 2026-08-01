@@ -10,21 +10,21 @@ export function ClientProductRails() {
   return (
     <>
       <ProductRail
-        title={t("home.rail1.title" as any)}
-        subtitle={t("home.rail1.subtitle" as any)}
+        title={t("home.rail1.title")}
+        subtitle={t("home.rail1.subtitle")}
         params={{ sort: "newest", limit: 8 }}
         skeletonCount={8}
       />
       <PromoBanner />
       <ProductRail
-        title={t("home.rail2.title" as any)}
-        subtitle={t("home.rail2.subtitle" as any)}
+        title={t("home.rail2.title")}
+        subtitle={t("home.rail2.subtitle")}
         href="/categories/workspace"
         params={{ category: "workspace", limit: 4 }}
       />
       <ProductRail
-        title={t("home.rail3.title" as any)}
-        subtitle={t("home.rail3.subtitle" as any)}
+        title={t("home.rail3.title")}
+        subtitle={t("home.rail3.subtitle")}
         href="/categories/living-room"
         params={{ category: "living-room", limit: 4 }}
       />

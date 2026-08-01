@@ -13,6 +13,7 @@ Track ini **paralel**, bukan sekuensial dengan M0–M7 — tapi kematangannya (D
 - **IaC:** **Terraform** — hanya untuk provisioning VPS + DNS. Instalasi k3s via script bash sekali jalan, bukan Ansible (jaga scope tetap satu tool IaC).
 - **Observability:** `kube-prometheus-stack` (Prometheus + Grafana + Alertmanager) via Helm, + **Loki/Promtail** untuk log
 - **Alerting:** Alertmanager → Telegram (pakai ulang bot Telegram dari eksperimen KKN)
+- **Gate kualitas kode:** job **Lint** bersifat memblokir dan tidak boleh dilonggarkan — dilarang menambah `continue-on-error`, menaikkan `--max-warnings`, atau mematikan rule agar pipeline hijau. Job ini yang menegakkan larangan `any` di master Bagian 5 (`@typescript-eslint/no-explicit-any` untuk FE). Lint merah = perbaiki kodenya, bukan gate-nya.
 - **Prinsip inti:** pipeline gagal = deploy berhenti. Tidak ada image rentan atau kode gagal scan yang boleh sampai ke cluster. Semua secret lewat GitHub Actions Secrets / Kubernetes Secret — tidak pernah di-commit ke manifest atau file Terraform.
 
 ## Struktur teritori
@@ -72,7 +73,7 @@ helm/
 Perubahan infra teruji (Terraform `plan` bersih sebelum `apply`, chart Helm lolos `helm lint`, workflow GitHub Actions hijau di run terakhir), tidak ada secret ter-commit, tidak menyentuh kode aplikasi di luar Dockerfile/metrics middleware yang disepakati, log terisi.
 
 ## Larangan spesifik
-Jangan commit `kubeconfig`, `.tfstate`, atau file `.env`. Jangan pakai `latest` sebagai tag image di produksi. Jangan tambah tool IaC kedua (Ansible, Pulumi, dst.) tanpa persetujuan — satu Terraform + satu bash script sudah cukup. Jangan biarkan pipeline lanjut deploy kalau salah satu gate keamanan (Semgrep/Trivy) gagal dengan severity tinggi. Jangan ubah kontrak API atau kode bisnis — itu bukan teritorimu.
+Jangan commit `kubeconfig`, `.tfstate`, atau file `.env`. Jangan pakai `latest` sebagai tag image di produksi. Jangan tambah tool IaC kedua (Ansible, Pulumi, dst.) tanpa persetujuan — satu Terraform + satu bash script sudah cukup. Jangan biarkan pipeline lanjut deploy kalau salah satu gate keamanan (Semgrep/Trivy) gagal dengan severity tinggi. Jangan melonggarkan atau melewati job Lint untuk menghijaukan pipeline. Jangan ubah kontrak API atau kode bisnis — itu bukan teritorimu.
 
 ## Permintaan lintas-teritori
 (tulis di sini, format: tanggal — kebutuhan — alasan; lalu berhenti dan tunggu Satria)
