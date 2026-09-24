@@ -1,7 +1,7 @@
 # Rencana: Rename slug EN + Fitur Multi-bahasa (EN/ID) KRIYA
 
 > Dokumen rencana (handoff). Disusun untuk dikerjakan oleh agent/sesi berikutnya.
-> Belum dieksekusi. Ikuti teritori & ritual sesi di `KRIYA-MASTER.md`.
+> Belum dieksekusi. Ikuti teritori & ritual sesi di `docs/agents/KRIYA-MASTER.md`.
 
 ## Context
 
@@ -51,8 +51,8 @@ Dipecah jadi fase; tiap fase = satu sesi sesuai ritual (`git pull` → 1 task �
 build hijau → commit `[fe|be|ai] ...` → push → isi Log agent).
 
 - **Fase 0 — Docs/kontrak (Satria):** simpan plan ke `docs/`, update kontrak Bagian 6
-  (+param `lang`) & konvensi Bagian 5 (izinkan EN/ID) di `KRIYA-MASTER.md`,
-  sesuaikan DoD `AGENT-FE.md`.
+  (+param `lang`) & konvensi Bagian 5 (izinkan EN/ID) di `docs/agents/KRIYA-MASTER.md`,
+  sesuaikan DoD `docs/agents/AGENT-FE.md`.
 - **Fase 1 — FE rename slug** ke Inggris.
 - **Fase 2 — FE i18n** (infra kamus + switcher + terjemah teks statis).
 - **Fase 3 — BE + migrasi** (kolom per-locale + baca sadar-locale + param `lang`).
@@ -64,8 +64,8 @@ build hijau → commit `[fe|be|ai] ...` → push → isi Log agent).
 
 ## Fase 0 — Docs & kontrak (teritori Satria)
 
-1. **Simpan plan ini** ke `docs/RENCANA-MULTIBAHASA.md` (langkah pertama setelah approve).
-2. `docs/KRIYA-MASTER.md`:
+1. **Simpan plan ini** ke `docs/rencana/RENCANA-MULTIBAHASA.md` (langkah pertama setelah approve).
+2. `docs/agents/KRIYA-MASTER.md`:
    - **Bagian 6:** tambahkan param opsional `lang` (`en`|`id`, default `id`) pada
      endpoint katalog & order yang mengembalikan teks konten
      (`GET /categories`, `GET /products`, `GET /products/{slug}`,
@@ -76,7 +76,7 @@ build hijau → commit `[fe|be|ai] ...` → push → isi Log agent).
      UI mendukung dua bahasa EN/ID; default `id`.
    - Formalkan sekalian endpoint `/profile` & admin M6 yang belum masuk kontrak
      (opsional, sudah jadi utang kontrak sebelumnya).
-3. `docs/AGENT-FE.md`: sesuaikan Definition of Done ("teks Indonesia" → "teks
+3. `docs/agents/AGENT-FE.md`: sesuaikan Definition of Done ("teks Indonesia" → "teks
    EN/ID via kamus i18n").
 
 ---

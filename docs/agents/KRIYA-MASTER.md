@@ -9,7 +9,7 @@ Repo: `kriya-commerce` · Versi 1.0 · 6 Juli 2026
 ## 0. Cara pakai (WAJIB untuk semua agent)
 
 1. Baca file ini sampai habis.
-2. Baca file teritorimu: `AGENT-FE.md` / `AGENT-BE.md` / `AGENT-AI.md` / `AGENT-QA.md` / `AGENT-DEVSECOPS.md`.
+2. Baca file teritorimu: `docs/agents/AGENT-FE.md` / `docs/agents/AGENT-BE.md` / `docs/agents/AGENT-AI.md` / `docs/agents/AGENT-QA.md` / `docs/agents/AGENT-DEVSECOPS.md`.
 3. Cek bagian **Log** di file teritorimu untuk tahu posisi terakhir.
 4. Kerjakan **SATU task** yang ditunjuk Satria (atau task berikutnya yang belum dicentang di milestone aktif).
 5. Tutup sesi dengan ritual di Bagian 8.
@@ -41,8 +41,6 @@ KRIYA menjual furniture flat-pack merek sendiri: katalog per ruangan, varian war
 ```
 kriya-commerce/
   CLAUDE.md                # pointer (lihat Bagian 11)
-  KRIYA-MASTER.md          # file ini — pemilik: Satria
-  AGENT-FE.md / AGENT-BE.md / AGENT-AI.md / AGENT-QA.md / AGENT-DEVSECOPS.md
   docker-compose.yml       # pemilik: Satria
   .env.example             # pemilik: Satria
   apps/web/                # TERITORI AGENT-FE
@@ -55,11 +53,17 @@ kriya-commerce/
   helm/                    # TERITORI AGENT-DEVSECOPS (chart & values k8s)
   .github/workflows/       # TERITORI AGENT-DEVSECOPS (CI/CD)
   docs/                    # pemilik: Satria — PENGECUALIAN: AGENT-DEVSECOPS boleh menulis
-                           # docs/devops-*.md (arsitektur, rollback) tanpa sesi diawasi;
-                           # file docs/ lainnya (termasuk PRD.md, KRIYA-MASTER.md) tetap milik Satria
+                           # docs/devops/*.md (arsitektur, rollback) tanpa sesi diawasi;
+                           # semua agent WAJIB menulis ringkasan sesi di docs/state/ (Bagian 8);
+                           # file docs/ lainnya (termasuk PRD.md) tetap milik Satria
+    agents/                # KRIYA-MASTER.md (file ini) + AGENT-FE/BE/AI/QA/DEVSECOPS.md
+    rencana/                # rencana fitur belum/sedang dieksekusi (RENCANA-*.md, EKSEKUSI-*.md, seed-orders-plan.md)
+    prompts/                # prompt peluncuran workflow n8n (PROMPT-N8N-*.md)
+    devops/                 # docs milik AGENT-DEVSECOPS (devops-architecture.md, devops-rollback.md)
+    state/                  # ringkasan akhir sesi tiap agent — lihat Bagian 8
 ```
 
-Aturan emas: **agent hanya menulis di teritorinya sendiri.** File milik Satria boleh ditulis agent hanya dalam sesi yang Satria awasi langsung dan nyatakan eksplisit, kecuali pengecualian `docs/devops-*.md` di atas.
+Aturan emas: **agent hanya menulis di teritorinya sendiri.** File milik Satria boleh ditulis agent hanya dalam sesi yang Satria awasi langsung dan nyatakan eksplisit, kecuali pengecualian `docs/devops/*.md` dan `docs/state/*.md` di atas.
 
 **Catatan gap terbuka:** `docs/PRD.md` dirujuk di Bagian 1, 6, dan 9 tapi belum ada di repo. Sampai Satria membuatnya, kriteria demo per milestone (Bagian 9) belum punya sumber definitif — agent QA memakai kontrak Bagian 6 sebagai acuan sementara.
 
@@ -169,9 +173,23 @@ Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan. Se
 ## 8. Cara kerja (trunk-based + teritori)
 
 - Branch utama: `main`. Branch task berumur < 1 hari boleh, langsung merge. Branch panjang DILARANG.
-- **Ritual sesi:** `git pull` → kerjakan satu task → build & test hijau → commit `"[fe|be|ai] deskripsi singkat"` → push → tambah satu baris di Log file agent-mu.
+- **Ritual sesi:** `git pull` → kerjakan satu task → build & test hijau → commit `"[fe|be|ai] deskripsi singkat"` → push → tambah satu baris di Log file agent-mu → **tulis ringkasan sesi di `docs/state/`** (lihat 8.1).
 - QA boleh jalan paralel untuk memvalidasi hasil task yang sudah siap diuji; QA tidak mengambil alih implementasi.
 - Paralel sungguhan: satu working copy per agent (`git worktree`). Dua agent dalam satu folder kerja = dilarang.
+
+### 8.1 Ringkasan sesi (`docs/state/`) — WAJIB tiap sesi
+
+Setiap agent (termasuk QA dan DevSecOps) menutup sesi dengan menulis **satu file baru** di `docs/state/`, agar sesi berikutnya (agent lain atau dirimu sendiri) langsung mengenali konteks tanpa membaca ulang seluruh Log.
+
+- Nama file: `docs/state/YYYY-MM-DD-<agent>-<slug-singkat>.md` (contoh: `docs/state/2026-07-14-fe-i18n-kategori.md`). Jangan menimpa file sesi sebelumnya — selalu file baru.
+- Isi minimal:
+  - **Task**: apa yang dikerjakan sesi ini (satu task, sesuai Bagian 0).
+  - **Status**: selesai / sebagian / diblokir — dan kenapa.
+  - **Fitur/bug dicatat**: fitur baru yang jadi, bug yang ditemukan atau diperbaiki, dengan lokasi file:baris bila relevan.
+  - **Permintaan lintas-teritori** (bila ada): ringkas apa yang diajukan dan ke siapa.
+  - **Next**: task berikutnya yang disarankan untuk sesi selanjutnya di teritori ini.
+- File ini pelengkap Log di file agent (`docs/agents/AGENT-*.md`), bukan pengganti — Log tetap satu baris ringkas per sesi; `docs/state/` boleh lebih panjang/naratif.
+- Pengecualian kepemilikan `docs/`: menulis di `docs/state/` **tidak butuh** sesi yang diawasi Satria (sama seperti pengecualian `docs/devops/*.md` di Bagian 3), karena ini bagian dari ritual sesi wajib, bukan perubahan kontrak.
 - Butuh sesuatu di luar teritori (endpoint baru, kolom baru, perubahan kontrak): **berhenti**, tulis di "Permintaan lintas-teritori" di file agent-mu. Satria memutuskan, kontrak diubah dulu, baru kode.
 - Definition of done task: berjalan + build hijau + tidak menyentuh file di luar teritori + log terisi.
 - Gerbang milestone: kriteria demo terpenuhi → review Satria → baru milestone berikutnya dibuka.
@@ -191,7 +209,7 @@ Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan. Se
 
 Demo criteria per milestone: lihat `docs/PRD.md` Bagian 6 (lihat catatan gap di Bagian 3 — file ini belum ada).
 
-**Track paralel — DevSecOps (D0–D5, tidak sekuensial dengan M0–M7):** D0 Fondasi CI · D1 Provisioning & cluster · D2 CD otomatis · D3 Observability · D4 Alerting · D5 Dokumentasi & demo. Detail task per tahap: `AGENT-DEVSECOPS.md`. Kematangan D2+ baru relevan setelah ada aplikasi nyata untuk di-deploy (M1–M2 selesai).
+**Track paralel — DevSecOps (D0–D5, tidak sekuensial dengan M0–M7):** D0 Fondasi CI · D1 Provisioning & cluster · D2 CD otomatis · D3 Observability · D4 Alerting · D5 Dokumentasi & demo. Detail task per tahap: `docs/agents/AGENT-DEVSECOPS.md`. Kematangan D2+ baru relevan setelah ada aplikasi nyata untuk di-deploy (M1–M2 selesai).
 
 ## 10. Larangan global
 
@@ -202,16 +220,19 @@ Jangan commit `.env`/secret/`node_modules`/venv. Jangan ubah file milik Satria (
 Isi `CLAUDE.md` di root repo:
 
 ```
-Proyek KRIYA (e-commerce furniture + AI). WAJIB baca KRIYA-MASTER.md
+Proyek KRIYA (e-commerce furniture + AI). WAJIB baca docs/agents/KRIYA-MASTER.md
 sebelum melakukan apa pun. Peranmu ditentukan di awal sesi:
-FE -> baca AGENT-FE.md · BE -> baca AGENT-BE.md · AI/data -> baca AGENT-AI.md.
-QA -> baca AGENT-QA.md · DevSecOps -> baca AGENT-DEVSECOPS.md.
-Patuhi teritori, kontrak, dan ritual sesi di KRIYA-MASTER.md.
+FE -> baca docs/agents/AGENT-FE.md · BE -> baca docs/agents/AGENT-BE.md · AI/data -> baca docs/agents/AGENT-AI.md.
+QA -> baca docs/agents/AGENT-QA.md · DevSecOps -> baca docs/agents/AGENT-DEVSECOPS.md.
+Patuhi teritori, kontrak, dan ritual sesi di docs/agents/KRIYA-MASTER.md.
 Kerjakan hanya SATU task per sesi. Jika butuh perubahan di luar
 teritorimu: berhenti dan tulis di "Permintaan lintas-teritori".
 TIPE DATA WAJIB EKSPLISIT: `any` (TS), `interface{}` (Go), `typing.Any`
-(Python) DILARANG — lihat KRIYA-MASTER.md Bagian 5. Dilarang juga
+(Python) DILARANG — lihat docs/agents/KRIYA-MASTER.md Bagian 5. Dilarang juga
 membungkam lint/type checker (`as any`, `@ts-ignore`, `eslint-disable`,
 `# type: ignore`). Tipe terasa mustahil dibuat? Itu masalah kontrak:
 berhenti dan ajukan lintas-teritori.
+WAJIB tutup sesi dengan menulis ringkasan di docs/state/ (lihat
+docs/agents/KRIYA-MASTER.md Bagian 8.1) agar sesi berikutnya mengenali
+konteks fitur/bug yang sudah dicatat.
 ```

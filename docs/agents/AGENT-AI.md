@@ -1,6 +1,6 @@
 # AGENT-AI — AI & Data KRIYA (FastAPI, data, n8n)
 
-Kamu adalah agent AI & data. Baca `KRIYA-MASTER.md` dulu (kontrak Bagian 6, skema Bagian 7). Teritorimu: **`services/ai/`**, **`data/`**, **`automation/n8n/`**, dan **`supabase/migrations/` khusus tabel/fungsi vector.**
+Kamu adalah agent AI & data. Baca `docs/agents/KRIYA-MASTER.md` dulu (kontrak Bagian 6, skema Bagian 7). Teritorimu: **`services/ai/`**, **`data/`**, **`automation/n8n/`**, dan **`supabase/migrations/` khusus tabel/fungsi vector.**
 
 ## Stack & aturan teknis
 

@@ -2,14 +2,14 @@
 
 **Status:** 🟡 **RENCANA — belum dieksekusi.**
 **Tanggal:** 2026-09-24 · **Pemilik:** Satria
-**Pasangan:** `docs/RENCANA-ECOMMERCE-V2.md` (disingkat **RENCANA**) adalah sumber kebenaran untuk **apa** yang dibangun: skema §5, aturan bisnis §6, kontrak API §7. Dokumen ini sumber kebenaran untuk **siapa, kapan, di file mana, dan lewat antarmuka apa**.
+**Pasangan:** `docs/rencana/RENCANA-ECOMMERCE-V2.md` (disingkat **RENCANA**) adalah sumber kebenaran untuk **apa** yang dibangun: skema §5, aturan bisnis §6, kontrak API §7. Dokumen ini sumber kebenaran untuk **siapa, kapan, di file mana, dan lewat antarmuka apa**.
 
 ---
 
 ## 0. Cara pakai
 
 **Agent opencode:** di awal setiap sesi, baca berurutan:
-1. `docs/KRIYA-MASTER.md` Bagian 5 (konvensi, larangan `any`) dan Bagian 10 (larangan global). **Bagian 3 (teritori FE/BE) dan Bagian 8 (ritual push langsung ke main) DIGANTIKAN oleh dokumen ini selama program EC-v2.**
+1. `docs/agents/KRIYA-MASTER.md` Bagian 5 (konvensi, larangan `any`) dan Bagian 10 (larangan global). **Bagian 3 (teritori FE/BE) dan Bagian 8 (ritual push langsung ke main) DIGANTIKAN oleh dokumen ini selama program EC-v2.**
 2. Dokumen ini: §0–§5 (aturan, kepemilikan, antarmuka), lalu **hanya** bagian task-mu (§6/§7/§8/§9).
 3. Bagian RENCANA yang dirujuk task-mu.
 4. `docs/ec-v2/LOG-<kamu>.md` untuk mengetahui posisi terakhir.
@@ -528,7 +528,7 @@ Urutan task di dalam satu agent adalah rekomendasi; yang wajib hanya **task pert
 | **C5** | Dashboard v2 | `GET /admin/stats` aditif (hitungan lintas domain via SQL baca-saja). FE: `app/(admin)/admin/page.tsx` kartu metrik + tautan ke halaman domain, daftar order terbaru dengan `OrderStatusBadge` |
 | **C6** | E2E | `e2e/ec-promo.spec.ts`: CRUD kupon, validasi (valid/expired/min belanja), banner publik, laporan & CSV |
 
-### 7.D Agent D — After-sales (RENCANA §4.4, §5.5, §7.5; menyerap `RENCANA-RIWAYAT-PEMBELIAN.md`)
+### 7.D Agent D — After-sales (RENCANA §4.4, §5.5, §7.5; menyerap `docs/rencana/RENCANA-RIWAYAT-PEMBELIAN.md`)
 
 | ID | Task | Isi |
 |---|---|---|
@@ -569,14 +569,14 @@ Kriteria RENCANA §10 butir 1–10 terdemo manual oleh Satria; seluruh suite hij
 ## 9. F3 — Pengerasan
 
 ### 9.1 Paralel (tiap agent, di domainnya)
-- **Seed demo** idempoten `supabase/seed/ec-v2/<domain>.sql`: A → tag, atribut, relasi, 5 produk sale; B → (tidak ada, zona sudah di 010) atau alamat untuk akun demo; C → 3 kupon publik + 2 privat; D → ulasan approved untuk 10 produk dari order seed (bergantung `docs/seed-orders-plan.md`; koordinasikan lewat log).
+- **Seed demo** idempoten `supabase/seed/ec-v2/<domain>.sql`: A → tag, atribut, relasi, 5 produk sale; B → (tidak ada, zona sudah di 010) atau alamat untuk akun demo; C → 3 kupon publik + 2 privat; D → ulasan approved untuk 10 produk dari order seed (bergantung `docs/rencana/seed-orders-plan.md`; koordinasikan lewat log).
 - Audit i18n (tidak ada teks ID keras di UI domainmu), state loading/kosong/error, a11y dasar (label form, fokus dialog, kontras badge).
 - `EXPLAIN ANALYZE` query terpanas domainmu (listing dengan filter, laporan, riwayat order) → usulan index ditulis sebagai **permintaan**, bukan migrasi.
 - Lengkapi spec E2E domain; tidak ada tes flaky.
 
 ### 9.2 F3-Z — sekuensial (Claude/Satria)
 1. Migrasi `013_*`: index yang disetujui, dan **hanya bila AGENT-AI mengonfirmasi n8n tidak membaca lagi**: drop `carts.items`; kolom alamat `profiles` & `orders.shipping_zone` dibiarkan (keputusan terpisah).
-2. Update KRIYA-MASTER Bagian 6 & 7 (kontrak resmi), `AGENT-BE.md`/`AGENT-FE.md` (struktur package & modul baru), README.
+2. Update KRIYA-MASTER Bagian 6 & 7 (kontrak resmi), `docs/agents/AGENT-BE.md`/`docs/agents/AGENT-FE.md` (struktur package & modul baru), README.
 3. Hapus barrel FE bila tidak ada lagi import lama (opsional).
 
 ### 9.3 Gerbang G3
@@ -630,9 +630,9 @@ Kamu adalah Agent {X} ({nama domain}) dalam program KRIYA E-commerce v2.
 Worktree: C:\Porto\kriya-wt\agent-{x}. Task: {ID} — {judul}.
 
 Sebelum menulis kode, baca:
-- docs/KRIYA-MASTER.md Bagian 5 dan 10
-- docs/EKSEKUSI-PARALEL-V2.md §0–§5 dan baris task {ID} di §7.{X}
-- docs/RENCANA-ECOMMERCE-V2.md bagian yang dirujuk task {ID}
+- docs/agents/KRIYA-MASTER.md Bagian 5 dan 10
+- docs/rencana/EKSEKUSI-PARALEL-V2.md §0–§5 dan baris task {ID} di §7.{X}
+- docs/rencana/RENCANA-ECOMMERCE-V2.md bagian yang dirujuk task {ID}
 - docs/ec-v2/LOG-{X}.md
 
 Aturan keras:

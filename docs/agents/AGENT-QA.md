@@ -1,6 +1,6 @@
 # AGENT-QA — Quality Assurance KRIYA
 
-Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AGENT-FE.md`, `AGENT-BE.md`, dan `AGENT-AI.md` untuk memahami kontrak yang harus diverifikasi. Teritorimu: **validasi lintas-repo**. Fokusmu adalah menguji hasil kerja agent lain secara paralel, bukan mengerjakan fitur produk.
+Kamu adalah agent QA / testing KRIYA. Baca `docs/agents/KRIYA-MASTER.md` dulu, lalu baca `docs/agents/AGENT-FE.md`, `docs/agents/AGENT-BE.md`, dan `docs/agents/AGENT-AI.md` untuk memahami kontrak yang harus diverifikasi. Teritorimu: **validasi lintas-repo**. Fokusmu adalah menguji hasil kerja agent lain secara paralel, bukan mengerjakan fitur produk.
 
 ## Peran inti
 
@@ -12,7 +12,7 @@ Kamu adalah agent QA / testing KRIYA. Baca `KRIYA-MASTER.md` dulu, lalu baca `AG
 ## Aturan kerja
 
 - Jalankan pengujian paling murah dan paling diskriminatif terlebih dahulu: build, lint, unit test, smoke test, lalu integrasi / E2E bila perlu.
-- Pakai data dan kontrak dari `KRIYA-MASTER.md` sebagai sumber kebenaran.
+- Pakai data dan kontrak dari `docs/agents/KRIYA-MASTER.md` sebagai sumber kebenaran.
 - Uji setiap perubahan secara terpisah bila memungkinkan, supaya akar masalahnya jelas.
 - Boleh membaca seluruh repo, menjalankan test runner, curl, browser automation, dan pemeriksaan skema yang diperlukan.
 - Jangan mengubah kode aplikasi untuk memperbaiki bug tanpa instruksi eksplisit. Jika menemukan masalah, laporkan sebagai temuan QA atau ajukan lewat "Permintaan lintas-teritori".

@@ -1,7 +1,7 @@
 # Rencana: Pivot lapisan AI — hapus vektor/FastAPI, chatbot n8n + furniture custom
 
 > Dokumen rencana (handoff). Disusun untuk dikerjakan oleh agent/sesi berikutnya.
-> **Belum dieksekusi.** Ikuti teritori & ritual sesi di `KRIYA-MASTER.md`.
+> **Belum dieksekusi.** Ikuti teritori & ritual sesi di `docs/agents/KRIYA-MASTER.md`.
 > Pemilik keputusan: **Satria.**
 
 ## Context
@@ -75,10 +75,10 @@ Fase 3), **FE Next**, **n8n**.
 
 ## Fase 0 — Docs & kontrak (teritori Satria)
 
-Semua perubahan di `KRIYA-MASTER.md` harus dilakukan lebih dulu oleh/di sesi yang
+Semua perubahan di `docs/agents/KRIYA-MASTER.md` harus dilakukan lebih dulu oleh/di sesi yang
 diawasi Satria, sebelum kode. Simpan dokumen ini ke `docs/` sebagai langkah pertama.
 
-Edit `docs/KRIYA-MASTER.md`:
+Edit `docs/agents/KRIYA-MASTER.md`:
 
 1. **Bagian 2 (Stack):** hapus baris **Backend AI (FastAPI)** dan **Embedding
    (Gemini 768-dim)**. Ubah baris **LLM chatbot** → MiMo via 9router (OpenAI-compatible).
@@ -111,8 +111,8 @@ Edit `docs/KRIYA-MASTER.md`:
 8. **Status milestone (header Bagian 0):** perbarui — M3 dibatalkan, M4 didefinisikan
    ulang tanpa vektor.
 
-Sesuaikan juga `docs/AGENT-AI.md` (DoD & backlog: hapus tugas vektor/ingest/FastAPI,
-ganti dengan workflow n8n + KB + image gen). `docs/RENCANA-MULTIBAHASA.md` **Fase 5**
+Sesuaikan juga `docs/agents/AGENT-AI.md` (DoD & backlog: hapus tugas vektor/ingest/FastAPI,
+ganti dengan workflow n8n + KB + image gen). `docs/rencana/RENCANA-MULTIBAHASA.md` **Fase 5**
 menyebut re-ingest embedding — tandai **batal** (tidak ada embedding lagi).
 
 ---
@@ -274,7 +274,7 @@ Verifikasi: dari widget, minta "meja kerja custom kayu jati 100cm" → muncul ga
 
 ## Risiko & catatan
 
-- **Perubahan kontrak & teritori** menyentuh file milik Satria (`KRIYA-MASTER.md`,
+- **Perubahan kontrak & teritori** menyentuh file milik Satria (`docs/agents/KRIYA-MASTER.md`,
   `docker-compose.yml`, `.env.example`) → wajib lewat sesi yang diawasi (Fase 0),
   baru kode.
 - **Kredensial**: node Postgres n8n sebaiknya pakai **role read-only** untuk tool
@@ -285,6 +285,6 @@ Verifikasi: dari widget, minta "meja kerja custom kayu jati 100cm" → muncul ga
 - **Latensi image gen** beberapa detik — widget perlu indikator loading agar UX oke.
 - **Hapus vektor bersifat destruktif** (drop `documents`) — pastikan benar-benar
   tak ada konsumen tersisa sebelum drop; migrasi drop tidak bisa auto-rollback data.
-- **`RENCANA-MULTIBAHASA.md` Fase 5** (KB/embedding bilingual) menjadi tidak relevan
+- **`docs/rencana/RENCANA-MULTIBAHASA.md` Fase 5** (KB/embedding bilingual) menjadi tidak relevan
   soal embedding; KB bilingual kini cukup kolom teks per-locale di `kb_articles`.
 ```

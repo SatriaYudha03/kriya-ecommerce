@@ -3,9 +3,9 @@
 **Status:** 🟡 **RENCANA — belum dieksekusi.**
 **Tanggal:** 2026-09-24
 **Pemilik keputusan:** Satria. **Eksekutor:** 4 agent opencode (A/B/C/D) + Claude sebagai reviewer/integrator.
-**Pasangan dokumen:** `docs/EKSEKUSI-PARALEL-V2.md`: pembagian fase, kepemilikan file, kontrak antar-agent, dan prompt peluncuran. **Dokumen ini adalah sumber kebenaran untuk skema dan kontrak API. Dokumen pasangannya sumber kebenaran untuk siapa mengerjakan apa.**
+**Pasangan dokumen:** `docs/rencana/EKSEKUSI-PARALEL-V2.md`: pembagian fase, kepemilikan file, kontrak antar-agent, dan prompt peluncuran. **Dokumen ini adalah sumber kebenaran untuk skema dan kontrak API. Dokumen pasangannya sumber kebenaran untuk siapa mengerjakan apa.**
 
-Rencana ini **menyerap** `docs/RENCANA-RIWAYAT-PEMBELIAN.md` (gap G1–G10 ada di sini, di domain D dan B). Rencana ini **tidak menyentuh** `docs/RENCANA-CHATBOT-AI.md` maupun tabel/fungsi milik AGENT-AI (`documents`, `match_documents`).
+Rencana ini **menyerap** `docs/rencana/RENCANA-RIWAYAT-PEMBELIAN.md` (gap G1–G10 ada di sini, di domain D dan B). Rencana ini **tidak menyentuh** `docs/rencana/RENCANA-CHATBOT-AI.md` maupun tabel/fungsi milik AGENT-AI (`documents`, `match_documents`).
 
 ---
 
@@ -106,7 +106,7 @@ WooCommerce dipakai sebagai acuan karena skemanya sudah teruji di jutaan toko. Y
 - **K1** Cakupan: **keempat domain** (katalog & inventori, customer & checkout, promo & kupon, review & after-sales).
 - **K2** Pembagian agent: **vertikal per domain**. Satu agent memegang migrasi terkait, Go, dan FE domainnya.
 - **K3** Ongkir: **tabel tarif internal** (zona per provinsi × berat), dikelola admin, tanpa API kurir pihak ketiga.
-- **K4** Serap `RENCANA-RIWAYAT-PEMBELIAN.md`; biarkan `RENCANA-CHATBOT-AI.md` terpisah.
+- **K4** Serap `docs/rencana/RENCANA-RIWAYAT-PEMBELIAN.md`; biarkan `docs/rencana/RENCANA-CHATBOT-AI.md` terpisah.
 
 ### 3.2 Keputusan desain turunan (disetujui Satria 2026-09-24, lihat §11 O1)
 
@@ -192,7 +192,7 @@ Konvensi untuk semua migrasi v2:
 ### 5.1 `008_core_v2.sql` — order, pembayaran, pengaturan, keamanan
 
 ```sql
--- 008_core_v2.sql — Fondasi e-commerce v2 (docs/RENCANA-ECOMMERCE-V2.md §5.1)
+-- 008_core_v2.sql — Fondasi e-commerce v2 (docs/rencana/RENCANA-ECOMMERCE-V2.md §5.1)
 
 -- (a) RLS untuk tabel commerce lama (S14). Verifikasi dulu status RLS via MCP/advisor.
 ALTER TABLE profiles          ENABLE ROW LEVEL SECURITY;

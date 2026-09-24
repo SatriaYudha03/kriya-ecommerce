@@ -1,6 +1,6 @@
 # AGENT-DEVSECOPS — Infrastruktur, CI/CD & Keamanan KRIYA
 
-Kamu adalah agent DevSecOps. Baca `KRIYA-MASTER.md` dulu. Teritorimu: **`infra/`** (Terraform), **`.github/workflows/`**, **`helm/`** (chart & values k8s), dan **Dockerfile di tiap service** (boleh disunting, tapi koordinasikan dengan agent pemilik service bila mengubah perilaku build, bukan sekadar hardening image).
+Kamu adalah agent DevSecOps. Baca `docs/agents/KRIYA-MASTER.md` dulu. Teritorimu: **`infra/`** (Terraform), **`.github/workflows/`**, **`helm/`** (chart & values k8s), dan **Dockerfile di tiap service** (boleh disunting, tapi koordinasikan dengan agent pemilik service bila mengubah perilaku build, bukan sekadar hardening image).
 
 Track ini **paralel**, bukan sekuensial dengan M0–M7 — tapi kematangannya (D2 ke atas) baru masuk akal setelah ada aplikasi nyata untuk di-deploy. Jangan membangun cluster produksi untuk sistem yang masih kosong.
 
@@ -65,7 +65,7 @@ helm/
 - [ ] Uji tiap alert benar-benar terkirim (matikan satu pod sengaja untuk tes, lalu nyalakan lagi)
 
 ### D5 — Dokumentasi & demo
-- [x] `docs/devops-architecture.md`: diagram arsitektur (CI/CD, cluster, observability) + penjelasan tiap komponen + keputusan desain (kenapa k3s bukan k8s penuh, kenapa VPS tunggal, dsb.)
+- [x] `docs/devops/devops-architecture.md`: diagram arsitektur (CI/CD, cluster, observability) + penjelasan tiap komponen + keputusan desain (kenapa k3s bukan k8s penuh, kenapa VPS tunggal, dsb.)
 - [ ] Rekam demo: push kode kecil → tunjukkan pipeline jalan end-to-end → aplikasi live ter-update → tunjukkan dashboard Grafana → simulasikan alert masuk Telegram
 - [ ] README utama repo diperbarui dengan badge status CI dan link demo
 
@@ -83,5 +83,5 @@ Jangan commit `kubeconfig`, `.tfstate`, atau file `.env`. Jangan pakai `latest` 
 (append satu baris per sesi: `2026-07-07 · [devsecops] task · status/catatan`)
 2026-07-08 · [devsecops] inisiasi D0 · selesai membuat Dockerfile web standalone, ci.yml dengan build/test/lint matrix untuk web/api/ai, serta security gates Semgrep dan Trivy fs.
 2026-07-08 · [devsecops] inisiasi D1 · selesai membuat infra/terraform (Hetzner + Cloudflare DNS), infra/k3s-bootstrap.sh untuk deployment node tunggal, serta Helm chart umbrella 'kriya' lengkap untuk web, api, ai, dan n8n.
-2026-07-08 · [devsecops] inisiasi D2 · selesai membuat .github/workflows/cd.yml dengan path filter, build/push matrix, Trivy image scan, serta deployment via Helm. Dokumentasi rollback ditambahkan di docs/devops-rollback.md.
-2026-07-08 · [devsecops] inisiasi D3-D5 · selesai mengonfigurasi ClusterIssuer Let's Encrypt, values untuk kube-prometheus-stack dan loki-promtail, ServiceMonitors, menulis docs/devops-architecture.md, dan menambahkan permintaan lintas-teritori untuk middleware metrics. Sesi DevOps selesai sampai menunggu intervensi server fisik.
+2026-07-08 · [devsecops] inisiasi D2 · selesai membuat .github/workflows/cd.yml dengan path filter, build/push matrix, Trivy image scan, serta deployment via Helm. Dokumentasi rollback ditambahkan di docs/devops/devops-rollback.md.
+2026-07-08 · [devsecops] inisiasi D3-D5 · selesai mengonfigurasi ClusterIssuer Let's Encrypt, values untuk kube-prometheus-stack dan loki-promtail, ServiceMonitors, menulis docs/devops/devops-architecture.md, dan menambahkan permintaan lintas-teritori untuk middleware metrics. Sesi DevOps selesai sampai menunggu intervensi server fisik.

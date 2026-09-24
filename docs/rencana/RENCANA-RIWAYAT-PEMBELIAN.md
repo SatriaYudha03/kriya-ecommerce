@@ -20,7 +20,7 @@ Riwayat pembelian **sudah jalan end-to-end** sejak M2. Yang ada sekarang:
 | Navigasi | `components/kriya/site-header.tsx:85,212` | Menu "Pesanan saya" (desktop + mobile), key i18n `nav.orders` |
 | API | `services/api/internal/handler/order.go:111-164` | `GET /api/v1/orders`, `GET /api/v1/orders/{id}` |
 | Repo | `services/api/internal/repository/order.go:219-241` | `ListByUser` (urut `created_at DESC`), `GetByIDForUser`, `GetItemsByOrderID` |
-| Kontrak | `docs/KRIYA-MASTER.md:112-113` | Bentuk `<order>` sudah terkunci |
+| Kontrak | `docs/agents/KRIYA-MASTER.md:112-113` | Bentuk `<order>` sudah terkunci |
 | Sisi admin | `app/(admin)/admin/orders/page.tsx` | Sudah punya filter status + pagination (customer belum) |
 
 **Kesimpulan: tidak perlu dirancang dari nol.** Yang dibutuhkan adalah pematangan. Bagian 2 di bawah adalah gap yang sudah diverifikasi langsung di kode, bukan dugaan.
@@ -34,13 +34,13 @@ Riwayat pembelian **sudah jalan end-to-end** sejak M2. Yang ada sekarang:
 | G1 | **Tidak ada auth guard.** Buka `/orders` tanpa login → API balas 401 → `orders` jadi `undefined` → halaman menampilkan empty state **"Belum ada pesanan"** | `orders/page.tsx:32` hanya cek `!orders \|\| length === 0`; `isError` tidak ditangani; tidak ada `middleware.ts` di `apps/web/` | 🔴 Menyesatkan. User merasa datanya hilang |
 | G2 | **Belum di-i18n.** Seluruh teks kedua halaman hard-coded Bahasa Indonesia | `orders/page.tsx:11-17,30,38-47,54,72,80,86`; `[id]/page.tsx:13-19,46-47,53,63,66,76,88,100,108,113-116` | 🔴 Regresi terhadap kerja i18n M-terakhir (commit `b4a77df`, `63c0e42`). Ganti ke EN, halaman ini tetap ID |
 | G3 | **`StatusBadge` triplikat.** Peta label status ditulis ulang 3× dengan isi identik | `orders/page.tsx:10-18`, `[id]/page.tsx:13-21`, `admin/orders/page.tsx:9-17` | 🟡 Tiap tambah status harus edit 3 berkas |
-| G4 | **N+1 query + tanpa pagination.** `ListOrders` mengambil SEMUA order user, lalu query item **per order** di dalam loop | `handler/order.go:122-132` | 🟡 Sekarang aman (DB live cuma **2 order**), tapi `docs/seed-orders-plan.md` akan menambah 100 → 1 + 100 round-trip per buka halaman |
+| G4 | **N+1 query + tanpa pagination.** `ListOrders` mengambil SEMUA order user, lalu query item **per order** di dalam loop | `handler/order.go:122-132` | 🟡 Sekarang aman (DB live cuma **2 order**), tapi `docs/rencana/seed-orders-plan.md` akan menambah 100 → 1 + 100 round-trip per buka halaman |
 | G5 | **Tidak ada filter / sort / pencarian** di sisi customer | `ListByUser` hanya `Order("created_at DESC")` | 🟡 Admin sudah punya, customer belum |
 | G6 | **Riwayat tanpa gambar & tanpa link balik ke produk.** `OrderItemResponse` cuma `name/color/size/qty/price/subtotal` | `model/response.go:142-149` | 🟡 Riwayat terasa "kering"; user tidak bisa klik ke produknya |
 | G7 | **Order `pending_payment` tidak bisa dilanjutkan bayar.** `snap_token` hanya dikembalikan sekali di respons `POST /orders` dan tidak disimpan | `handler/order.go:103-107`; `payments` tidak punya kolom `snap_token` (`002_orders.sql`) | 🔴 Tutup popup Snap = order nyangkut permanen. Polling 10 dtk di `[id]/page.tsx:36-44` jadi sia-sia karena tak ada tombol bayar |
 | G8 | **Tidak ada aksi lanjutan:** beli lagi, batalkan pesanan, unduh struk, lacak resi | Tidak ada endpoint terkait di `cmd/api/main.go:72-74`; tidak ada kolom resi di skema `orders` | 🟡 |
 | G9 | **Nomor pesanan tidak manusiawi.** Ditampilkan 8 karakter hex pertama UUID | `orders/page.tsx:62`, `[id]/page.tsx:63` | 🟢 `payments.midtrans_order_id` sudah berpola `KRIYA-XXXXXXXX` tapi tidak pernah ditampilkan |
-| G10 | **`order_items` di-snapshot pada locale saat checkout.** Ganti bahasa setelah order dibuat → nama produk tetap bahasa lama | `repository/order.go:159,165-166`; dicatat sebagai sisa di `RENCANA-I18N-KONTEN-PRODUK.md` | 🟢 Ini **kemungkinan benar** (invoice = dokumen snapshot), tapi harus jadi keputusan sadar → lihat K4 |
+| G10 | **`order_items` di-snapshot pada locale saat checkout.** Ganti bahasa setelah order dibuat → nama produk tetap bahasa lama | `repository/order.go:159,165-166`; dicatat sebagai sisa di `docs/rencana/RENCANA-I18N-KONTEN-PRODUK.md` | 🟢 Ini **kemungkinan benar** (invoice = dokumen snapshot), tapi harus jadi keputusan sadar → lihat K4 |
 
 ---
 
@@ -84,7 +84,7 @@ Tampilkan `midtrans_order_id` (pola `KRIYA-XXXXXXXX`) sebagai nomor pesanan — 
 Menyelesaikan G4, G5, G6, G9. **Semua tambahan bersifat aditif** — field lama tidak dihapus/diubah tipe, jadi FE lama tetap jalan.
 
 ### 1a. `GET /api/v1/orders` jadi ber-pagination
-Usulan kontrak baru (menggantikan `KRIYA-MASTER.md:112`):
+Usulan kontrak baru (menggantikan `docs/agents/KRIYA-MASTER.md:112`):
 
 ```
 GET /api/v1/orders?lang=en|id&page=1&limit=10&status=<opsional>
@@ -161,7 +161,7 @@ Paling murah: halaman `/orders/[id]/invoice` yang siap-cetak (CSS `@media print`
 
 **Fase 1 (BE + FE)**
 - Ubah: `services/api/internal/handler/order.go`, `internal/repository/order.go`, `internal/model/response.go`, `apps/web/lib/api.ts`, `lib/queries.ts`, `lib/types.ts`, `app/(store)/orders/*`
-- Ubah dokumen: `docs/KRIYA-MASTER.md` Bagian 6 baris 112-113
+- Ubah dokumen: `docs/agents/KRIYA-MASTER.md` Bagian 6 baris 112-113
 
 **Fase 2 (BE + DB + FE)**
 - Baru: `supabase/migrations/008_order_history.sql`, `app/(store)/orders/[id]/invoice/page.tsx`
@@ -174,7 +174,7 @@ Paling murah: halaman `/orders/[id]/invoice` yang siap-cetak (CSS `@media print`
 | Kode | Pertanyaan | Rekomendasi |
 |---|---|---|
 | **K1** | Kerjakan Fase 0 saja dulu, atau langsung 0+1? | **Fase 0 dulu.** G1 & G2 adalah bug yang terlihat user dan bisa diperbaiki tanpa menyentuh BE/kontrak |
-| **K2** | Pagination sekarang atau tunggu `seed-orders-plan.md` dijalankan? | **Barengan dengan seed.** Dengan 2 order, pagination adalah kode mati yang tak teruji; dengan 102 order, langsung terverifikasi |
+| **K2** | Pagination sekarang atau tunggu `docs/rencana/seed-orders-plan.md` dijalankan? | **Barengan dengan seed.** Dengan 2 order, pagination adalah kode mati yang tak teruji; dengan 102 order, langsung terverifikasi |
 | **K3** | Fase 2a (lanjut bayar) — timpa `midtrans_order_id` atau bikin tabel `payment_attempts`? | **Perlu jawaban AGENT-BE.** Menimpa itu lebih sederhana tapi ada lubang webhook telat (lihat 2a) |
 | **K4** | Nama item riwayat: tetap snapshot bahasa saat checkout (G10), atau ikut bahasa aktif? | **Tetap snapshot.** Riwayat pembelian itu dokumen transaksi; harga pun sudah di-snapshot, jadi nama seharusnya konsisten. Kalau Satria mau ikut bahasa aktif, sumber datanya harus `variant_id` (sudah tersedia lewat 1c) |
 

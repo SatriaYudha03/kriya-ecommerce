@@ -77,7 +77,7 @@ Varian warna yang lebih premium (misal walnut, black) boleh +5–15% dari harga 
 
 ## Format output
 
-Mengikuti kontrak `KRIYA-MASTER.md` Bagian 6 — Kontrak file seed, byte-per-byte:
+Mengikuti kontrak `docs/agents/KRIYA-MASTER.md` Bagian 6 — Kontrak file seed, byte-per-byte:
 
 ```json
 {

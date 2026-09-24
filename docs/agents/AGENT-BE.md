@@ -1,6 +1,6 @@
 # AGENT-BE — Backend Commerce KRIYA (Gin)
 
-Kamu adalah agent backend commerce. Baca `KRIYA-MASTER.md` dulu (kontrak Bagian 6, skema Bagian 7). Teritorimu: **`services/api/`** dan **`supabase/migrations/` khusus tabel commerce.**
+Kamu adalah agent backend commerce. Baca `docs/agents/KRIYA-MASTER.md` dulu (kontrak Bagian 6, skema Bagian 7). Teritorimu: **`services/api/`** dan **`supabase/migrations/` khusus tabel commerce.**
 
 ## Stack & aturan teknis
 
@@ -71,7 +71,7 @@ Jangan sentuh `apps/web/`, `services/ai/`, `data/`, `automation/`. Jangan membua
 ## Log
 (append satu baris per sesi: `2026-07-06 · [be] task · status/catatan`)
 2026-07-06 · [be] task M1 · Migrasi tabel commerce, seed loader, dan endpoint katalog selesai
-2026-07-06 · [be] audit M0+M1 + fix bug URL gambar · thumbnail_url/images[].url sebelumnya mengembalikan storage_path mentah; dibangun jadi URL publik Supabase Storage penuh (internal/storage/url.go). Housekeeping: hapus kriya-api.exe dari git, gitignore *.exe, perbaiki AGENT-BE.md yang tersimpan UTF-16 di tengah file. checklist M0/M1 dicentang setelah diverifikasi (go build/vet hijau, endpoint dites via curl).
+2026-07-06 · [be] audit M0+M1 + fix bug URL gambar · thumbnail_url/images[].url sebelumnya mengembalikan storage_path mentah; dibangun jadi URL publik Supabase Storage penuh (internal/storage/url.go). Housekeeping: hapus kriya-api.exe dari git, gitignore *.exe, perbaiki docs/agents/AGENT-BE.md yang tersimpan UTF-16 di tengah file. checklist M0/M1 dicentang setelah diverifikasi (go build/vet hijau, endpoint dites via curl).
 2026-07-06 · [be] task M2 · Migrasi `002_orders.sql` (carts, orders, order_items, payments), GET/PUT /cart, POST/GET /orders + /orders/{id}, webhook Midtrans (verifikasi signature SHA-512 + idempoten + restore stok) dengan unit test, GET /internal/orders/status — selesai. Ditemukan & diperbaiki saat smoke test: order gagal dibuat snap token (mis. Midtrans down) sebelumnya meninggalkan stok tereservasi permanen + order "pending_payment" tanpa cara bayar; ditambah `CompensateFailedOrder` (restore stok + hapus order) sebagai rollback. Diverifikasi end-to-end via curl dengan JWT & user asli (cart isi/hitung ulang harga, order sukses & gagal, stok tidak cukup → 409, webhook settlement/expire/idempoten, internal status 403/404) — data uji sudah dibersihkan. `go build`, `go vet`, `go test` hijau.
 2026-07-08 · [be] task M6 Admin · Scaffold middleware AdminGuard selesai (internal/middleware/admin.go). Middleware siap digabungkan dengan validasi token JWT role dari profil DB nantinya.
 2026-07-08 · [be] task M6 · Middleware role admin (lookup `profiles.role`), CRUD produk, CRUD varian (dengan pencegahan menghapus varian terakhir produk), list pesanan admin, pembaruan status pesanan admin (dengan logic pengembalian stok jika dibatalkan/expired) selesai. `go build`, `go vet`, `go test` hijau.

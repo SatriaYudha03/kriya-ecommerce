@@ -5,9 +5,9 @@
 > pesanan) **tanpa vector DB** — cukup query terstruktur + full-text index.
 >
 > Bagian ini **hanya RAG (tanya-jawab)**. Fitur generate gambar furniture custom ada
-> di file lanjutan: `docs/PROMPT-N8N-2-GAMBAR-CUSTOM.md`.
+> di file lanjutan: `docs/prompts/PROMPT-N8N-2-GAMBAR-CUSTOM.md`.
 >
-> Sumber rencana: `docs/RENCANA-CHATBOT-AI.md` (Fase 2 & 3). Pemilik keputusan: **Satria.**
+> Sumber rencana: `docs/rencana/RENCANA-CHATBOT-AI.md` (Fase 2 & 3). Pemilik keputusan: **Satria.**
 > Ganti semua nilai `<...>` sesuai environment sebelum dipakai.
 
 ---
@@ -125,7 +125,7 @@ Catatan: 'user' pada body bisa null; jika ada, user.email dipakai untuk tool sta
 - Sesuaikan base URL + nama model 9router (masih "keputusan terbuka" di rencana — belum dipin).
 - **Kontrak respons** = `{ reply, sources }`, kompatibel dengan `chat-widget.tsx` saat ini
   (widget membaca `reply` + `sources`). Bagian 2 (gambar custom) akan menambah field
-  `image_url` + `kind` ke output parser — lihat `docs/PROMPT-N8N-2-GAMBAR-CUSTOM.md`.
+  `image_url` + `kind` ke output parser — lihat `docs/prompts/PROMPT-N8N-2-GAMBAR-CUSTOM.md`.
 - **status_pesanan**: default pakai endpoint internal Gin (sudah teruji). Alternatif
   (Postgres node langsung join `auth.users`) adalah keputusan terbuka di rencana Fase 3.
 

@@ -1,6 +1,6 @@
 # Prompt n8n — Bagian 2: Gambar furniture custom (lanjutan RAG)
 
-> Fitur lanjutan setelah chatbot RAG (`docs/PROMPT-N8N-1-CHATBOT-RAG.md`) jadi.
+> Fitur lanjutan setelah chatbot RAG (`docs/prompts/PROMPT-N8N-1-CHATBOT-RAG.md`) jadi.
 > Menambahkan kemampuan: user mendeskripsikan furniture custom → n8n memanggil
 > **Gemini image API (via 9router)** → simpan gambar di Supabase Storage → catat di
 > `custom_requests` → balas ke widget dengan URL gambar.
@@ -8,7 +8,7 @@
 > **Kerjakan setelah Bagian 1 hijau.** Prompt di bawah adalah **modifikasi** workflow
 > chatbot yang sudah ada — buka workflow itu dulu di n8n sebelum paste.
 >
-> Sumber rencana: `docs/RENCANA-CHATBOT-AI.md` (Fase 2 & 4). Pemilik keputusan: **Satria.**
+> Sumber rencana: `docs/rencana/RENCANA-CHATBOT-AI.md` (Fase 2 & 4). Pemilik keputusan: **Satria.**
 > Ganti semua nilai `<...>` sesuai environment sebelum dipakai.
 
 ---
