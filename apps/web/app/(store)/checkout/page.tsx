@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Script from "next/script";
 import { MoveLeft, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { useCartStore } from "@/stores/cart-store";
@@ -13,13 +12,7 @@ import { formatRupiah } from "@/lib/format";
 import { toast } from "sonner";
 import Link from "next/link";
 import type { ShippingAddress } from "@/lib/types";
-
-// Type definitions for Midtrans Snap
-declare global {
-  interface Window {
-    snap: { pay: (token: string, options: Record<string, unknown>) => void };
-  }
-}
+import { loadSnap, paySnap } from "@/lib/snap";
 
 const ZONES = {
   jawa_bali: { label: "Jawa & Bali", cost: 150000 },
@@ -91,6 +84,11 @@ export default function CheckoutPage() {
   }
 
   const total = subtotal + ZONES[zone].cost;
+  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "SB-Mid-client-XXXXX";
+
+  useEffect(() => {
+    loadSnap(clientKey).catch(console.error);
+  }, [clientKey]);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,27 +108,24 @@ export default function CheckoutPage() {
       }
 
       // Load snap UI
-      window.snap.pay(res.snap_token, {
-        onSuccess: async () => {
-          await clearCart();
-          toast.success("Pembayaran berhasil!");
-          router.push(`/orders/${res.order.id}`);
-        },
-        onPending: async () => {
-          await clearCart();
-          toast.success("Pesanan dibuat. Menunggu pembayaran.");
-          router.push(`/orders/${res.order.id}`);
-        },
-        onError: () => {
-          toast.error("Pembayaran gagal. Silakan coba lagi.");
-          setLoading(false);
-        },
-        onClose: async () => {
-          await clearCart();
-          toast.info("Pembayaran ditutup, pesanan tersimpan.");
-          router.push(`/orders/${res.order.id}`);
-        }
-      });
+      const snapResult = await paySnap(res.snap_token);
+      
+      if (snapResult === "success") {
+        await clearCart();
+        toast.success("Pembayaran berhasil!");
+        router.push(`/orders/${res.order.id}`);
+      } else if (snapResult === "pending") {
+        await clearCart();
+        toast.success("Pesanan dibuat. Menunggu pembayaran.");
+        router.push(`/orders/${res.order.id}`);
+      } else if (snapResult === "error") {
+        toast.error("Pembayaran gagal. Silakan coba lagi.");
+        setLoading(false);
+      } else if (snapResult === "closed") {
+        await clearCart();
+        toast.info("Pembayaran ditutup, pesanan tersimpan.");
+        router.push(`/orders/${res.order.id}`);
+      }
 
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Gagal membuat pesanan");
@@ -146,12 +141,8 @@ export default function CheckoutPage() {
     return null; // Will redirect
   }
 
-  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "SB-Mid-client-XXXXX";
-  const snapScript = "https://app.sandbox.midtrans.com/snap/snap.js";
-
   return (
     <>
-      <Script src={snapScript} data-client-key={clientKey} strategy="lazyOnload" />
       
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-8">

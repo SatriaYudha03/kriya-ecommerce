@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/kriya/auth-provider";
 import { LanguageProvider } from "@/components/kriya/language-provider";
 import type { Locale } from "@/lib/i18n";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function Providers({ children, locale }: { children: React.ReactNode, locale: Locale }) {
   const [client] = useState(
@@ -18,8 +19,10 @@ export function Providers({ children, locale }: { children: React.ReactNode, loc
     <QueryClientProvider client={client}>
       <AuthProvider>
         <LanguageProvider initialLocale={locale}>
-          {children}
-          <Toaster position="bottom-right" richColors closeButton />
+          <TooltipProvider>
+            {children}
+            <Toaster position="bottom-right" richColors closeButton />
+          </TooltipProvider>
         </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
