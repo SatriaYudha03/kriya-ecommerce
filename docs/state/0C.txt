@@ -1,0 +1,1 @@
+Task 0C selesai. Modul FE direstrukturisasi menjadi vertical slices per domain (catalog, customer, promo, aftersales, checkout). i18n dipisah. Komponen UI stub, halaman stub, dan login guard Next 16 (proxy.ts) telah dibuat. Komponen shadcn terinstall. Commit dipush ke branch ec/0C-fe-refactor-2.
