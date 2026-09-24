@@ -1,97 +1,34 @@
-package handler
+package catalog
 
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/kriya-commerce/api/internal/model"
-	"github.com/kriya-commerce/api/internal/repository"
 	"github.com/kriya-commerce/api/internal/storage"
 )
 
 type AdminHandler struct {
-	repo        *repository.AdminRepository
-	orderRepo   *repository.OrderRepository
+	repo *AdminRepository
+
 	supabaseURL string
 }
 
-func NewAdminHandler(repo *repository.AdminRepository, orderRepo *repository.OrderRepository, supabaseURL string) *AdminHandler {
-	return &AdminHandler{repo: repo, orderRepo: orderRepo, supabaseURL: supabaseURL}
+func NewAdminHandler(repo *AdminRepository, supabaseURL string) *AdminHandler {
+	return &AdminHandler{repo: repo, supabaseURL: supabaseURL}
 }
 
 // ListOrders mengambil semua pesanan dari DB dengan pagination & filter status.
-func (h *AdminHandler) ListOrders(c *gin.Context) {
-	status := c.Query("status")
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if limit > 60 {
-		limit = 60
-	}
-	if page < 1 {
-		page = 1
-	}
-
-	orders, total, err := h.repo.ListAllOrders(page, limit, status)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal mengambil pesanan"},
-		})
-		return
-	}
-
-	res := make([]model.OrderResponse, 0, len(orders))
-	for _, o := range orders {
-		items, err := h.orderRepo.GetItemsByOrderID(o.ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-				Error: model.ErrorDetail{Code: "internal", Message: "Gagal mengambil item pesanan"},
-			})
-			return
-		}
-		res = append(res, ToOrderResponse(o, items))
-	}
-
-	c.JSON(http.StatusOK, model.Response{
-		Data: res,
-		Meta: &model.Meta{
-			Page:  page,
-			Limit: limit,
-			Total: total,
-		},
-	})
-}
 
 // UpdateOrderStatus memperbarui status pesanan.
-func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
-	id := c.Param("id")
-	var req model.AdminUpdateOrderStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: "Status tidak valid"},
-		})
-		return
-	}
-
-	err := h.repo.UpdateOrderStatus(id, req.Status)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memperbarui status pesanan"},
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"status": req.Status}})
-}
 
 // CreateProduct membuat produk baru lengkap beserta varian & gambarnya.
 func (h *AdminHandler) CreateProduct(c *gin.Context) {
-	var req model.AdminCreateProductRequest
+	var req AdminCreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -101,9 +38,9 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 
 	productID := uuid.New().String()
 
-	variants := make([]repository.ProductVariant, len(req.Variants))
+	variants := make([]ProductVariant, len(req.Variants))
 	for i, v := range req.Variants {
-		variants[i] = repository.ProductVariant{
+		variants[i] = ProductVariant{
 			ID:        uuid.New().String(),
 			ProductID: productID,
 			Sku:       v.Sku,
@@ -114,9 +51,9 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 		}
 	}
 
-	images := make([]repository.ProductImage, len(req.Images))
+	images := make([]ProductImage, len(req.Images))
 	for i, img := range req.Images {
-		images[i] = repository.ProductImage{
+		images[i] = ProductImage{
 			ID:          uuid.New().String(),
 			ProductID:   productID,
 			StoragePath: img.StoragePath,
@@ -125,7 +62,7 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 		}
 	}
 
-	p := repository.Product{
+	p := Product{
 		ID:               productID,
 		Slug:             req.Slug,
 		Name:             req.Name,
@@ -140,22 +77,22 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 	}
 
 	if err := h.repo.CreateProduct(&p); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal membuat produk"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal membuat produk"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.Response{Data: gin.H{"id": productID}})
+	c.JSON(http.StatusCreated, Response{Data: gin.H{"id": productID}})
 }
 
 // UpdateProduct memperbarui properti produk (tidak termasuk varian & gambar).
 func (h *AdminHandler) UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
-	var req model.AdminUpdateProductRequest
+	var req AdminUpdateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -183,39 +120,39 @@ func (h *AdminHandler) UpdateProduct(c *gin.Context) {
 	updates["has_assembly_guide"] = req.HasAssemblyGuide
 
 	if err := h.repo.UpdateProduct(id, updates); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memperbarui produk"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal memperbarui produk"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, Response{Data: gin.H{"id": id}})
 }
 
 // DeleteProduct menghapus produk beserta relasinya.
 func (h *AdminHandler) DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.repo.DeleteProduct(id); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghapus produk"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal menghapus produk"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, Response{Data: gin.H{"id": id}})
 }
 
 // CreateVariant menambahkan varian baru untuk suatu produk.
 func (h *AdminHandler) CreateVariant(c *gin.Context) {
 	productID := c.Param("id")
-	var req model.AdminVariantRequest
+	var req AdminVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
 
-	v := repository.ProductVariant{
+	v := ProductVariant{
 		ID:        uuid.New().String(),
 		ProductID: productID,
 		Sku:       req.Sku,
@@ -226,22 +163,22 @@ func (h *AdminHandler) CreateVariant(c *gin.Context) {
 	}
 
 	if err := h.repo.CreateVariant(&v); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal membuat varian"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal membuat varian"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.Response{Data: v})
+	c.JSON(http.StatusCreated, Response{Data: v})
 }
 
 // UpdateVariant memperbarui properti suatu varian (termasuk harga & stok).
 func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 	variantID := c.Param("variant_id")
-	var req model.AdminVariantRequest
+	var req AdminVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -255,42 +192,28 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 	}
 
 	if err := h.repo.UpdateVariant(variantID, updates); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memperbarui varian"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal memperbarui varian"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": variantID}})
+	c.JSON(http.StatusOK, Response{Data: gin.H{"id": variantID}})
 }
 
 // DeleteVariant menghapus varian.
 func (h *AdminHandler) DeleteVariant(c *gin.Context) {
 	variantID := c.Param("variant_id")
 	if err := h.repo.DeleteVariant(variantID); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": variantID}})
+	c.JSON(http.StatusOK, Response{Data: gin.H{"id": variantID}})
 }
 
 // Stats mengembalikan metrik ringkas untuk dashboard admin.
-func (h *AdminHandler) Stats(c *gin.Context) {
-	totalOrders, revenue, activeProducts, err := h.repo.Stats()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal mengambil statistik"},
-		})
-		return
-	}
-	c.JSON(http.StatusOK, model.Response{Data: model.AdminStatsResponse{
-		TotalOrders:    totalOrders,
-		Revenue:        revenue,
-		ActiveProducts: activeProducts,
-	}})
-}
 
 // GetProduct mengembalikan detail produk bentuk internal (id varian & gambar,
 // is_primary, storage_path) untuk prefill form edit admin.
@@ -298,8 +221,8 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 	id := c.Param("id")
 	p, err := h.repo.GetProductByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "not_found", Message: "Produk tidak ditemukan"},
+		c.JSON(http.StatusNotFound, ErrorResponse{
+			Error: ErrorDetail{Code: "not_found", Message: "Produk tidak ditemukan"},
 		})
 		return
 	}
@@ -309,12 +232,12 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 	if materials == nil {
 		materials = []string{}
 	}
-	var dims model.Dimensions
+	var dims Dimensions
 	_ = json.Unmarshal(p.Dimensions, &dims)
 
-	variants := make([]model.VariantResponse, 0, len(p.Variants))
+	variants := make([]VariantResponse, 0, len(p.Variants))
 	for _, v := range p.Variants {
-		variants = append(variants, model.VariantResponse{
+		variants = append(variants, VariantResponse{
 			ID:    v.ID,
 			Sku:   v.Sku,
 			Color: v.Color,
@@ -324,9 +247,9 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 		})
 	}
 
-	images := make([]model.AdminImageResponse, 0, len(p.Images))
+	images := make([]AdminImageResponse, 0, len(p.Images))
 	for _, img := range p.Images {
-		images = append(images, model.AdminImageResponse{
+		images = append(images, AdminImageResponse{
 			ID:          img.ID,
 			StoragePath: img.StoragePath,
 			URL:         storage.PublicImageURL(h.supabaseURL, img.StoragePath),
@@ -335,7 +258,7 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, model.Response{Data: model.AdminProductDetailResponse{
+	c.JSON(http.StatusOK, Response{Data: AdminProductDetailResponse{
 		ID:               p.ID,
 		Slug:             p.Slug,
 		Name:             p.Name,
@@ -354,15 +277,15 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 // storage_path diproduksi FE setelah meng-upload berkas ke Supabase Storage.
 func (h *AdminHandler) AddProductImage(c *gin.Context) {
 	productID := c.Param("id")
-	var req model.AdminImageRequest
+	var req AdminImageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
 
-	img := repository.ProductImage{
+	img := ProductImage{
 		ID:          uuid.New().String(),
 		ProductID:   productID,
 		StoragePath: req.StoragePath,
@@ -370,13 +293,13 @@ func (h *AdminHandler) AddProductImage(c *gin.Context) {
 		IsPrimary:   req.IsPrimary,
 	}
 	if err := h.repo.CreateImage(&img); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menambah gambar"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal menambah gambar"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.Response{Data: model.AdminImageResponse{
+	c.JSON(http.StatusCreated, Response{Data: AdminImageResponse{
 		ID:          img.ID,
 		StoragePath: img.StoragePath,
 		URL:         storage.PublicImageURL(h.supabaseURL, img.StoragePath),
@@ -388,30 +311,30 @@ func (h *AdminHandler) AddProductImage(c *gin.Context) {
 // UpdateProductImage memperbarui alt / is_primary satu gambar (dipakai saat edit).
 func (h *AdminHandler) UpdateProductImage(c *gin.Context) {
 	imageID := c.Param("image_id")
-	var req model.AdminImageUpdateRequest
+	var req AdminImageUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
 	if err := h.repo.UpdateImage(imageID, req.Alt, req.IsPrimary); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memperbarui gambar"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal memperbarui gambar"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": imageID}})
+	c.JSON(http.StatusOK, Response{Data: gin.H{"id": imageID}})
 }
 
 // DeleteProductImage menghapus satu gambar produk.
 func (h *AdminHandler) DeleteProductImage(c *gin.Context) {
 	imageID := c.Param("image_id")
 	if err := h.repo.DeleteImage(imageID); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghapus gambar"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal menghapus gambar"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, model.Response{Data: gin.H{"id": imageID}})
+	c.JSON(http.StatusOK, Response{Data: gin.H{"id": imageID}})
 }

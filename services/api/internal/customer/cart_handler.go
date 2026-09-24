@@ -1,21 +1,21 @@
-package handler
+package customer
 
 import (
+	"github.com/kriya-commerce/api/internal/httpx"
+
 	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kriya-commerce/api/internal/model"
-	"github.com/kriya-commerce/api/internal/repository"
 	"github.com/kriya-commerce/api/internal/storage"
 )
 
 type CartHandler struct {
-	repo        *repository.CartRepository
+	repo        *CartRepository
 	supabaseURL string
 }
 
-func NewCartHandler(repo *repository.CartRepository, supabaseURL string) *CartHandler {
+func NewCartHandler(repo *CartRepository, supabaseURL string) *CartHandler {
 	return &CartHandler{repo: repo, supabaseURL: supabaseURL}
 }
 
@@ -26,13 +26,13 @@ type rawCartItem struct {
 }
 
 func (h *CartHandler) GetCart(c *gin.Context) {
-	lang := resolveLocale(c)
+	lang := httpx.ResolveLocale(c)
 	userID := c.GetString("user_id")
 
 	cart, err := h.repo.GetByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal mengambil cart"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal mengambil cart"},
 		})
 		return
 	}
@@ -44,23 +44,23 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 
 	res, err := h.buildCartResponse(items, lang)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.Response{Data: res})
+	c.JSON(http.StatusOK, Response{Data: res})
 }
 
 func (h *CartHandler) PutCart(c *gin.Context) {
-	lang := resolveLocale(c)
+	lang := httpx.ResolveLocale(c)
 	userID := c.GetString("user_id")
 
-	var req model.PutCartRequest
+	var req PutCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
 		})
 		return
 	}
@@ -72,8 +72,8 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 
 	variants, err := h.repo.GetVariantsByIDs(ids)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memvalidasi varian"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal memvalidasi varian"},
 		})
 		return
 	}
@@ -83,8 +83,8 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 	}
 	for _, it := range req.Items {
 		if !found[it.VariantID] {
-			c.JSON(http.StatusBadRequest, model.ErrorResponse{
-				Error: model.ErrorDetail{Code: "validation_error", Message: "variant_id tidak ditemukan: " + it.VariantID},
+			c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error: ErrorDetail{Code: "validation_error", Message: "variant_id tidak ditemukan: " + it.VariantID},
 			})
 			return
 		}
@@ -97,26 +97,26 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 	itemsJSON, _ := json.Marshal(items)
 
 	if err := h.repo.UpsertItems(userID, itemsJSON); err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menyimpan cart"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal menyimpan cart"},
 		})
 		return
 	}
 
 	res, err := h.buildCartResponse(items, lang)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.Response{Data: res})
+	c.JSON(http.StatusOK, Response{Data: res})
 }
 
 // buildCartResponse menghitung ulang harga/subtotal/total dari data varian TERBARU di DB.
 // Item yang variant_id-nya sudah tidak ada (mis. dihapus admin) di-skip diam-diam saat GET.
-func (h *CartHandler) buildCartResponse(items []rawCartItem, locale string) (model.CartResponse, error) {
+func (h *CartHandler) buildCartResponse(items []rawCartItem, locale string) (CartResponse, error) {
 	ids := make([]string, 0, len(items))
 	for _, it := range items {
 		ids = append(ids, it.VariantID)
@@ -124,14 +124,14 @@ func (h *CartHandler) buildCartResponse(items []rawCartItem, locale string) (mod
 
 	variants, err := h.repo.GetVariantsByIDs(ids)
 	if err != nil {
-		return model.CartResponse{}, err
+		return CartResponse{}, err
 	}
-	byID := make(map[string]repository.VariantWithProduct, len(variants))
+	byID := make(map[string]VariantWithProduct, len(variants))
 	for _, v := range variants {
 		byID[v.VariantID] = v
 	}
 
-	res := model.CartResponse{Items: []model.CartItemResponse{}}
+	res := CartResponse{Items: []CartItemResponse{}}
 	total := 0
 	for _, it := range items {
 		v, ok := byID[it.VariantID]
@@ -145,12 +145,12 @@ func (h *CartHandler) buildCartResponse(items []rawCartItem, locale string) (mod
 			s := getI18nString(v.SizeI18n, locale, *v.Size)
 			size = &s
 		}
-		res.Items = append(res.Items, model.CartItemResponse{
+		res.Items = append(res.Items, CartItemResponse{
 			VariantID: it.VariantID,
 			Qty:       it.Qty,
 			Price:     v.Price,
 			Subtotal:  subtotal,
-			Product: model.CartProductResponse{
+			Product: CartProductResponse{
 				Slug:         v.ProductSlug,
 				Name:         getI18nString(v.NameI18n, locale, v.ProductName),
 				ThumbnailURL: storage.PublicImageURL(h.supabaseURL, v.ThumbnailPath),

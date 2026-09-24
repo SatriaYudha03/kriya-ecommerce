@@ -1,4 +1,4 @@
-package repository
+package catalog
 
 import (
 	"gorm.io/gorm"
@@ -33,7 +33,7 @@ type Product struct {
 	Dimensions       []byte
 	WeightKg         float64
 	HasAssemblyGuide bool
-	Category         Category       `gorm:"foreignKey:CategorySlug;references:Slug"`
+	Category         Category         `gorm:"foreignKey:CategorySlug;references:Slug"`
 	Variants         []ProductVariant `gorm:"foreignKey:ProductID"`
 	Images           []ProductImage   `gorm:"foreignKey:ProductID"`
 }

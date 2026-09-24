@@ -59,7 +59,7 @@ func TestGenerateOrderID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(id) != len("KRIYA-") + 8 {
+	if len(id) != len("KRIYA-")+8 {
 		t.Fatalf("panjang order_id salah: %q", id)
 	}
 	if id[:6] != "KRIYA-" {
