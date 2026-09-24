@@ -1,0 +1,13 @@
+{
+  "body": {
+    "data": {
+      "address_line": "Jalan Tulip Gang 1 No 15",
+      "city": "Denpasar",
+      "full_name": "Satria Yudha",
+      "phone": "123123123",
+      "postal_code": "80361",
+      "province": "Bali"
+    }
+  },
+  "http_status": 200
+}

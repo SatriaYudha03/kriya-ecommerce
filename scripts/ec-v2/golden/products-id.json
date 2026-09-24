@@ -1,0 +1,172 @@
+{
+  "body": {
+    "data": [
+      {
+        "category_slug": "lighting",
+        "id": "c28f0909-2604-43ba-b83c-8613cf0e5729",
+        "name": "Lampu luar ruangan LENTERA",
+        "price_min": 1100000,
+        "slug": "lentera-outdoor-lamp",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/lentera-outdoor-lamp-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "8694ef7c-fd61-4a2e-b5f8-53604a872add",
+        "name": "Set lampu sorot PIJAR",
+        "price_min": 1000000,
+        "slug": "pijar-spotlight-set",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/pijar-spotlight-set-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "358857eb-acd7-4ae3-af98-edc44f4cf845",
+        "name": "Lentera TEJU",
+        "price_min": 500000,
+        "slug": "teju-lantern",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/teju-lantern-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "3eda28c7-3b3f-4b92-83f3-6aeab61b2055",
+        "name": "Lampu gantung kristal RANI",
+        "price_min": 2400000,
+        "slug": "rani-chandelier",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/rani-chandelier-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "4594204b-246f-4741-977c-b3e9062276a3",
+        "name": "Lampu untai BINA",
+        "price_min": 350000,
+        "slug": "bina-string-lights",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/bina-string-lights-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "a4e9b14e-caa3-44b0-bf05-8efde97913f5",
+        "name": "Lampu meja kerja KILA",
+        "price_min": 600000,
+        "slug": "kila-desk-lamp",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/kila-desk-lamp-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "41d86f34-e3e5-43d5-930b-9d1dbf737df3",
+        "name": "Lampu dinding LUMA",
+        "price_min": 450000,
+        "slug": "luma-wall-sconce",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/luma-wall-sconce-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "bced2c28-587a-4230-bb14-65976a37462b",
+        "name": "Lampu meja GITA",
+        "price_min": 750000,
+        "slug": "gita-table-lamp",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/gita-table-lamp-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "c4d1eed6-3bc3-42f7-8d06-a72d4007fe55",
+        "name": "Lampu lantai OBOR",
+        "price_min": 1200000,
+        "slug": "obor-floor-lamp",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/obor-floor-lamp-1.jpg"
+      },
+      {
+        "category_slug": "lighting",
+        "id": "ee9b8467-27ea-471e-9f59-ac29cd8a9dc7",
+        "name": "Lampu gantung SURU",
+        "price_min": 850000,
+        "slug": "suru-pendant-lamp",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/suru-pendant-lamp-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "f7033b0c-dc8a-4002-acd4-dc240c0dcc10",
+        "name": "Lemari modular WATU",
+        "price_min": 1600000,
+        "slug": "watu-modular-cabinet",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/watu-modular-cabinet-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "a7bf582b-4b59-4201-87b9-e4aa21f1147c",
+        "name": "Rak sepatu UBIN",
+        "price_min": 650000,
+        "slug": "ubin-shoe-rack",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/ubin-shoe-rack-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "692d30bc-b293-4000-b83f-66ccadc8fdd5",
+        "name": "Rak gantungan dinding TALI",
+        "price_min": 400000,
+        "slug": "tali-wall-hook-rack",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tali-wall-hook-rack-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "58aa6887-2822-436a-96c2-e1e423cb0f28",
+        "name": "Rak sudut SIKU",
+        "price_min": 1400000,
+        "slug": "siku-corner-shelf",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/siku-corner-shelf-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "0d0d49d7-78c4-46cf-9e73-d7ed0ca85d26",
+        "name": "Set keranjang RAGA",
+        "price_min": 800000,
+        "slug": "raga-basket-set",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/raga-basket-set-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "f94f10c3-8d30-4941-85f9-0cdbd08bb3f0",
+        "name": "Peti penyimpanan PETI",
+        "price_min": 2200000,
+        "slug": "peti-trunk-chest",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/peti-trunk-chest-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "efff9141-6263-49b4-9a97-71b83533ae05",
+        "name": "Pengatur lemari KODI",
+        "price_min": 450000,
+        "slug": "kodi-wardrobe-organizer",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/kodi-wardrobe-organizer-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "6afbbac5-b5e0-448b-a823-be2c5db88a5b",
+        "name": "Set kotak penyimpanan BALE",
+        "price_min": 550000,
+        "slug": "bale-storage-box-set",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/bale-storage-box-set-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "b725bf69-5d7f-4417-852d-5c826f99db47",
+        "name": "Unit laci LACI",
+        "price_min": 1200000,
+        "slug": "laci-drawer-unit",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/laci-drawer-unit-1.jpg"
+      },
+      {
+        "category_slug": "storage",
+        "id": "7d6bc8c9-d8b8-4075-b601-866d4c4b59de",
+        "name": "Rak kubus KOBU",
+        "price_min": 850000,
+        "slug": "kobu-cube-shelf",
+        "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/kobu-cube-shelf-1.jpg"
+      }
+    ],
+    "meta": {
+      "limit": 20,
+      "page": 1,
+      "total": 60
+    }
+  },
+  "http_status": 200
+}

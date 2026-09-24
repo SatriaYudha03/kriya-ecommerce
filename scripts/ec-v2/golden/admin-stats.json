@@ -1,0 +1,10 @@
+{
+  "body": {
+    "data": {
+      "active_products": 60,
+      "revenue": 800000,
+      "total_orders": 2
+    }
+  },
+  "http_status": 200
+}

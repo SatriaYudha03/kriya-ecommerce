@@ -1,0 +1,58 @@
+{
+  "body": {
+    "data": {
+      "category": {
+        "name": "Ruang keluarga",
+        "slug": "living-room"
+      },
+      "description": "Sofa tiga dudukan yang nyaman dengan rangka kayu pinus solid dan pelapis poliester yang lembut. Desain Skandinavia minimalis yang menyatu dengan gaya ruang keluarga mana pun.",
+      "dimensions": {
+        "depth_cm": 85,
+        "height_cm": 80,
+        "width_cm": 180
+      },
+      "has_assembly_guide": true,
+      "id": "90399e14-6d79-4b44-a2e0-b9da5b1262a2",
+      "images": [
+        {
+          "alt": "Sofa TAMU — tampilan 1",
+          "url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tamu-sofa-1.jpg"
+        },
+        {
+          "alt": "Sofa TAMU — tampilan 2",
+          "url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tamu-sofa-2.jpg"
+        },
+        {
+          "alt": "Sofa TAMU — tampilan 3",
+          "url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tamu-sofa-3.jpg"
+        }
+      ],
+      "materials": [
+        "kain poliester",
+        "kayu pinus"
+      ],
+      "name": "Sofa TAMU",
+      "slug": "tamu-sofa",
+      "variants": [
+        {
+          "color": "natural",
+          "id": "c50aaa4d-9167-4fb1-906f-44f0db71b3cd",
+          "price": 2800000,
+          "size": null,
+          "sku": "TAMU-SFA-NAT",
+          "stock": 13
+        },
+        {
+          "color": "abu-abu",
+          "id": "149b2ecb-8ca5-4d10-92c8-d647eed0ba62",
+          "price": 2800000,
+          "size": null,
+          "sku": "TAMU-SFA-GRY",
+          "stock": 12
+        }
+      ],
+      "weight_kg": 35
+    }
+  },
+  "http_status": 200
+}
