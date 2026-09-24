@@ -57,10 +57,14 @@ pertama + order tertuanya, profil `role='admin'` pertama.
   `8097`), bukan memakai dev server yang sedang berjalan — supaya `capture`/`diff`
   reproducible tanpa tergantung state server lain.
 
-**Belum dikerjakan dari task 0D** (bukan bagian 0D-1, menunggu sesi terpisah):
-`ownership.txt` + `check-ownership.sh`, `any-check.sh`, `mintjwt/main.go` (mint JWT
-generik, saat ini logikanya masih inline di `golden.sh`), akun uji `ec-{a,b,c,d}@kriya.test`,
-draf `AGENTS.md`, baseline E2E `main`.
+### 2026-09-24 — Lanjutan 0D (Sisa Task Perkakas)
+- Menjalankan E2E tests pada branch main. Tercatat 12 test gagal karena Playwright tidak dapat memuat server dev (`pnpm` dev tidak ter-start). Baseline kegagalan E2E sudah dicatat.
+- Dibuat: `scripts/ec-v2/ownership.txt` dan `scripts/ec-v2/check-ownership.sh` untuk mengecek dan membatasi izin pengubahan file pada setiap agen EC-v2. Menggunakan backend script python internal pada bash shell.
+- Dibuat: `scripts/ec-v2/any-check.sh` sebagai utility linter terbatas (mendata penggunaan `any`, `interface{}`, `@ts-ignore`, dll) pada file yang berubah.
+- Dibuat: program Go `scripts/ec-v2/mintjwt/main.go` yang mengambil user data di database dan mint JWT signin untuk akun tertentu. Diimplementasikan clean tanpa memicu teguran type data.
+- Dibuat: script bantu `create_test_accounts.js` & `check_profiles.js` yang menciptakan 4 akun `ec-{a,b,c,d}@kriya.test` dan mengatur role mereka menjadi 'customer' di Supabase DB.
+- Dibuat: Log file kosongan (TEMPLATE dan salinannya dari `LOG-0A` hingga `LOG-I`) untuk catatan log tiap sub-agen.
+- Ditulis: draf file panduan agen `AGENTS.md` (tidak akan di-commit melainkan disimpan lokal sebagai artefak).
 
 ## Permintaan lintas-domain
 
