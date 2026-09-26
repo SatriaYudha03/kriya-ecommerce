@@ -102,6 +102,10 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	onSale, _ := strconv.ParseBool(c.Query("on_sale"))
+	inStock, _ := strconv.ParseBool(c.Query("in_stock"))
+	featured, _ := strconv.ParseBool(c.Query("featured"))
+	tags := c.Query("tags")
+	attrs := c.Query("attrs")
 
 	if limit == 0 {
 		limit = 24
@@ -110,7 +114,7 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 		page = 1
 	}
 
-	products, total, err := h.repo.GetProducts(category, q, sort, minPrice, maxPrice, onSale, page, limit)
+	products, total, err := h.repo.GetProducts(category, q, tags, attrs, sort, minPrice, maxPrice, onSale, inStock, featured, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Failed to fetch products"},
@@ -123,6 +127,7 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 		var minP int
 		var minRegP int
 		var onSale bool
+		var totalStock int
 		
 		if len(p.Variants) > 0 {
 			minP = getEffectivePrice(p.Variants[0])
@@ -132,6 +137,7 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 			}
 			
 			for _, v := range p.Variants {
+				totalStock += v.Stock
 				eff := getEffectivePrice(v)
 				if eff < minP {
 					minP = eff
@@ -157,6 +163,10 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 			OnSale:       onSale,
 			ThumbnailURL: thumb,
 			Status:       p.Status,
+			IsFeatured:   p.IsFeatured,
+			RatingAvg:    p.RatingAvg,
+			RatingCount:  p.RatingCount,
+			InStock:      totalStock > 0,
 		}
 		
 		if onSale {
@@ -259,15 +269,65 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 		})
 	}
 
+	var catParent *CategoryRef
+	if p.Category.Parent != nil {
+		catParent = &CategoryRef{
+			Slug: p.Category.Parent.Slug,
+			Name: getI18nString(p.Category.Parent.NameI18n, lang, p.Category.Parent.Name),
+		}
+	}
+	
+	var tags []TagResponse
+	for _, t := range p.Tags {
+		tags = append(tags, TagResponse{
+			Slug: t.Slug,
+			Name: getI18nString(t.NameI18n, lang, ""),
+		})
+	}
+	if tags == nil {
+		tags = []TagResponse{}
+	}
+
+	attrMap := make(map[string]*AttributeResponse)
+	for _, term := range p.AttributeTerms {
+		attrSlug := term.Attribute.Slug
+		if _, exists := attrMap[attrSlug]; !exists {
+			attrMap[attrSlug] = &AttributeResponse{
+				Slug:  attrSlug,
+				Name:  getI18nString(term.Attribute.NameI18n, lang, ""),
+				Terms: []AttributeTermResponse{},
+			}
+		}
+		attrMap[attrSlug].Terms = append(attrMap[attrSlug].Terms, AttributeTermResponse{
+			Slug: term.Slug,
+			Name: getI18nString(term.NameI18n, lang, ""),
+		})
+	}
+	var attrs []AttributeResponse
+	for _, a := range attrMap {
+		attrs = append(attrs, *a)
+	}
+	if attrs == nil {
+		attrs = []AttributeResponse{}
+	}
+
+	// For attributes, we need to group terms by attribute
+	// We don't have the attribute preloaded yet, so we should preload Attribute inside AttributeTerms
+	// Let's modify GetProductBySlug in repository to Preload("AttributeTerms.Attribute")
+	
 	res := ProductDetailResponse{
 		ID:          p.ID,
 		Slug:        p.Slug,
 		Name:        getI18nString(p.NameI18n, lang, p.Name),
 		Description: getI18nString(p.DescriptionI18n, lang, p.Description),
+		ShortDescription: getI18nString(p.ShortDescriptionI18n, lang, ""),
 		Category: CategoryRef{
 			Slug: p.Category.Slug,
 			Name: getI18nString(p.Category.NameI18n, lang, p.Category.Name),
+			Parent: catParent,
 		},
+		Tags:             tags,
+		Attributes:       attrs,
 		Materials:        materials,
 		Dimensions:       dims,
 		WeightKg:         p.WeightKg,
@@ -277,11 +337,72 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 		PriceMin:         minP,
 		OnSale:           onSale,
 		SaleEndsAt:       saleEndsAt,
+		RatingAvg:        p.RatingAvg,
+		RatingCount:      p.RatingCount,
 	}
 	
 	if onSale {
 		res.RegularPriceMin = minRegP
 	}
 
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
+}
+func (h *CatalogHandler) GetTags(c *gin.Context) {
+	lang := httpx.ResolveLocale(c)
+	tags, err := h.repo.GetTags()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+
+	var res []TagResponse
+	for _, t := range tags {
+		res = append(res, TagResponse{
+			Slug: t.Slug,
+			Name: getI18nString(t.NameI18n, lang, ""),
+		})
+	}
+	if res == nil {
+		res = []TagResponse{}
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
+}
+
+func (h *CatalogHandler) GetAttributes(c *gin.Context) {
+	lang := httpx.ResolveLocale(c)
+	cat := c.Query("category")
+	
+	attrs, err := h.repo.GetAttributes(cat)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	
+	counts, _ := h.repo.GetProductCountsForTerms(cat)
+
+	var res []AttributeResponse
+	for _, a := range attrs {
+		var terms []AttributeTermResponse
+		for _, t := range a.Terms {
+			count := counts[t.ID]
+			if count > 0 { // Only terms with product_count > 0
+				terms = append(terms, AttributeTermResponse{
+					Slug:         t.Slug,
+					Name:         getI18nString(t.NameI18n, lang, ""),
+					ProductCount: count,
+				})
+			}
+		}
+		if len(terms) > 0 {
+			res = append(res, AttributeResponse{
+				Slug:  a.Slug,
+				Name:  getI18nString(a.NameI18n, lang, ""),
+				Terms: terms,
+			})
+		}
+	}
+	if res == nil {
+		res = []AttributeResponse{}
+	}
 	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }

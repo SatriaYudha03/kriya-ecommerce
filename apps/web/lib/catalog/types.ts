@@ -17,6 +17,10 @@ export interface ProductListItem {
   price_min: number;
   regular_price_min?: number;
   on_sale?: boolean;
+  in_stock?: boolean;
+  is_featured?: boolean;
+  rating_avg?: number;
+  rating_count?: number;
   thumbnail_url: string;
   status?: string;
 }
@@ -45,7 +49,10 @@ export interface ProductDetail {
   slug: string;
   name: string;
   description: string;
-  category: { slug: string; name: string };
+  short_description?: string;
+  category: { slug: string; name: string; parent?: { slug: string; name: string } };
+  tags?: Tag[];
+  attributes?: Attribute[];
   materials: string[];
   dimensions: { width_cm: number; depth_cm: number; height_cm: number };
   weight_kg: number;
@@ -56,6 +63,8 @@ export interface ProductDetail {
   regular_price_min?: number;
   on_sale?: boolean;
   sale_ends_at?: string;
+  rating_avg?: number;
+  rating_count?: number;
 }
 
 export interface SearchMeta {
@@ -117,6 +126,10 @@ export interface CreateProductPayload {
   featured?: boolean;
   summary?: string;
   seo_metadata?: Record<string, string>;
+  tag_slugs?: string[];
+  attribute_term_ids?: string[];
+  upsell_ids?: string[];
+  cross_sell_ids?: string[];
   variants: VariantInput[];
   images: ProductImageInput[];
 }
@@ -166,6 +179,66 @@ export interface AdminProductDetail {
   featured?: boolean;
   summary?: string;
   seo_metadata?: Record<string, string>;
+  tag_slugs?: string[];
+  attribute_term_ids?: string[];
+  upsell_ids?: string[];
+  cross_sell_ids?: string[];
   variants: ProductVariant[];
   images: AdminProductImage[];
+}
+export interface Tag {
+  slug: string;
+  name: string;
+}
+
+export interface AttributeTerm {
+  slug: string;
+  name: string;
+  product_count?: number;
+}
+
+export interface Attribute {
+  slug: string;
+  name: string;
+  terms: AttributeTerm[];
+}
+
+export interface AdminTag {
+  id: string;
+  slug: string;
+  name_i18n: Record<string, string>;
+}
+
+export interface AdminTagInput {
+  slug: string;
+  name_i18n: Record<string, string>;
+}
+
+export interface AdminAttributeTerm {
+  id: string;
+  slug: string;
+  name_i18n: Record<string, string>;
+  position: number;
+}
+
+export interface AdminAttributeTermInput {
+  slug: string;
+  name_i18n: Record<string, string>;
+  position: number;
+}
+
+export interface AdminAttribute {
+  id: string;
+  slug: string;
+  name_i18n: Record<string, string>;
+  is_filterable: boolean;
+  position: number;
+  terms: AdminAttributeTerm[];
+}
+
+export interface AdminAttributeInput {
+  slug: string;
+  name_i18n: Record<string, string>;
+  is_filterable?: boolean;
+  position: number;
 }

@@ -12,7 +12,7 @@ import { ProductGrid, ProductGridSkeleton } from "./product-grid";
 import { useLanguage } from "./language-provider";
 
 const LIMIT = 6;
-const SORTS: SortValue[] = ["newest", "price_asc", "price_desc"];
+const SORTS: SortValue[] = ["newest", "price_asc", "price_desc", "best_selling", "rating"];
 
 // Halaman listing kategori. Filter (harga, urut) & halaman disimpan di URL agar
 // bisa di-share dan di-refresh. Data lewat TanStack Query -> fetcher lib/api.
@@ -29,6 +29,9 @@ export function CategoryView({ slug }: { slug: string }) {
   const priceKey = pricePresets.some((p) => p.key === hargaParam) ? hargaParam! : "all";
   const page = Math.max(1, Number(searchParams.get("hal")) || 1);
   const onSale = searchParams.get("sale") === "1";
+  const inStock = searchParams.get("in_stock") === "1";
+  const tagsParam = searchParams.get("tags") || undefined;
+  const attrsParam = searchParams.get("attrs") || undefined;
   const preset = pricePresets.find((p) => p.key === priceKey)!;
 
   const { locale, t } = useLanguage();
@@ -46,6 +49,9 @@ export function CategoryView({ slug }: { slug: string }) {
     min_price: preset.min,
     max_price: preset.max,
     on_sale: onSale,
+    in_stock: inStock || undefined,
+    tags: tagsParam,
+    attrs: attrsParam,
     page,
     limit: LIMIT,
   });
@@ -147,10 +153,23 @@ export function CategoryView({ slug }: { slug: string }) {
         <FilterBar 
           sort={sort} 
           priceKey={priceKey} 
-          onSale={onSale} 
+          onSale={onSale}
+          inStock={inStock}
+          tagsParam={tagsParam}
+          attrsParam={attrsParam}
+          categorySlug={slug}
           onSort={onSort} 
           onPrice={onPrice} 
-          onSaleChange={onSaleChange} 
+          onSaleChange={onSaleChange}
+          onInStockChange={(val) => pushParams((sp) => {
+            if (val) sp.set("in_stock", "1"); else sp.delete("in_stock"); sp.delete("hal");
+          })}
+          onTagsChange={(val) => pushParams((sp) => {
+            if (val) sp.set("tags", val); else sp.delete("tags"); sp.delete("hal");
+          })}
+          onAttrsChange={(val) => pushParams((sp) => {
+            if (val) sp.set("attrs", val); else sp.delete("attrs"); sp.delete("hal");
+          })}
         />
       </div>
 

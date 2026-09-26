@@ -148,7 +148,7 @@ func (h *AdminHandler) CreateCategory(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, httpx.Response{Data: gin.H{"id": cat.ID}})
+	c.JSON(http.StatusCreated, httpx.Response{Data: map[string]string{"id": cat.ID}})
 }
 
 func (h *AdminHandler) UpdateCategory(c *gin.Context) {
@@ -179,7 +179,7 @@ func (h *AdminHandler) UpdateCategory(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
 }
 
 func (h *AdminHandler) DeleteCategory(c *gin.Context) {
@@ -190,7 +190,7 @@ func (h *AdminHandler) DeleteCategory(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
 }
 
 // CreateProduct membuat produk baru lengkap beserta varian & gambarnya.
@@ -279,7 +279,15 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, httpx.Response{Data: gin.H{"id": productID}})
+	h.repo.UpdateProductTags(productID, req.TagSlugs)
+	h.repo.UpdateProductAttributeTerms(productID, req.AttributeTermIDs)
+	h.repo.UpdateProductRelations(productID, req.UpsellIDs, "upsell")
+	h.repo.UpdateProductRelations(productID, req.CrossSellIDs, "cross_sell")
+
+	type createdResp struct {
+		ID string `json:"id"`
+	}
+	c.JSON(http.StatusCreated, httpx.Response{Data: createdResp{ID: productID}})
 }
 
 // UpdateProduct memperbarui properti produk (tidak termasuk varian & gambar).
@@ -335,7 +343,20 @@ func (h *AdminHandler) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
+	if req.TagSlugs != nil {
+		h.repo.UpdateProductTags(id, *req.TagSlugs)
+	}
+	if req.AttributeTermIDs != nil {
+		h.repo.UpdateProductAttributeTerms(id, *req.AttributeTermIDs)
+	}
+	if req.UpsellIDs != nil {
+		h.repo.UpdateProductRelations(id, *req.UpsellIDs, "upsell")
+	}
+	if req.CrossSellIDs != nil {
+		h.repo.UpdateProductRelations(id, *req.CrossSellIDs, "cross_sell")
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
 }
 
 // DeleteProduct menghapus produk beserta relasinya.
@@ -347,7 +368,7 @@ func (h *AdminHandler) DeleteProduct(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
 }
 
 // CreateVariant menambahkan varian baru untuk suatu produk.
@@ -421,7 +442,7 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": variantID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": variantID}})
 }
 
 // DeleteVariant menghapus varian.
@@ -433,7 +454,7 @@ func (h *AdminHandler) DeleteVariant(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": variantID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": variantID}})
 }
 
 // Stats mengembalikan metrik ringkas untuk dashboard admin.
@@ -485,6 +506,30 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 		})
 	}
 
+	tagSlugs := make([]string, 0)
+	for _, t := range p.Tags {
+		tagSlugs = append(tagSlugs, t.Slug)
+	}
+
+	attrTermIDs := make([]string, 0)
+	for _, t := range p.AttributeTerms {
+		attrTermIDs = append(attrTermIDs, t.ID)
+	}
+
+	upsellIDs := make([]string, 0)
+	for _, rel := range p.UpsellRelations {
+		upsellIDs = append(upsellIDs, rel.RelatedProductID)
+	}
+
+	crossSellIDs := make([]string, 0)
+	for _, rel := range p.CrossSellRelations {
+		crossSellIDs = append(crossSellIDs, rel.RelatedProductID)
+	}
+
+	summaryMap := make(map[string]string)
+	_ = json.Unmarshal(p.ShortDescriptionI18n, &summaryMap)
+	summary := summaryMap["id"]
+
 	c.JSON(http.StatusOK, httpx.Response{Data: AdminProductDetailResponse{
 		ID:               p.ID,
 		Slug:             p.Slug,
@@ -495,6 +540,14 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 		Dimensions:       dims,
 		WeightKg:         p.WeightKg,
 		HasAssemblyGuide: p.HasAssemblyGuide,
+		Status:           p.Status,
+		Featured:         p.IsFeatured,
+		Summary:          summary,
+		SeoMetadata:      p.MetaTitleI18n, // since we simplified it
+		TagSlugs:         tagSlugs,
+		AttributeTermIDs: attrTermIDs,
+		UpsellIDs:        upsellIDs,
+		CrossSellIDs:     crossSellIDs,
 		Variants:         variants,
 		Images:           images,
 	}})
@@ -551,7 +604,7 @@ func (h *AdminHandler) UpdateProductImage(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": imageID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": imageID}})
 }
 
 // DeleteProductImage menghapus satu gambar produk.
@@ -563,5 +616,221 @@ func (h *AdminHandler) DeleteProductImage(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": imageID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": imageID}})
+}
+func (h *AdminHandler) ListTags(c *gin.Context) {
+	tags, err := h.repo.ListTags()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	var res []AdminTagResponse
+	for _, t := range tags {
+		res = append(res, AdminTagResponse{
+			ID:       t.ID,
+			Slug:     t.Slug,
+			NameI18n: t.NameI18n,
+		})
+	}
+	if res == nil {
+		res = []AdminTagResponse{}
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
+}
+
+func (h *AdminHandler) CreateTag(c *gin.Context) {
+	var req AdminTagRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()}})
+		return
+	}
+	tag := Tag{
+		Slug:     req.Slug,
+		NameI18n: req.NameI18n,
+	}
+	if err := h.repo.CreateTag(&tag); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusCreated, httpx.Response{Data: AdminTagResponse{
+		ID:       tag.ID,
+		Slug:     tag.Slug,
+		NameI18n: tag.NameI18n,
+	}})
+}
+
+func (h *AdminHandler) UpdateTag(c *gin.Context) {
+	id := c.Param("id")
+	var req AdminTagRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()}})
+		return
+	}
+	updates := map[string]interface{}{
+		"slug":      req.Slug,
+		"name_i18n": req.NameI18n,
+	}
+	if err := h.repo.UpdateTag(id, updates); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
+}
+
+func (h *AdminHandler) DeleteTag(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.repo.DeleteTag(id); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]interface{}{"id": id, "deleted": true}})
+}
+
+func (h *AdminHandler) ListAttributes(c *gin.Context) {
+	attrs, err := h.repo.ListAttributes()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	var res []AdminAttributeResponse
+	for _, a := range attrs {
+		var terms []AdminAttributeTermResponse
+		for _, t := range a.Terms {
+			terms = append(terms, AdminAttributeTermResponse{
+				ID:       t.ID,
+				Slug:     t.Slug,
+				NameI18n: t.NameI18n,
+				Position: t.Position,
+			})
+		}
+		if terms == nil {
+			terms = []AdminAttributeTermResponse{}
+		}
+		res = append(res, AdminAttributeResponse{
+			ID:           a.ID,
+			Slug:         a.Slug,
+			NameI18n:     a.NameI18n,
+			IsFilterable: a.IsFilterable,
+			Position:     a.Position,
+			Terms:        terms,
+		})
+	}
+	if res == nil {
+		res = []AdminAttributeResponse{}
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
+}
+
+func (h *AdminHandler) CreateAttribute(c *gin.Context) {
+	var req AdminAttributeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()}})
+		return
+	}
+	isF := true
+	if req.IsFilterable != nil {
+		isF = *req.IsFilterable
+	}
+	attr := Attribute{
+		Slug:         req.Slug,
+		NameI18n:     req.NameI18n,
+		IsFilterable: isF,
+		Position:     req.Position,
+	}
+	if err := h.repo.CreateAttribute(&attr); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusCreated, httpx.Response{Data: AdminAttributeResponse{
+		ID:           attr.ID,
+		Slug:         attr.Slug,
+		NameI18n:     attr.NameI18n,
+		IsFilterable: attr.IsFilterable,
+		Position:     attr.Position,
+		Terms:        []AdminAttributeTermResponse{},
+	}})
+}
+
+func (h *AdminHandler) UpdateAttribute(c *gin.Context) {
+	id := c.Param("id")
+	var req AdminAttributeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()}})
+		return
+	}
+	updates := map[string]interface{}{
+		"slug":      req.Slug,
+		"name_i18n": req.NameI18n,
+		"position":  req.Position,
+	}
+	if req.IsFilterable != nil {
+		updates["is_filterable"] = *req.IsFilterable
+	}
+	if err := h.repo.UpdateAttribute(id, updates); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
+}
+
+func (h *AdminHandler) DeleteAttribute(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.repo.DeleteAttribute(id); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]interface{}{"id": id, "deleted": true}})
+}
+
+func (h *AdminHandler) CreateAttributeTerm(c *gin.Context) {
+	attrID := c.Param("id")
+	var req AdminAttributeTermRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()}})
+		return
+	}
+	term := AttributeTerm{
+		AttributeID: attrID,
+		Slug:        req.Slug,
+		NameI18n:    req.NameI18n,
+		Position:    req.Position,
+	}
+	if err := h.repo.CreateAttributeTerm(&term); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusCreated, httpx.Response{Data: AdminAttributeTermResponse{
+		ID:       term.ID,
+		Slug:     term.Slug,
+		NameI18n: term.NameI18n,
+		Position: term.Position,
+	}})
+}
+
+func (h *AdminHandler) UpdateAttributeTerm(c *gin.Context) {
+	id := c.Param("term_id")
+	var req AdminAttributeTermRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()}})
+		return
+	}
+	updates := map[string]interface{}{
+		"slug":      req.Slug,
+		"name_i18n": req.NameI18n,
+		"position":  req.Position,
+	}
+	if err := h.repo.UpdateAttributeTerm(id, updates); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"id": id}})
+}
+
+func (h *AdminHandler) DeleteAttributeTerm(c *gin.Context) {
+	id := c.Param("term_id")
+	if err := h.repo.DeleteAttributeTerm(id); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]interface{}{"id": id, "deleted": true}})
 }

@@ -35,15 +35,19 @@ type CategoryResponse struct {
 }
 
 type ProductListResponse struct {
-	ID              string `json:"id"`
-	Slug            string `json:"slug"`
-	Name            string `json:"name"`
-	CategorySlug    string `json:"category_slug"`
-	PriceMin        int    `json:"price_min"` // Harga efektif
-	RegularPriceMin int    `json:"regular_price_min,omitempty"` // Harga asli (jika on_sale)
-	OnSale          bool   `json:"on_sale"`
-	ThumbnailURL    string `json:"thumbnail_url"`
-	Status          string `json:"status"`
+	ID              string  `json:"id"`
+	Slug            string  `json:"slug"`
+	Name            string  `json:"name"`
+	CategorySlug    string  `json:"category_slug"`
+	PriceMin        int     `json:"price_min"` // Harga efektif
+	RegularPriceMin int     `json:"regular_price_min,omitempty"` // Harga asli (jika on_sale)
+	OnSale          bool    `json:"on_sale"`
+	InStock         bool    `json:"in_stock"`
+	IsFeatured      bool    `json:"is_featured"`
+	RatingAvg       float64 `json:"rating_avg"`
+	RatingCount     int     `json:"rating_count"`
+	ThumbnailURL    string  `json:"thumbnail_url"`
+	Status          string  `json:"status"`
 }
 
 type ProductDetailResponse struct {
@@ -51,7 +55,10 @@ type ProductDetailResponse struct {
 	Slug             string            `json:"slug"`
 	Name             string            `json:"name"`
 	Description      string            `json:"description"`
+	ShortDescription string            `json:"short_description,omitempty"`
 	Category         CategoryRef       `json:"category"`
+	Tags             []TagResponse     `json:"tags,omitempty"`
+	Attributes       []AttributeResponse `json:"attributes,omitempty"`
 	Materials        []string          `json:"materials"`
 	Dimensions       Dimensions        `json:"dimensions"`
 	WeightKg         float64           `json:"weight_kg"`
@@ -62,11 +69,31 @@ type ProductDetailResponse struct {
 	RegularPriceMin  int               `json:"regular_price_min,omitempty"`
 	OnSale           bool              `json:"on_sale"`
 	SaleEndsAt       *time.Time        `json:"sale_ends_at,omitempty"`
+	RatingAvg        float64           `json:"rating_avg"`
+	RatingCount      int               `json:"rating_count"`
+}
+
+type TagResponse struct {
+	Slug string `json:"slug"`
+	Name string `json:"name"`
+}
+
+type AttributeTermResponse struct {
+	Slug         string `json:"slug"`
+	Name         string `json:"name"`
+	ProductCount int    `json:"product_count,omitempty"`
+}
+
+type AttributeResponse struct {
+	Slug  string                  `json:"slug"`
+	Name  string                  `json:"name"`
+	Terms []AttributeTermResponse `json:"terms"`
 }
 
 type CategoryRef struct {
-	Slug string `json:"slug"`
-	Name string `json:"name"`
+	Slug   string       `json:"slug"`
+	Name   string       `json:"name"`
+	Parent *CategoryRef `json:"parent,omitempty"`
 }
 
 type Dimensions struct {
@@ -230,6 +257,10 @@ type AdminCreateProductRequest struct {
 	Featured         bool                  `json:"featured"`
 	Summary          string                `json:"summary"`
 	SeoMetadata      json.RawMessage       `json:"seo_metadata"`
+	TagSlugs         []string              `json:"tag_slugs"`
+	AttributeTermIDs []string              `json:"attribute_term_ids"`
+	UpsellIDs        []string              `json:"upsell_ids"`
+	CrossSellIDs     []string              `json:"cross_sell_ids"`
 	Variants         []AdminVariantRequest `json:"variants" binding:"dive"`
 	Images           []AdminImageRequest   `json:"images" binding:"dive"`
 }
@@ -247,6 +278,10 @@ type AdminUpdateProductRequest struct {
 	Featured         bool            `json:"featured"`
 	Summary          string          `json:"summary"`
 	SeoMetadata      json.RawMessage `json:"seo_metadata"`
+	TagSlugs         *[]string       `json:"tag_slugs,omitempty"`
+	AttributeTermIDs *[]string       `json:"attribute_term_ids,omitempty"`
+	UpsellIDs        *[]string       `json:"upsell_ids,omitempty"`
+	CrossSellIDs     *[]string       `json:"cross_sell_ids,omitempty"`
 }
 
 type AdminVariantRequest struct {
@@ -313,6 +348,14 @@ type AdminProductDetailResponse struct {
 	Dimensions       Dimensions           `json:"dimensions"`
 	WeightKg         float64              `json:"weight_kg"`
 	HasAssemblyGuide bool                 `json:"has_assembly_guide"`
+	Status           string               `json:"status"`
+	Featured         bool                 `json:"featured"`
+	Summary          string               `json:"summary"`
+	SeoMetadata      json.RawMessage      `json:"seo_metadata"`
+	TagSlugs         []string             `json:"tag_slugs"`
+	AttributeTermIDs []string             `json:"attribute_term_ids"`
+	UpsellIDs        []string             `json:"upsell_ids"`
+	CrossSellIDs     []string             `json:"cross_sell_ids"`
 	Variants         []AdminVariantResponse `json:"variants"`
 	Images           []AdminImageResponse `json:"images"`
 }
@@ -336,4 +379,43 @@ type AdminCategoryResponse struct {
 	ImagePath       *string         `json:"image_path"`
 	Position        int             `json:"position"`
 	IsActive        bool            `json:"is_active"`
+}
+type AdminTagRequest struct {
+	Slug     string          `json:"slug" binding:"required"`
+	NameI18n json.RawMessage `json:"name_i18n"`
+}
+
+type AdminTagResponse struct {
+	ID       string          `json:"id"`
+	Slug     string          `json:"slug"`
+	NameI18n json.RawMessage `json:"name_i18n"`
+}
+
+type AdminAttributeRequest struct {
+	Slug          string          `json:"slug" binding:"required"`
+	NameI18n      json.RawMessage `json:"name_i18n"`
+	IsFilterable  *bool           `json:"is_filterable"`
+	Position      int             `json:"position"`
+}
+
+type AdminAttributeResponse struct {
+	ID           string                   `json:"id"`
+	Slug         string                   `json:"slug"`
+	NameI18n     json.RawMessage          `json:"name_i18n"`
+	IsFilterable bool                     `json:"is_filterable"`
+	Position     int                      `json:"position"`
+	Terms        []AdminAttributeTermResponse `json:"terms"`
+}
+
+type AdminAttributeTermRequest struct {
+	Slug     string          `json:"slug" binding:"required"`
+	NameI18n json.RawMessage `json:"name_i18n"`
+	Position int             `json:"position"`
+}
+
+type AdminAttributeTermResponse struct {
+	ID       string          `json:"id"`
+	Slug     string          `json:"slug"`
+	NameI18n json.RawMessage `json:"name_i18n"`
+	Position int             `json:"position"`
 }

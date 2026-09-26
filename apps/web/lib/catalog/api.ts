@@ -29,7 +29,11 @@ export interface ProductsQuery {
   min_price?: number;
   max_price?: number;
   on_sale?: boolean;
-  sort?: "newest" | "price_asc" | "price_desc";
+  in_stock?: boolean;
+  featured?: boolean;
+  tags?: string; // comma separated
+  attrs?: string; // comma separated "attr.term,attr.term2"
+  sort?: "newest" | "price_asc" | "price_desc" | "best_selling" | "rating";
   page?: number;
   limit?: number;
 }
@@ -242,4 +246,71 @@ export async function deleteCategory(id: string): Promise<void> {
     method: "DELETE",
     auth: true,
   });
+}
+import type { Tag, Attribute, AdminTag, AdminAttribute, AdminAttributeInput, AdminTagInput, AdminAttributeTermInput } from "./types";
+
+export async function getTags(): Promise<Tag[]> {
+  const data = await request<{ data: Tag[] }>("/tags");
+  return data.data;
+}
+
+export async function getAttributes(category?: string): Promise<Attribute[]> {
+  const url = category ? `/attributes?category=${category}` : "/attributes";
+  const data = await request<{ data: Attribute[] }>(url);
+  return data.data;
+}
+
+export async function getAdminTags(): Promise<AdminTag[]> {
+  const data = await request<{ data: AdminTag[] }>("/admin/tags");
+  return data.data;
+}
+
+export async function createTag(payload: AdminTagInput): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>("/admin/tags", { method: "POST", body: JSON.stringify(payload) });
+  return data.data;
+}
+
+export async function updateTag(id: string, payload: AdminTagInput): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/tags/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+  return data.data;
+}
+
+export async function deleteTag(id: string): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/tags/${id}`, { method: "DELETE" });
+  return data.data;
+}
+
+export async function getAdminAttributes(): Promise<AdminAttribute[]> {
+  const data = await request<{ data: AdminAttribute[] }>("/admin/attributes");
+  return data.data;
+}
+
+export async function createAttribute(payload: AdminAttributeInput): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>("/admin/attributes", { method: "POST", body: JSON.stringify(payload) });
+  return data.data;
+}
+
+export async function updateAttribute(id: string, payload: AdminAttributeInput): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/attributes/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+  return data.data;
+}
+
+export async function deleteAttribute(id: string): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/attributes/${id}`, { method: "DELETE" });
+  return data.data;
+}
+
+export async function createAttributeTerm(attrId: string, payload: AdminAttributeTermInput): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/attributes/${attrId}/terms`, { method: "POST", body: JSON.stringify(payload) });
+  return data.data;
+}
+
+export async function updateAttributeTerm(attrId: string, termId: string, payload: AdminAttributeTermInput): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/attributes/${attrId}/terms/${termId}`, { method: "PUT", body: JSON.stringify(payload) });
+  return data.data;
+}
+
+export async function deleteAttributeTerm(attrId: string, termId: string): Promise<{ id: string }> {
+  const data = await request<{ data: { id: string } }>(`/admin/attributes/${attrId}/terms/${termId}`, { method: "DELETE" });
+  return data.data;
 }

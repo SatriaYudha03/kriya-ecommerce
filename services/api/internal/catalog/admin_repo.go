@@ -76,7 +76,11 @@ func (r *AdminRepository) DeleteVariant(id string) error {
 // GetProductByID mengambil satu produk lengkap dengan varian & gambar (bentuk internal admin).
 func (r *AdminRepository) GetProductByID(id string) (*Product, error) {
 	var p Product
-	err := r.db.Preload("Variants").Preload("Images").Where("id = ?", id).First(&p).Error
+	err := r.db.Preload("Variants").Preload("Images").
+		Preload("Tags").Preload("AttributeTerms").
+		Preload("UpsellRelations", "relation_type = ?", "upsell").
+		Preload("CrossSellRelations", "relation_type = ?", "cross_sell").
+		Where("id = ?", id).First(&p).Error
 	if err != nil {
 		return nil, err
 	}
@@ -165,4 +169,109 @@ func (r *AdminRepository) UpdateCategory(id string, updates map[string]interface
 
 func (r *AdminRepository) DeleteCategory(id string) error {
 	return r.db.Where("id = ?", id).Delete(&Category{}).Error
+}
+func (r *AdminRepository) UpdateProductTags(productID string, tagSlugs []string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("product_id = ?", productID).Delete(&ProductTag{}).Error; err != nil {
+			return err
+		}
+		if len(tagSlugs) > 0 {
+			var tagIDs []string
+			if err := tx.Model(&Tag{}).Where("slug IN ?", tagSlugs).Pluck("id", &tagIDs).Error; err != nil {
+				return err
+			}
+			for _, tid := range tagIDs {
+				if err := tx.Create(&ProductTag{ProductID: productID, TagID: tid}).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+}
+
+func (r *AdminRepository) UpdateProductAttributeTerms(productID string, termIDs []string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("product_id = ?", productID).Delete(&ProductAttributeTerm{}).Error; err != nil {
+			return err
+		}
+		for _, tid := range termIDs {
+			if err := tx.Create(&ProductAttributeTerm{ProductID: productID, TermID: tid}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+type ProductRelation struct {
+	ProductID        string
+	RelatedProductID string
+	RelationType     string
+	Position         int
+}
+
+func (r *AdminRepository) UpdateProductRelations(productID string, relatedIDs []string, relType string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("product_id = ? AND relation_type = ?", productID, relType).Delete(&ProductRelation{}).Error; err != nil {
+			return err
+		}
+		for i, rid := range relatedIDs {
+			if err := tx.Create(&ProductRelation{
+				ProductID: productID, RelatedProductID: rid, RelationType: relType, Position: i,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+func (r *AdminRepository) ListTags() ([]Tag, error) {
+	var list []Tag
+	err := r.db.Order("slug ASC").Find(&list).Error
+	return list, err
+}
+
+func (r *AdminRepository) CreateTag(tag *Tag) error {
+	return r.db.Create(tag).Error
+}
+
+func (r *AdminRepository) UpdateTag(id string, updates map[string]interface{}) error {
+	return r.db.Model(&Tag{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *AdminRepository) DeleteTag(id string) error {
+	return r.db.Where("id = ?", id).Delete(&Tag{}).Error
+}
+
+func (r *AdminRepository) ListAttributes() ([]Attribute, error) {
+	var list []Attribute
+	err := r.db.Preload("Terms", func(db *gorm.DB) *gorm.DB {
+		return db.Order("position ASC")
+	}).Order("position ASC").Find(&list).Error
+	return list, err
+}
+
+func (r *AdminRepository) CreateAttribute(attr *Attribute) error {
+	return r.db.Create(attr).Error
+}
+
+func (r *AdminRepository) UpdateAttribute(id string, updates map[string]interface{}) error {
+	return r.db.Model(&Attribute{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *AdminRepository) DeleteAttribute(id string) error {
+	return r.db.Where("id = ?", id).Delete(&Attribute{}).Error
+}
+
+func (r *AdminRepository) CreateAttributeTerm(term *AttributeTerm) error {
+	return r.db.Create(term).Error
+}
+
+func (r *AdminRepository) UpdateAttributeTerm(id string, updates map[string]interface{}) error {
+	return r.db.Model(&AttributeTerm{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *AdminRepository) DeleteAttributeTerm(id string) error {
+	return r.db.Where("id = ?", id).Delete(&AttributeTerm{}).Error
 }

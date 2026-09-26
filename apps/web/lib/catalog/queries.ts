@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, type ProductsQuery, type AdminProductsQuery } from "./api";
+import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, getTags, getAttributes, getAdminTags, getAdminAttributes, type ProductsQuery, type AdminProductsQuery } from "./api";
 import { ApiError } from "../http";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { promoKeys } from "../promo/queries";
@@ -146,5 +146,32 @@ export function useDeleteCategory() {
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : 'Gagal menghapus kategori');
     },
+  });
+}
+export function useTags() {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "tags"],
+    queryFn: () => getTags(),
+  });
+}
+
+export function useAttributes(category?: string) {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "attributes", category ?? "all"],
+    queryFn: () => getAttributes(category),
+  });
+}
+
+export function useAdminTags() {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "admin-tags"],
+    queryFn: () => getAdminTags(),
+  });
+}
+
+export function useAdminAttributes() {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "admin-attributes"],
+    queryFn: () => getAdminAttributes(),
   });
 }

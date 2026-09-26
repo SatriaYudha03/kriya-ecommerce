@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Minus, Package, Plus, Ruler, ShoppingBag, Truck } from "lucide-react";
 import { categoryLabel } from "@/lib/category-meta";
-import { formatRupiah } from "@/lib/format";
-import { useProduct, useSimilarProducts } from "@/lib/queries";
+import { useProduct, useSimilarProducts } from "@/lib/catalog/queries";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
@@ -154,9 +153,36 @@ export function ProductDetailView({ slug }: { slug: string }) {
             )}
           </div>
 
+          {product.short_description && (
+            <p className="mt-2 text-sm text-neutral-500 font-medium">
+              {product.short_description}
+            </p>
+          )}
+
           <p className="mt-4 max-w-md text-sm leading-relaxed text-neutral-600">
             {product.description}
           </p>
+
+          {(product.tags?.length ?? 0) > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {product.tags!.map((t) => (
+                <span key={t.slug} className="rounded bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-600">
+                  {t.name}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {(product.attributes?.length ?? 0) > 0 && (
+            <div className="mt-4 text-sm text-neutral-600 flex flex-col gap-1">
+              {product.attributes!.map((attr) => (
+                <div key={attr.slug}>
+                  <span className="font-semibold">{attr.name}:</span>{" "}
+                  {attr.terms.map((t) => t.name).join(", ")}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="mt-6">
             <VariantSelector

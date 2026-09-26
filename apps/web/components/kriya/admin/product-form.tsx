@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X, Plus, Trash2, Star, Loader2, ImagePlus } from "lucide-react";
-import { useCategories, useAdminProduct } from "@/lib/catalog/queries";
+import { useCategories, useAdminProduct, useAdminTags, useAdminAttributes } from "@/lib/catalog/queries";
 import { uploadProductImage } from "@/lib/storage";
 import {
   createProduct,
@@ -66,6 +66,8 @@ export function ProductForm({
   const isEdit = Boolean(productId);
   const qc = useQueryClient();
   const { data: categories } = useCategories();
+  const { data: adminTags } = useAdminTags();
+  const { data: adminAttributes } = useAdminAttributes();
   const { data: detail, isLoading: loadingDetail } = useAdminProduct(productId ?? "", isEdit);
 
   const [name, setName] = useState("");
@@ -83,6 +85,10 @@ export function ProductForm({
   const [featured, setFeatured] = useState(false);
   const [summary, setSummary] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
+  const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>([]);
+  const [selectedTermIds, setSelectedTermIds] = useState<string[]>([]);
+  const [upsellIds, setUpsellIds] = useState<string[]>([]);
+  const [crossSellIds, setCrossSellIds] = useState<string[]>([]);
   
   const [variants, setVariants] = useState<VariantRow[]>([emptyVariant()]);
   const [images, setImages] = useState<ImageRow[]>([]);
@@ -111,6 +117,10 @@ export function ProductForm({
       setFeatured(detail.featured ?? false);
       setSummary(detail.summary ?? "");
       setSeoTitle(detail.seo_metadata?.en ?? "");
+      setSelectedTagSlugs(detail.tag_slugs ?? []);
+      setSelectedTermIds(detail.attribute_term_ids ?? []);
+      setUpsellIds(detail.upsell_ids ?? []);
+      setCrossSellIds(detail.cross_sell_ids ?? []);
       setVariants(
         detail.variants.map((v) => ({
           key: uid(),
@@ -225,6 +235,10 @@ export function ProductForm({
         featured: featured,
         summary: summary.trim(),
         seo_metadata: seoTitle ? { en: seoTitle, id: seoTitle } : undefined,
+        tag_slugs: selectedTagSlugs,
+        attribute_term_ids: selectedTermIds,
+        upsell_ids: upsellIds,
+        cross_sell_ids: crossSellIds,
       };
 
       if (!isEdit) {
@@ -378,6 +392,63 @@ export function ProductForm({
                   placeholder="Deskripsi singkat untuk kartu produk"
                 />
               </Field>
+
+              <Field label="Tags">
+                <div className="flex flex-wrap gap-3">
+                  {adminTags?.map(tag => (
+                    <label key={tag.id} className="flex items-center gap-1.5 text-sm">
+                      <input 
+                        type="checkbox"
+                        checked={selectedTagSlugs.includes(tag.slug)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedTagSlugs([...selectedTagSlugs, tag.slug]);
+                          else setSelectedTagSlugs(selectedTagSlugs.filter(s => s !== tag.slug));
+                        }}
+                      />
+                      {tag.name_i18n?.id || tag.slug}
+                    </label>
+                  ))}
+                </div>
+              </Field>
+
+              {adminAttributes?.map(attr => (
+                <Field key={attr.id} label={`Atribut: ${attr.name_i18n?.id || attr.slug}`}>
+                  <div className="flex flex-wrap gap-3">
+                    {attr.terms.map(term => (
+                      <label key={term.id} className="flex items-center gap-1.5 text-sm">
+                        <input 
+                          type="checkbox"
+                          checked={selectedTermIds.includes(term.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedTermIds([...selectedTermIds, term.id]);
+                            else setSelectedTermIds(selectedTermIds.filter(id => id !== term.id));
+                          }}
+                        />
+                        {term.name_i18n?.id || term.slug}
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+              ))}
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Upsell Product IDs (koma separated)">
+                  <input
+                    className={inputCls}
+                    value={upsellIds.join(", ")}
+                    onChange={(e) => setUpsellIds(e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                    placeholder="id1, id2"
+                  />
+                </Field>
+                <Field label="Cross-Sell Product IDs (koma separated)">
+                  <input
+                    className={inputCls}
+                    value={crossSellIds.join(", ")}
+                    onChange={(e) => setCrossSellIds(e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                    placeholder="id1, id2"
+                  />
+                </Field>
+              </div>
 
             <Field label="Deskripsi">
               <textarea
