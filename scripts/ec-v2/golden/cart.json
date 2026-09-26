@@ -1,0 +1,23 @@
+{
+  "body": {
+    "data": {
+      "items": [
+        {
+          "price": 500000,
+          "product": {
+            "color": "krem",
+            "name": "Lentera TEJU",
+            "size": null,
+            "slug": "teju-lantern",
+            "thumbnail_url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/teju-lantern-1.jpg"
+          },
+          "qty": 1,
+          "subtotal": 500000,
+          "variant_id": "5a77b4df-5e67-4eb7-804a-16d93467aaaf"
+        }
+      ],
+      "total": 500000
+    }
+  },
+  "http_status": 200
+}

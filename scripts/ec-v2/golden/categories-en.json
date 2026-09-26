@@ -1,0 +1,37 @@
+{
+  "body": {
+    "data": [
+      {
+        "id": "4258ad5b-8e40-4086-84a2-46efdce832ed",
+        "name": "Living room",
+        "slug": "living-room"
+      },
+      {
+        "id": "32a2094b-6e3c-407f-8f07-c0b38b9acfac",
+        "name": "Bedroom",
+        "slug": "bedroom"
+      },
+      {
+        "id": "90c33d60-3586-4ff9-967e-4bdf767479cd",
+        "name": "Workspace",
+        "slug": "workspace"
+      },
+      {
+        "id": "6fae01c4-9abe-4f39-8be1-bdbb3e9c0fa5",
+        "name": "Dining room",
+        "slug": "dining-room"
+      },
+      {
+        "id": "cad3cf61-5651-41e4-ab9d-82d9ef0f0435",
+        "name": "Storage",
+        "slug": "storage"
+      },
+      {
+        "id": "a231ad90-bd54-4bec-962b-dc1078ae6ed9",
+        "name": "Lighting",
+        "slug": "lighting"
+      }
+    ]
+  },
+  "http_status": 200
+}

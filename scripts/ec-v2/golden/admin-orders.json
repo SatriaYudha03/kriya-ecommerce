@@ -1,0 +1,64 @@
+{
+  "body": {
+    "data": [
+      {
+        "created_at": "<normalized>",
+        "id": "c081feb4-9beb-4ec6-8512-616e02095142",
+        "items": [
+          {
+            "color": "oak",
+            "name": "UBIN shoe rack",
+            "price": 650000,
+            "qty": 1,
+            "size": null,
+            "subtotal": 650000
+          }
+        ],
+        "shipping_address": {
+          "address_line": "Jalan Tulip Gang 1 No 15",
+          "city": "Denpasar",
+          "phone": "1231231",
+          "postal_code": "80361",
+          "province": "Bali",
+          "recipient": "Satria Yudha"
+        },
+        "shipping_cost": 150000,
+        "status": "processing",
+        "subtotal": 650000,
+        "total": 800000
+      },
+      {
+        "created_at": "<normalized>",
+        "id": "2295278c-30c9-48e6-bef9-44be612be36e",
+        "items": [
+          {
+            "color": "oak",
+            "name": "UBIN shoe rack",
+            "price": 650000,
+            "qty": 1,
+            "size": null,
+            "subtotal": 650000
+          }
+        ],
+        "shipping_address": {
+          "address_line": "Jalan Tulip Gang 1 No 15",
+          "city": "Denpasar",
+          "phone": "12312312",
+          "postal_code": "80361",
+          "province": "Bali",
+          "recipient": "Satria Yudha"
+        },
+        "shipping_cost": 150000,
+        "status": "pending_payment",
+        "subtotal": 650000,
+        "total": 800000
+      }
+    ],
+    "meta": {
+      "limit": 20,
+      "page": 1,
+      "total": 2
+    }
+  },
+  "http_status": 200
+}

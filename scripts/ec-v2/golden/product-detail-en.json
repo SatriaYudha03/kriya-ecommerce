@@ -1,0 +1,58 @@
+{
+  "body": {
+    "data": {
+      "category": {
+        "name": "Living room",
+        "slug": "living-room"
+      },
+      "description": "A comfortable three-seater sofa with solid pine wood frame and soft polyester upholstery. Minimalist Scandinavian design that blends with any living room style.",
+      "dimensions": {
+        "depth_cm": 85,
+        "height_cm": 80,
+        "width_cm": 180
+      },
+      "has_assembly_guide": true,
+      "id": "90399e14-6d79-4b44-a2e0-b9da5b1262a2",
+      "images": [
+        {
+          "alt": "Tamu Sofa - view 1",
+          "url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tamu-sofa-1.jpg"
+        },
+        {
+          "alt": "Tamu Sofa - view 2",
+          "url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tamu-sofa-2.jpg"
+        },
+        {
+          "alt": "Tamu Sofa - view 3",
+          "url": "https://nmlhpeqpahihfwzbqmzp.supabase.co/storage/v1/object/public/products/tamu-sofa-3.jpg"
+        }
+      ],
+      "materials": [
+        "polyester fabric",
+        "pine wood"
+      ],
+      "name": "TAMU sofa",
+      "slug": "tamu-sofa",
+      "variants": [
+        {
+          "color": "natural",
+          "id": "c50aaa4d-9167-4fb1-906f-44f0db71b3cd",
+          "price": 2800000,
+          "size": null,
+          "sku": "TAMU-SFA-NAT",
+          "stock": 13
+        },
+        {
+          "color": "grey",
+          "id": "149b2ecb-8ca5-4d10-92c8-d647eed0ba62",
+          "price": 2800000,
+          "size": null,
+          "sku": "TAMU-SFA-GRY",
+          "stock": 12
+        }
+      ],
+      "weight_kg": 35
+    }
+  },
+  "http_status": 200
+}
