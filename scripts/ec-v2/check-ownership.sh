@@ -86,6 +86,10 @@ for file in changed_files:
     # Allowed rules:
     if agent == actual_owner:
         allowed = True
+    elif actual_owner == "shared":
+        # docs/ec-v2/STATUS.md: setiap agent WAJIB mengubahnya sendiri saat
+        # klaim/tutup sesi (R14/R18/§12) -- bukan pelanggaran kepemilikan.
+        allowed = True
     elif agent in ("0A", "0B", "0C", "0D") and actual_owner in (agent, "core"):
         # F0 agents have specific domains but also core for 0B/0C ?
         # Wait, the spec says:

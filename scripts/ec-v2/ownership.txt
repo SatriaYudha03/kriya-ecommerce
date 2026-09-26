@@ -137,6 +137,27 @@ Claude docker-compose.yml
 
 Claude scripts/ec-v2/**
 
+# Ritual tutup sesi (§12 / R14 / R18 EKSEKUSI-PARALEL-V2.md): SETIAP agent (A/B/C/D/0A/0B/0C/0D/I)
+# WAJIB mengubah STATUS.md dan menulis docs/report/<ID-nya> sendiri saat klaim/tutup sesi.
+# Ini BUKAN pelanggaran kepemilikan meski polanya di bawah "Claude docs/**" di atas.
+# Aturan lebih spesifik ini sengaja diletakkan SESUDAH baris "Claude docs/**" karena
+# check-ownership.sh memakai aturan terakhir yang cocok (lihat komentar di check-ownership.sh).
+shared docs/ec-v2/STATUS.md
+A docs/report/A*.md
+B docs/report/B*.md
+C docs/report/C*.md
+D docs/report/D*.md
+I docs/report/I-*.md
+0A docs/report/0A.md
+0B docs/report/0B.md
+0C docs/report/0C.md
+0D docs/report/0D.md
+
+# Stub/form admin §5.3 EKSEKUSI-PARALEL-V2.md yang jatuh di luar folder domain
+# (root components/kriya/admin/**) tetap dimiliki domain terkait, bukan default core.
+# product-form.tsx (A) sudah ada di §3.2 di atas; coupon-form.tsx belum, ditambahkan di sini.
+C apps/web/components/kriya/admin/coupon-form.tsx
+
 A e2e/ec-catalog.spec.ts
 A docs/ec-v2/LOG-A.md
 A supabase/seed/ec-v2/catalog.sql
