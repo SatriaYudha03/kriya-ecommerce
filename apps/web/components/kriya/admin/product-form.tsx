@@ -30,6 +30,9 @@ type VariantRow = {
   color: string;
   size: string;
   price: number;
+  sale_price?: number;
+  sale_starts_at?: string;
+  sale_ends_at?: string;
   stock: number;
   is_active?: boolean;
 };
@@ -109,16 +112,20 @@ export function ProductForm({
       setSummary(detail.summary ?? "");
       setSeoTitle(detail.seo_metadata?.en ?? "");
       setVariants(
-      detail.variants.map((v) => ({
-        key: uid(),
-        id: v.id,
-        sku: v.sku,
-        color: v.color ?? "",
-        size: v.size ?? "",
-        price: v.price,
-        stock: v.stock,
-      })),
-    );
+        detail.variants.map((v) => ({
+          key: uid(),
+          id: v.id,
+          sku: v.sku,
+          color: v.color ?? "",
+          size: v.size ?? "",
+          price: v.price,
+          sale_price: v.sale_price,
+          sale_starts_at: v.sale_starts_at ? new Date(v.sale_starts_at).toISOString().slice(0, 16) : undefined,
+          sale_ends_at: v.sale_ends_at ? new Date(v.sale_ends_at).toISOString().slice(0, 16) : undefined,
+          stock: v.stock,
+          is_active: v.is_active,
+        })),
+      );
     setImages(
       detail.images.map((img) => ({
         key: uid(),
@@ -189,6 +196,9 @@ export function ProductForm({
       color: v.color.trim(),
       size: v.size.trim() ? v.size.trim() : null,
       price: v.price,
+      sale_price: v.sale_price || null,
+      sale_starts_at: v.sale_starts_at || null,
+      sale_ends_at: v.sale_ends_at || null,
       stock: v.stock,
       is_active: v.is_active ?? true,
     };
@@ -415,58 +425,83 @@ export function ProductForm({
                 </button>
               </div>
               <div className="space-y-2">
-                  {variants.map((v) => (
-                    <div key={v.key} className="grid grid-cols-12 items-center gap-2">
-                      <input
-                        className={`${inputCls} col-span-2`}
-                        placeholder="SKU"
-                        value={v.sku}
-                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sku: e.target.value } : r)))}
-                      />
-                      <input
-                        className={`${inputCls} col-span-2`}
-                        placeholder="Warna"
-                        value={v.color}
-                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, color: e.target.value } : r)))}
-                      />
-                      <input
-                        className={`${inputCls} col-span-2`}
-                        placeholder="Ukuran"
-                        value={v.size}
-                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, size: e.target.value } : r)))}
-                      />
-                      <input
-                        type="number"
-                        className={`${inputCls} col-span-2`}
-                        placeholder="Harga"
-                        value={v.price}
-                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, price: Number(e.target.value) } : r)))}
-                      />
-                      <input
-                        type="number"
-                        className={`${inputCls} col-span-2`}
-                        placeholder="Stok"
-                        value={v.stock}
-                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, stock: Number(e.target.value) } : r)))}
-                      />
-                      <label className="col-span-1 flex items-center justify-center">
-                        <input
-                          type="checkbox"
-                          checked={v.is_active ?? true}
-                          onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, is_active: e.target.checked } : r)))}
-                          title="Aktif?"
-                        />
-                      </label>
-                      <button
-                        onClick={() => setVariants((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== v.key) : rows))}
-                        disabled={variants.length <= 1}
-                        title={variants.length <= 1 ? "Minimal satu varian" : "Hapus varian"}
-                        className="col-span-1 flex justify-center text-neutral-400 hover:text-red-600 disabled:opacity-30"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
+                    {variants.map((v) => (
+                      <div key={v.key} className="rounded-lg border border-neutral-200 p-3 space-y-2">
+                        <div className="grid grid-cols-12 items-center gap-2">
+                          <input
+                            className={`${inputCls} col-span-2`}
+                            placeholder="SKU"
+                            value={v.sku}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sku: e.target.value } : r)))}
+                          />
+                          <input
+                            className={`${inputCls} col-span-2`}
+                            placeholder="Warna"
+                            value={v.color}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, color: e.target.value } : r)))}
+                          />
+                          <input
+                            className={`${inputCls} col-span-2`}
+                            placeholder="Ukuran"
+                            value={v.size}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, size: e.target.value } : r)))}
+                          />
+                          <input
+                            type="number"
+                            className={`${inputCls} col-span-2`}
+                            placeholder="Harga"
+                            value={v.price || ""}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, price: Number(e.target.value) } : r)))}
+                          />
+                          <input
+                            type="number"
+                            className={`${inputCls} col-span-2`}
+                            placeholder="Stok"
+                            value={v.stock || ""}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, stock: Number(e.target.value) } : r)))}
+                          />
+                          <label className="col-span-1 flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              checked={v.is_active ?? true}
+                              onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, is_active: e.target.checked } : r)))}
+                              title="Aktif?"
+                            />
+                          </label>
+                          <button
+                            onClick={() => setVariants((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== v.key) : rows))}
+                            disabled={variants.length <= 1}
+                            title={variants.length <= 1 ? "Minimal satu varian" : "Hapus varian"}
+                            className="col-span-1 flex justify-center text-neutral-400 hover:text-red-600 disabled:opacity-30"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-12 items-center gap-2 border-t border-neutral-100 pt-2">
+                          <input
+                            type="number"
+                            className={`${inputCls} col-span-4`}
+                            placeholder="Harga Sale (Opsional)"
+                            value={v.sale_price || ""}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sale_price: e.target.value ? Number(e.target.value) : undefined } : r)))}
+                          />
+                          <input
+                            type="datetime-local"
+                            className={`${inputCls} col-span-4`}
+                            placeholder="Mulai Sale"
+                            value={v.sale_starts_at || ""}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sale_starts_at: e.target.value } : r)))}
+                          />
+                          <input
+                            type="datetime-local"
+                            className={`${inputCls} col-span-4`}
+                            placeholder="Akhir Sale"
+                            value={v.sale_ends_at || ""}
+                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sale_ends_at: e.target.value } : r)))}
+                          />
+                        </div>
+                      </div>
+                    ))}
               </div>
             </div>
 

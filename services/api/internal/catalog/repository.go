@@ -1,6 +1,8 @@
 package catalog
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -44,16 +46,19 @@ type Product struct {
 }
 
 type ProductVariant struct {
-	ID        string
-	ProductID string
-	Sku       string
-	Color     string
-	ColorI18n []byte `gorm:"type:jsonb"`
-	Size      *string
-	SizeI18n  []byte `gorm:"type:jsonb"`
-	Price     int
-	Stock     int
-	IsActive  bool
+	ID           string
+	ProductID    string
+	Sku          string
+	Color        string
+	ColorI18n    []byte `gorm:"type:jsonb"`
+	Size         *string
+	SizeI18n     []byte `gorm:"type:jsonb"`
+	Price        int
+	SalePrice    *int
+	SaleStartsAt *time.Time
+	SaleEndsAt   *time.Time
+	Stock        int
+	IsActive     bool
 }
 
 type ProductImage struct {
@@ -71,7 +76,7 @@ func (r *CatalogRepository) GetCategories() ([]Category, error) {
 	return categories, err
 }
 
-func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, maxPrice int, page, limit int) ([]Product, int64, error) {
+func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, maxPrice int, onSale bool, page, limit int) ([]Product, int64, error) {
 	var products []Product
 	var total int64
 
@@ -87,15 +92,21 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, 
 		query = query.Where("name ILIKE ?", "%"+q+"%")
 	}
 
-	// Filter by price (requires joining variants)
-	if minPrice > 0 || maxPrice > 0 {
+	// Filter by price or on_sale (requires joining variants)
+	if minPrice > 0 || maxPrice > 0 || onSale {
 		query = query.Joins("JOIN product_variants ON product_variants.product_id = products.id")
 		query = query.Where("product_variants.is_active = ?", true)
+		
+		effPriceExpr := "kriya_effective_price(product_variants.price, product_variants.sale_price, product_variants.sale_starts_at, product_variants.sale_ends_at)"
+		
+		if onSale {
+			query = query.Where(effPriceExpr + " < product_variants.price")
+		}
 		if minPrice > 0 {
-			query = query.Where("product_variants.price >= ?", minPrice)
+			query = query.Where(effPriceExpr + " >= ?", minPrice)
 		}
 		if maxPrice > 0 {
-			query = query.Where("product_variants.price <= ?", maxPrice)
+			query = query.Where(effPriceExpr + " <= ?", maxPrice)
 		}
 		query = query.Group("products.id") // Avoid duplicates if multiple variants match
 	}
@@ -108,10 +119,9 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, 
 	// Sorting
 	switch sort {
 	case "price_asc":
-		// Simplified sort, ideally needs subquery for min price
-		query = query.Order("(SELECT MIN(price) FROM product_variants WHERE product_id = products.id) ASC")
+		query = query.Order("(SELECT MIN(kriya_effective_price(price, sale_price, sale_starts_at, sale_ends_at)) FROM product_variants WHERE product_id = products.id) ASC")
 	case "price_desc":
-		query = query.Order("(SELECT MAX(price) FROM product_variants WHERE product_id = products.id) DESC")
+		query = query.Order("(SELECT MAX(kriya_effective_price(price, sale_price, sale_starts_at, sale_ends_at)) FROM product_variants WHERE product_id = products.id) DESC")
 	default:
 		query = query.Order("products.created_at DESC")
 	}

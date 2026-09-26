@@ -26,6 +26,7 @@ export interface ProductsQuery {
   q?: string;
   min_price?: number;
   max_price?: number;
+  on_sale?: boolean;
   sort?: "newest" | "price_asc" | "price_desc";
   page?: number;
   limit?: number;
@@ -40,6 +41,7 @@ function queryFixtures(query: ProductsQuery): ListEnvelope<ProductListItem> {
   }
   if (query.min_price !== undefined) items = items.filter((p) => p.price_min >= query.min_price!);
   if (query.max_price !== undefined) items = items.filter((p) => p.price_min <= query.max_price!);
+  if (query.on_sale) items = items.filter((p) => p.on_sale);
 
   if (query.sort === "price_asc") items.sort((a, b) => a.price_min - b.price_min);
   else if (query.sort === "price_desc") items.sort((a, b) => b.price_min - a.price_min);

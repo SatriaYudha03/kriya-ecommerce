@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kriya-commerce/api/internal/storage"
@@ -39,6 +40,27 @@ func NewCatalogHandler(repo *CatalogRepository, supabaseURL string) *CatalogHand
 	return &CatalogHandler{repo: repo, supabaseURL: supabaseURL}
 }
 
+func isVariantOnSale(v ProductVariant) bool {
+	if v.SalePrice == nil || *v.SalePrice >= v.Price || *v.SalePrice <= 0 {
+		return false
+	}
+	now := time.Now()
+	if v.SaleStartsAt != nil && now.Before(*v.SaleStartsAt) {
+		return false
+	}
+	if v.SaleEndsAt != nil && now.After(*v.SaleEndsAt) {
+		return false
+	}
+	return true
+}
+
+func getEffectivePrice(v ProductVariant) int {
+	if isVariantOnSale(v) {
+		return *v.SalePrice
+	}
+	return v.Price
+}
+
 func (h *CatalogHandler) GetCategories(c *gin.Context) {
 	lang := httpx.ResolveLocale(c)
 	categories, err := h.repo.GetCategories()
@@ -69,17 +91,18 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 
 	minPrice, _ := strconv.Atoi(c.Query("min_price"))
 	maxPrice, _ := strconv.Atoi(c.Query("max_price"))
+	page, _ := strconv.Atoi(c.Query("page"))
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	onSale, _ := strconv.ParseBool(c.Query("on_sale"))
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	if limit > 60 {
-		limit = 60
+	if limit == 0 {
+		limit = 24
 	}
 	if page < 1 {
 		page = 1
 	}
 
-	products, total, err := h.repo.GetProducts(category, q, sort, minPrice, maxPrice, page, limit)
+	products, total, err := h.repo.GetProducts(category, q, sort, minPrice, maxPrice, onSale, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Failed to fetch products"},
@@ -89,12 +112,25 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 
 	var res []ProductListResponse
 	for _, p := range products {
-		minP := 0
+		var minP int
+		var minRegP int
+		var onSale bool
+		
 		if len(p.Variants) > 0 {
-			minP = p.Variants[0].Price
+			minP = getEffectivePrice(p.Variants[0])
+			minRegP = p.Variants[0].Price
+			if isVariantOnSale(p.Variants[0]) {
+				onSale = true
+			}
+			
 			for _, v := range p.Variants {
-				if v.Price < minP {
-					minP = v.Price
+				eff := getEffectivePrice(v)
+				if eff < minP {
+					minP = eff
+					minRegP = v.Price
+				}
+				if isVariantOnSale(v) {
+					onSale = true
 				}
 			}
 		}
@@ -104,14 +140,22 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 			thumb = storage.PublicImageURL(h.supabaseURL, p.Images[0].StoragePath)
 		}
 
-		res = append(res, ProductListResponse{
+		item := ProductListResponse{
 			ID:           p.ID,
 			Slug:         p.Slug,
 			Name:         getI18nString(p.NameI18n, lang, p.Name),
 			CategorySlug: p.CategorySlug,
 			PriceMin:     minP,
+			OnSale:       onSale,
 			ThumbnailURL: thumb,
-		})
+			Status:       p.Status,
+		}
+		
+		if onSale {
+			item.RegularPriceMin = minRegP
+		}
+
+		res = append(res, item)
 	}
 
 	if res == nil {
@@ -159,19 +203,51 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 	}
 
 	var variants []VariantResponse
+	var minP int
+	var minRegP int
+	var onSale bool
+	var saleEndsAt *time.Time
+	
+	if len(p.Variants) > 0 {
+		minP = getEffectivePrice(p.Variants[0])
+		minRegP = p.Variants[0].Price
+	}
+
 	for _, v := range p.Variants {
 		var size *string
 		if v.Size != nil {
 			s := getI18nString(v.SizeI18n, lang, *v.Size)
 			size = &s
 		}
+		
+		effPrice := getEffectivePrice(v)
+		vOnSale := isVariantOnSale(v)
+		
+		if effPrice < minP {
+			minP = effPrice
+			minRegP = v.Price
+		}
+		
+		var saleEnds *time.Time
+		var regPrice int
+		if vOnSale {
+			onSale = true
+			saleEnds = v.SaleEndsAt
+			if saleEndsAt == nil || (saleEnds != nil && saleEnds.After(*saleEndsAt)) {
+				saleEndsAt = saleEnds
+			}
+			regPrice = v.Price
+		}
+
 		variants = append(variants, VariantResponse{
-			ID:    v.ID,
-			Sku:   v.Sku,
-			Color: getI18nString(v.ColorI18n, lang, v.Color),
-			Size:  size,
-			Price: v.Price,
-			Stock: v.Stock,
+			ID:           v.ID,
+			Sku:          v.Sku,
+			Color:        getI18nString(v.ColorI18n, lang, v.Color),
+			Size:         size,
+			Price:        effPrice,
+			RegularPrice: regPrice,
+			SaleEndsAt:   saleEnds,
+			Stock:        v.Stock,
 		})
 	}
 
@@ -190,6 +266,13 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 		Images:           images,
 		Variants:         variants,
 		HasAssemblyGuide: p.HasAssemblyGuide,
+		PriceMin:         minP,
+		OnSale:           onSale,
+		SaleEndsAt:       saleEndsAt,
+	}
+	
+	if onSale {
+		res.RegularPriceMin = minRegP
 	}
 
 	c.JSON(http.StatusOK, httpx.Response{Data: res})

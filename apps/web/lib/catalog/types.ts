@@ -11,6 +11,8 @@ export interface ProductListItem {
   name: string;
   category_slug: string;
   price_min: number;
+  regular_price_min?: number;
+  on_sale?: boolean;
   thumbnail_url: string;
   status?: string;
 }
@@ -26,6 +28,10 @@ export interface ProductVariant {
   color: string;
   size: string | null;
   price: number;
+  regular_price?: number;
+  sale_price?: number;
+  sale_starts_at?: string;
+  sale_ends_at?: string;
   stock: number;
   is_active?: boolean;
 }
@@ -42,6 +48,10 @@ export interface ProductDetail {
   images: ProductImage[];
   variants: ProductVariant[];
   has_assembly_guide: boolean;
+  price_min: number;
+  regular_price_min?: number;
+  on_sale?: boolean;
+  sale_ends_at?: string;
 }
 
 export interface SearchMeta {
@@ -77,6 +87,9 @@ export interface VariantInput {
   color: string;
   size: string | null;
   price: number;
+  sale_price?: number | null;
+  sale_starts_at?: string | null;
+  sale_ends_at?: string | null;
   stock: number;
   is_active?: boolean;
 }

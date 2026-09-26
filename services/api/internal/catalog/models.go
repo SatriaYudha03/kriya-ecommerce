@@ -31,13 +31,15 @@ type CategoryResponse struct {
 }
 
 type ProductListResponse struct {
-	ID           string `json:"id"`
-	Slug         string `json:"slug"`
-	Name         string `json:"name"`
-	CategorySlug string `json:"category_slug"`
-	PriceMin     int    `json:"price_min"`
-	ThumbnailURL string `json:"thumbnail_url"`
-	Status       string `json:"status"`
+	ID              string `json:"id"`
+	Slug            string `json:"slug"`
+	Name            string `json:"name"`
+	CategorySlug    string `json:"category_slug"`
+	PriceMin        int    `json:"price_min"` // Harga efektif
+	RegularPriceMin int    `json:"regular_price_min,omitempty"` // Harga asli (jika on_sale)
+	OnSale          bool   `json:"on_sale"`
+	ThumbnailURL    string `json:"thumbnail_url"`
+	Status          string `json:"status"`
 }
 
 type ProductDetailResponse struct {
@@ -52,6 +54,10 @@ type ProductDetailResponse struct {
 	Images           []ImageResponse   `json:"images"`
 	Variants         []VariantResponse `json:"variants"`
 	HasAssemblyGuide bool              `json:"has_assembly_guide"`
+	PriceMin         int               `json:"price_min"`
+	RegularPriceMin  int               `json:"regular_price_min,omitempty"`
+	OnSale           bool              `json:"on_sale"`
+	SaleEndsAt       *time.Time        `json:"sale_ends_at,omitempty"`
 }
 
 type CategoryRef struct {
@@ -71,12 +77,14 @@ type ImageResponse struct {
 }
 
 type VariantResponse struct {
-	ID    string  `json:"id"`
-	Sku   string  `json:"sku"`
-	Color string  `json:"color"`
-	Size  *string `json:"size"`
-	Price int     `json:"price"`
-	Stock int     `json:"stock"`
+	ID           string     `json:"id"`
+	Sku          string     `json:"sku"`
+	Color        string     `json:"color"`
+	Size         *string    `json:"size"`
+	Price        int        `json:"price"` // Harga efektif
+	RegularPrice int        `json:"regular_price,omitempty"`
+	Stock        int        `json:"stock"`
+	SaleEndsAt   *time.Time `json:"sale_ends_at,omitempty"`
 }
 
 // ===== Cart =====
@@ -238,12 +246,15 @@ type AdminUpdateProductRequest struct {
 }
 
 type AdminVariantRequest struct {
-	Sku      string  `json:"sku" binding:"required"`
-	Color    string  `json:"color"`
-	Size     *string `json:"size"`
-	Price    int     `json:"price" binding:"required,min=1"`
-	Stock    int     `json:"stock" binding:"min=0"`
-	IsActive *bool   `json:"is_active"`
+	Sku          string     `json:"sku" binding:"required"`
+	Color        string     `json:"color"`
+	Size         *string    `json:"size"`
+	Price        int        `json:"price" binding:"required,min=1"`
+	SalePrice    *int       `json:"sale_price,omitempty"`
+	SaleStartsAt *time.Time `json:"sale_starts_at,omitempty"`
+	SaleEndsAt   *time.Time `json:"sale_ends_at,omitempty"`
+	Stock        int        `json:"stock" binding:"min=0"`
+	IsActive     *bool      `json:"is_active"`
 }
 
 type AdminImageRequest struct {
@@ -261,6 +272,19 @@ type AdminStatsResponse struct {
 	TotalOrders    int64 `json:"total_orders"`
 	Revenue        int64 `json:"revenue"`
 	ActiveProducts int64 `json:"active_products"`
+}
+
+type AdminVariantResponse struct {
+	ID           string     `json:"id"`
+	Sku          string     `json:"sku"`
+	Color        string     `json:"color"`
+	Size         *string    `json:"size"`
+	Price        int        `json:"price"`
+	SalePrice    *int       `json:"sale_price,omitempty"`
+	SaleStartsAt *time.Time `json:"sale_starts_at,omitempty"`
+	SaleEndsAt   *time.Time `json:"sale_ends_at,omitempty"`
+	Stock        int        `json:"stock"`
+	IsActive     bool       `json:"is_active"`
 }
 
 // AdminImageResponse memuat id + storage_path (bentuk internal, dipakai form edit).
@@ -285,6 +309,6 @@ type AdminProductDetailResponse struct {
 	Dimensions       Dimensions           `json:"dimensions"`
 	WeightKg         float64              `json:"weight_kg"`
 	HasAssemblyGuide bool                 `json:"has_assembly_guide"`
-	Variants         []VariantResponse    `json:"variants"`
+	Variants         []AdminVariantResponse `json:"variants"`
 	Images           []AdminImageResponse `json:"images"`
 }

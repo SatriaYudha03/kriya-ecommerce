@@ -90,13 +90,16 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 	variants := make([]ProductVariant, len(req.Variants))
 	for i, v := range req.Variants {
 		variants[i] = ProductVariant{
-			ID:        uuid.New().String(),
-			ProductID: productID,
-			Sku:       v.Sku,
-			Color:     v.Color,
-			Size:      v.Size,
-			Price:     v.Price,
-			Stock:     v.Stock,
+			ID:           uuid.New().String(),
+			ProductID:    productID,
+			Sku:          v.Sku,
+			Color:        v.Color,
+			Size:         v.Size,
+			Price:        v.Price,
+			SalePrice:    v.SalePrice,
+			SaleStartsAt: v.SaleStartsAt,
+			SaleEndsAt:   v.SaleEndsAt,
+			Stock:        v.Stock,
 		}
 		if v.IsActive != nil {
 			variants[i].IsActive = *v.IsActive
@@ -238,13 +241,16 @@ func (h *AdminHandler) CreateVariant(c *gin.Context) {
 	}
 
 	v := ProductVariant{
-		ID:        uuid.New().String(),
-		ProductID: productID,
-		Sku:       req.Sku,
-		Color:     req.Color,
-		Size:      req.Size,
-		Price:     req.Price,
-		Stock:     req.Stock,
+		ID:           uuid.New().String(),
+		ProductID:    productID,
+		Sku:          req.Sku,
+		Color:        req.Color,
+		Size:         req.Size,
+		Price:        req.Price,
+		SalePrice:    req.SalePrice,
+		SaleStartsAt: req.SaleStartsAt,
+		SaleEndsAt:   req.SaleEndsAt,
+		Stock:        req.Stock,
 	}
 	if req.IsActive != nil {
 		v.IsActive = *req.IsActive
@@ -274,11 +280,14 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 	}
 
 	updates := map[string]interface{}{
-		"sku":   req.Sku,
-		"color": req.Color,
-		"size":  req.Size,
-		"price": req.Price,
-		"stock": req.Stock,
+		"sku":            req.Sku,
+		"color":          req.Color,
+		"size":           req.Size,
+		"price":          req.Price,
+		"sale_price":     req.SalePrice,
+		"sale_starts_at": req.SaleStartsAt,
+		"sale_ends_at":   req.SaleEndsAt,
+		"stock":          req.Stock,
 	}
 	if req.IsActive != nil {
 		updates["is_active"] = *req.IsActive
@@ -328,15 +337,19 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 	var dims Dimensions
 	_ = json.Unmarshal(p.Dimensions, &dims)
 
-	variants := make([]VariantResponse, 0, len(p.Variants))
+	variants := make([]AdminVariantResponse, 0, len(p.Variants))
 	for _, v := range p.Variants {
-		variants = append(variants, VariantResponse{
-			ID:    v.ID,
-			Sku:   v.Sku,
-			Color: v.Color,
-			Size:  v.Size,
-			Price: v.Price,
-			Stock: v.Stock,
+		variants = append(variants, AdminVariantResponse{
+			ID:           v.ID,
+			Sku:          v.Sku,
+			Color:        v.Color,
+			Size:         v.Size,
+			Price:        v.Price,
+			SalePrice:    v.SalePrice,
+			SaleStartsAt: v.SaleStartsAt,
+			SaleEndsAt:   v.SaleEndsAt,
+			Stock:        v.Stock,
+			IsActive:     v.IsActive,
 		})
 	}
 
