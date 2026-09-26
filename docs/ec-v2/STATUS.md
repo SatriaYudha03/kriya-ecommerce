@@ -75,7 +75,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | C4 | Laporan | ⬜ | | | | | | |
 | C5 | Dashboard v2 | ⬜ | | | | | | |
 | C6 | E2E promo | ⬜ | | | | | | |
-| D1 | Riwayat pesanan v2 | ⬜ | | | | | | |
+| D1 | Riwayat pesanan v2 | 🟦 | D | 2026-09-26 | | | | |
 | D2 | Event, catatan, resi | ⬜ | | | | | | |
 | D3 | Batal oleh customer | ⬜ | | | | | | |
 | D4 | Ulasan | ⬜ | | | | | | |
