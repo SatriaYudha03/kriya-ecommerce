@@ -683,7 +683,11 @@ func (h *AdminHandler) DeleteTag(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: map[string]interface{}{"id": id, "deleted": true}})
+	type deleteResp struct {
+		ID      string `json:"id"`
+		Deleted bool   `json:"deleted"`
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: deleteResp{ID: id, Deleted: true}})
 }
 
 func (h *AdminHandler) ListAttributes(c *gin.Context) {
@@ -779,7 +783,11 @@ func (h *AdminHandler) DeleteAttribute(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: map[string]interface{}{"id": id, "deleted": true}})
+	type deleteResp struct {
+		ID      string `json:"id"`
+		Deleted bool   `json:"deleted"`
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: deleteResp{ID: id, Deleted: true}})
 }
 
 func (h *AdminHandler) CreateAttributeTerm(c *gin.Context) {
@@ -832,5 +840,9 @@ func (h *AdminHandler) DeleteAttributeTerm(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: map[string]interface{}{"id": id, "deleted": true}})
+	type deleteResp struct {
+		ID      string `json:"id"`
+		Deleted bool   `json:"deleted"`
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: deleteResp{ID: id, Deleted: true}})
 }
