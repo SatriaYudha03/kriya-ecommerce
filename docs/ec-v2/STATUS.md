@@ -77,7 +77,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | C6 | E2E promo | ⬜ | | | | | | |
 | D1 | Riwayat pesanan v2 | ✅ | D | 2026-09-26 | `ec/D1-riwayat-pesanan-v2` (direwrite, lihat `c35e353`) | `c35e353` | `docs/report/D1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): kode asli D1 (`5ffb503`) menaruh tipe/fungsi/hook order di barrel core lama (`lib/api.ts`/`types.ts`/`queries.ts`/`fixtures/index.ts`) dan file baru `components/kriya/order-status-badge.tsx` (bukan stub `aftersales/order-status-badge.tsx`) karena worktree-nya predates 0C's real merge. Dipindah ke `lib/aftersales/{api,types,queries,fixtures}.ts` dan stub asli diisi. Key i18n direname dari prefix `orders.*` (salah, R11) ke `after.*`/`after.orders.*` sesuai kontrak §5.4. `middleware.ts` baru dari commit asli TIDAK diikutsertakan — guard login untuk `/orders` dkk sudah ada & lebih lengkap di `proxy.ts` (Next 16 real convention, sudah termasuk 0C). Backend `internal/aftersales/**` tidak berubah (sudah benar sejak awal). Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error (21 warning, turun dari 22 karena stub badge terisi), next build hijau. |
 | D2 | Event, catatan, resi | ✅ | D | 2026-09-26 | `ec/D2-event-catatan-resi` | `80b1944` | `docs/report/D2.md` | |
-| D3 | Batal oleh customer | ⬜ | | | | | | |
+| D3 | Batal oleh customer | ✅ | D | 2026-09-27 | `ec/D3-batal-oleh-customer` | `04a715f` | `docs/report/D3.md` | |
 | D4 | Ulasan | ⬜ | | | | | | |
 | D5 | Retur & refund | ⬜ | | | | | | |
 | D6 | Notifikasi & invoice | ⬜ | | | | | | |

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, ExternalLink, Package } from "lucide-react";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
+import { CancelOrderDialog } from "@/components/kriya/aftersales/cancel-order-dialog";
 
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const { t, locale } = useLanguage();
@@ -47,14 +48,19 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
               </p>
             </div>
             
-            {order.payment?.can_continue && (
-              <Link 
-                href={`/checkout?order_id=${order.id}`}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-neutral-900 text-neutral-50 hover:bg-neutral-900/90 h-10 px-4 py-2"
-              >
-                {t("after.orders.card.pay")}
-              </Link>
-            )}
+            <div className="flex items-center gap-2 mt-4 sm:mt-0">
+              {order.can_cancel && (
+                <CancelOrderDialog orderId={order.id} />
+              )}
+              {order.payment?.can_continue && (
+                <Link 
+                  href={`/checkout?order_id=${order.id}`}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-neutral-900 text-neutral-50 hover:bg-neutral-900/90 h-10 px-4 py-2"
+                >
+                  {t("after.orders.card.pay")}
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 

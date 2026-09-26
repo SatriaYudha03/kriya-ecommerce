@@ -290,3 +290,14 @@ func (r *OrderRepository) GetForInternalStatus(orderID, email string) (*Order, e
 	}
 	return &order, nil
 }
+
+func (r *OrderRepository) cancelOrderManual(tx *gorm.DB, id, reason string) error {
+	now := time.Now()
+	updates := map[string]interface{}{
+		"status":        "cancelled",
+		"cancel_reason": reason,
+		"cancelled_at":  now,
+		"updated_at":    now,
+	}
+	return tx.Table("orders").Where("id = ?", id).Updates(updates).Error
+}

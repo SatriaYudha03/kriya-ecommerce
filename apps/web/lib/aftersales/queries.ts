@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOrders, getOrder, getAdminOrders, updateAdminOrderStatus } from "./api";
+import { getOrders, getOrder, getAdminOrders, updateAdminOrderStatus, cancelOrder } from "./api";
 import { useLanguage } from "@/components/kriya/language-provider";
 import type { AdminOrdersQuery, OrderStatus } from "./types";
 import { toast } from "sonner";
@@ -50,6 +50,21 @@ export function useUpdateOrderStatus() {
     },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : "Gagal memperbarui status");
+    },
+  });
+}
+
+export function useCancelOrder() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => cancelOrder(id, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: afterKeys.all });
+      toast.success("Pesanan berhasil dibatalkan");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Gagal membatalkan pesanan");
     },
   });
 }
