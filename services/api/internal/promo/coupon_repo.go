@@ -1,4 +1,4 @@
-package promo
+﻿package promo
 
 import (
 	"context"
@@ -253,3 +253,23 @@ func deriveCouponStatus(c *Coupon) string {
 	}
 	return "active"
 }
+func (r *CouponRepository) ListPublic(ctx context.Context) ([]Coupon, error) {
+	var items []Coupon
+	query := r.db.WithContext(ctx).Table("coupons").
+		Where("is_public = ? AND is_active = ?", true, true).
+		Where("starts_at IS NULL OR starts_at <= CURRENT_TIMESTAMP").
+		Where("ends_at IS NULL OR ends_at >= CURRENT_TIMESTAMP").
+		Order("created_at DESC")
+	
+	err := query.Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	
+	for i := range items {
+		items[i].Status = deriveCouponStatus(&items[i])
+	}
+
+	return items, nil
+}
+

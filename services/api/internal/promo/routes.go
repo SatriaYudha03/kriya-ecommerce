@@ -9,9 +9,16 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	adminHandler := NewAdminHandler(adminRepo)
 
 	couponRepo := NewCouponRepository(deps.DB)
-	couponHandler := NewCouponHandler(couponRepo)
+	discountApplier := NewDiscountApplier()
+	couponHandler := NewCouponHandler(couponRepo, discountApplier, deps.DB)
 
 	r.Admin.GET("/stats", adminHandler.Stats)
+
+	pubCoupons := r.Public.Group("/coupons")
+	{
+		pubCoupons.GET("/public", couponHandler.GetPublicCoupons)
+		pubCoupons.POST("/validate", couponHandler.ValidateCoupon)
+	}
 
 	coupons := r.Admin.Group("/coupons")
 	{
