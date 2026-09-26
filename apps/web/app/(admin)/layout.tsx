@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, LogOut, Store } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOut, Store, Ticket } from "lucide-react";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { AdminGuard } from "@/components/kriya/admin/admin-guard";
 
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/orders", label: "Pesanan", icon: ShoppingCart, exact: false },
   { href: "/admin/products", label: "Produk", icon: Package, exact: false },
+  { href: "/admin/coupons", label: "Kupon", icon: Ticket, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

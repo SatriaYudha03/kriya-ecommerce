@@ -7,6 +7,7 @@ import { ProductGridSkeleton } from "@/components/kriya/product-grid";
 import { EmptyState } from "@/components/kriya/empty-state";
 import { Sparkles, Search as SearchIcon } from "lucide-react";
 import { Suspense } from "react";
+import type { SearchResponseItem } from "@/lib/types";
 
 function SearchResults() {
   const searchParams = useSearchParams();
@@ -62,7 +63,7 @@ function SearchResults() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
-        {items.map((item) => (
+        {items.map((item: SearchResponseItem) => (
           <ProductCard
             key={item.slug}
             product={{

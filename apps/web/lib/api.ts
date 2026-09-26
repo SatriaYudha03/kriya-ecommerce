@@ -18,16 +18,19 @@ import type {
   UpdateProfilePayload,
   CreateOrderPayload,
   CreateOrderResponse,
-  SearchEnvelope,
-  SimilarEnvelope,
   AdminStats,
   AdminOrdersQuery,
-  AdminProductDetail,
-  AdminProductImage,
   CreateProductPayload,
   UpdateProductPayload,
+  AdminProductDetail,
+  Coupon,
+  CouponPayload,
+  CouponRedemption,
+  SearchEnvelope,
+  SimilarEnvelope,
   VariantInput,
   ProductImageInput,
+  AdminProductImage,
 } from "./types";
 
 import { t, type Locale } from "./i18n";
@@ -355,5 +358,60 @@ export async function deleteProductImage(productId: string, imageId: string): Pr
   await request<Envelope<{ id: string }>>(
     `/api/v1/admin/products/${productId}/images/${imageId}`,
     { method: "DELETE", auth: true },
+  );
+}
+
+export async function getAdminCoupons(
+  query: { search?: string; status?: string; page?: number; limit?: number } = {},
+): Promise<ListEnvelope<Coupon>> {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== "") params.set(k, String(v));
+  }
+  return request<ListEnvelope<Coupon>>(`/api/v1/admin/coupons?${params.toString()}`, {
+    auth: true,
+  });
+}
+
+export async function getAdminCoupon(id: string): Promise<Coupon> {
+  const { data } = await request<Envelope<Coupon>>(`/api/v1/admin/coupons/${id}`, {
+    auth: true,
+  });
+  return data;
+}
+
+export async function createCoupon(payload: CouponPayload): Promise<Coupon> {
+  const { data } = await request<Envelope<Coupon>>("/api/v1/admin/coupons", {
+    method: "POST",
+    body: payload,
+    auth: true,
+  });
+  return data;
+}
+
+export async function updateCoupon(id: string, payload: CouponPayload): Promise<Coupon> {
+  const { data } = await request<Envelope<Coupon>>(`/api/v1/admin/coupons/${id}`, {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
+  return data;
+}
+
+export async function deleteCoupon(id: string): Promise<void> {
+  await request<Envelope<unknown>>(`/api/v1/admin/coupons/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+export async function getAdminCouponRedemptions(
+  id: string,
+  page = 1,
+  limit = 20,
+): Promise<ListEnvelope<CouponRedemption>> {
+  return request<ListEnvelope<CouponRedemption>>(
+    `/api/v1/admin/coupons/${id}/redemptions?page=${page}&limit=${limit}`,
+    { auth: true },
   );
 }

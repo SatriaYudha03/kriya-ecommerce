@@ -9,9 +9,15 @@ import {
   getAdminProduct,
   updateAdminOrderStatus,
   deleteProduct,
+  getAdminCoupons,
+  getAdminCoupon,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  getAdminCouponRedemptions,
   ApiError,
 } from "./api";
-import type { AdminOrdersQuery, OrderStatus } from "./types";
+import type { AdminOrdersQuery, OrderStatus, CouponPayload } from "./types";
 
 export function useAdminStats(enabled = true) {
   return useQuery({
@@ -66,6 +72,61 @@ export function useDeleteProduct() {
     },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : "Gagal menghapus produk");
+    },
+  });
+}
+
+export function useAdminCoupons(query: { search?: string; status?: string; page?: number; limit?: number } = {}) {
+  return useQuery({
+    queryKey: ["admin-coupons", query],
+    queryFn: () => getAdminCoupons(query),
+    retry: false,
+  });
+}
+
+export function useAdminCoupon(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ["admin-coupon", id],
+    queryFn: () => getAdminCoupon(id),
+    enabled: enabled && Boolean(id),
+    retry: false,
+  });
+}
+
+export function useAdminCouponRedemptions(id: string, page = 1, limit = 20) {
+  return useQuery({
+    queryKey: ["admin-coupon-redemptions", id, page, limit],
+    queryFn: () => getAdminCouponRedemptions(id, page, limit),
+    enabled: Boolean(id),
+  });
+}
+
+export function useSaveCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id?: string; payload: CouponPayload }) =>
+      id ? updateCoupon(id, payload) : createCoupon(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-coupons"] });
+      qc.invalidateQueries({ queryKey: ["admin-coupon"] });
+      toast.success("Kupon berhasil disimpan");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Gagal menyimpan kupon");
+    },
+  });
+}
+
+export function useDeleteCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteCoupon(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-coupons"] });
+      toast.success("Kupon berhasil dihapus");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Gagal menghapus kupon");
     },
   });
 }

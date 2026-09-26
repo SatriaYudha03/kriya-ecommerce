@@ -13,8 +13,9 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { EmptyState } from "./empty-state";
 import { ProductGallery } from "./product-gallery";
 import { ProductTabs } from "./product-tabs";
-import { VariantSelector } from "./variant-selector";
 import { ProductCard } from "./product-card";
+import { VariantSelector } from "./variant-selector";
+import type { SearchResponseItem } from "@/lib/types";
 import { useLanguage } from "./language-provider";
 
 function SimilarProducts({ productId }: { productId: string }) {
@@ -25,9 +26,9 @@ function SimilarProducts({ productId }: { productId: string }) {
   return (
     <section className="mt-20 border-t border-neutral-200 pt-16">
       <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Mungkin Kamu Suka</h2>
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
-        {data.data.slice(0, 4).map((item) => (
-          <ProductCard
+        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
+          {data.data.slice(0, 4).map((item: SearchResponseItem) => (
+            <ProductCard
             key={item.slug}
             product={{
               id: item.product_id,
