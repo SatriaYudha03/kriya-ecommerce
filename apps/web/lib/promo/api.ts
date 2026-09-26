@@ -1,6 +1,7 @@
-import { request } from "../http";
-import type { Envelope, ListEnvelope } from "../http";
+﻿import { request } from "../http";
+import type { Envelope, ListEnvelope, ApiErrorBody } from "../http";
 import type { AdminStats, Coupon, CouponPayload, CouponRedemption } from "./types";
+import type { QuoteCoupon } from "../types";
 
 export async function getAdminStats(): Promise<AdminStats> {
   const { data } = await request<Envelope<AdminStats>>("/api/v1/admin/stats", { auth: true });
@@ -60,4 +61,58 @@ export async function getAdminCouponRedemptions(
     `/api/v1/admin/coupons/${id}/redemptions?page=${page}&limit=${limit}`,
     { auth: true },
   );
+}
+
+
+export interface PublicCoupon {
+  id: string;
+  code: string;
+  description_i18n: Record<string, string>;
+  discount_type: string;
+  amount: number;
+  ends_at: string | null;
+}
+
+export interface ValidateCouponResponse {
+  Code: string;
+  code?: string;
+  DiscountType: string;
+  discount_type?: string;
+}
+
+export async function getPublicCoupons(): Promise<PublicCoupon[]> {
+  const { data } = await request<Envelope<PublicCoupon[]>>("/api/v1/public/coupons/public");
+  return data;
+}
+
+export async function validateCoupon(code: string, items: { variant_id: string; qty: number }[]): Promise<QuoteCoupon> {
+  try {
+    const { data } = await request<Envelope<ValidateCouponResponse>>("/api/v1/public/coupons/validate", {
+      method: "POST",
+      body: { code, lines: items },
+      auth: true,
+    });
+    return {
+      code: data.Code || data.code || code,
+      valid: true,
+      reason: "",
+      discount_type: data.DiscountType || data.discount_type || "percent",
+    };
+  } catch (err: unknown) {
+    const errorBody = (err as { response?: ApiErrorBody })?.response;
+    if (errorBody && errorBody.error) {
+      return {
+        code,
+        valid: false,
+        reason: errorBody.error.code,
+        discount_type: "",
+      };
+    }
+    return {
+      code,
+      valid: false,
+      reason: "internal",
+      discount_type: "",
+    };
+  }
 }

@@ -71,7 +71,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | B7 | E2E customer | ⬜ | | | | | | |
 | C1 | Kupon admin | ✅ | C | 2026-09-26 | `ec/C1-kupon-admin` (direwrite, lihat `efc06d3`) | `efc06d3` | `docs/report/C1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): kode asli C1 (`d1c4079`) menaruh fungsi/tipe kupon di barrel core (`lib/api.ts`/`types.ts`/`admin-queries.ts`) karena worktree-nya predates 0C's real merge ke main. Dipindah ke `lib/promo/{api,types,queries}.ts`, endpoint Go (`internal/promo/**`) tidak berubah (sudah benar dari awal). Dua perubahan lain di commit asli (anotasi tipe di `search/page.tsx`/`product-detail-view.tsx`, di luar domain C) tidak diikutsertakan — tsc sudah bersih tanpanya. Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
 | C2 | Mesin diskon | ✅ | C | 2026-09-26 | `ec/C2-mesin-diskon` | `141ec35` | `docs/report/C2.md` | |
-| C3 | Validasi kupon & promo publik | ⬜ | | | | | | |
+| C3 | Validasi kupon & promo publik | ✅ | C | 2026-09-26 | `ec/C3-validasi-kupon-publik` | `424087c` | `docs/report/C3.md` | |
 | C4 | Laporan | ⬜ | | | | | | |
 | C5 | Dashboard v2 | ⬜ | | | | | | |
 | C6 | E2E promo | ⬜ | | | | | | |
