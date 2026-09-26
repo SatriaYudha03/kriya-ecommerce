@@ -13,6 +13,9 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	couponHandler := NewCouponHandler(couponRepo, discountApplier, deps.DB)
 
 	r.Admin.GET("/stats", adminHandler.Stats)
+	r.Admin.GET("/reports/summary", adminHandler.ReportSummary)
+	r.Admin.GET("/reports/sales", adminHandler.ReportSales)
+	r.Admin.GET("/reports/top-products", adminHandler.ReportTopProducts)
 
 	pubCoupons := r.Public.Group("/coupons")
 	{

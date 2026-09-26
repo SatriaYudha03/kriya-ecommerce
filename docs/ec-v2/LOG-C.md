@@ -16,3 +16,4 @@
 - [Kosong]
 - 2026-09-27 (C3): Menyelesaikan implementasi validasi kupon (POST /coupons/validate) dan list kupon publik (GET /coupons/public). Mengisi stub CouponInput dan PromoBanner di FE.
 
+- 2026-09-27 (C4): Selesai mengimplementasi API Laporan (summary, sales, top-products) serta antarmuka UI (cards, SVG chart, table, CSV download) di domain C.
