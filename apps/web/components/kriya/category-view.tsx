@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { categoryLabel } from "@/lib/category-meta";
-import { useCategories, useProducts } from "@/lib/queries";
+import { useCategories, useProducts } from "@/lib/catalog/queries";
 import { Breadcrumbs } from "./breadcrumbs";
 import { EmptyState } from "./empty-state";
 import { FilterBar, pricePresets, type SortValue } from "./filter-bar";
@@ -14,7 +15,7 @@ const LIMIT = 6;
 const SORTS: SortValue[] = ["newest", "price_asc", "price_desc"];
 
 // Halaman listing kategori. Filter (harga, urut) & halaman disimpan di URL agar
-// bisa di-share dan di-refresh. Data lewat TanStack Query → fetcher lib/api.
+// bisa di-share dan di-refresh. Data lewat TanStack Query -> fetcher lib/api.
 export function CategoryView({ slug }: { slug: string }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,11 +33,12 @@ export function CategoryView({ slug }: { slug: string }) {
 
   const { locale, t } = useLanguage();
   const { data: categories } = useCategories();
-  const name = categoryLabel(
-    slug,
-    categories?.find((c) => c.slug === slug)?.name ?? slug,
-    locale,
-  );
+  
+  const currentCategory = categories?.find((c) => c.slug === slug);
+  const name = currentCategory?.name ?? categoryLabel(slug, slug, locale);
+  
+  const parentCategory = currentCategory?.parent_id ? categories?.find(c => c.id === currentCategory.parent_id) : null;
+  const childCategories = categories?.filter(c => c.parent_id === currentCategory?.id) || [];
 
   const { data, isLoading, isError } = useProducts({
     category: slug,
@@ -95,15 +97,50 @@ export function CategoryView({ slug }: { slug: string }) {
   const totalPages = data ? Math.ceil(total / data.meta.limit) : 1;
   const filtered = priceKey !== "all" || onSale;
 
+  const breadcrumbs = [{ label: t("nav.home"), href: "/" }];
+  if (parentCategory) {
+    breadcrumbs.push({ label: parentCategory.name, href: `/categories/${parentCategory.slug}` });
+  }
+  breadcrumbs.push({ label: name, href: "" });
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <Breadcrumbs items={[{ label: t("nav.home"), href: "/" }, { label: name }]} />
+      <Breadcrumbs items={breadcrumbs} />
 
-      <header className="mt-4">
-        <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">{name}</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          {isLoading ? t("category.loading") : t("category.count", { count: total })}
-        </p>
+      <header className="mt-4 flex flex-col md:flex-row gap-6 md:items-start">
+        <div className="flex-1">
+          <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">{name}</h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            {isLoading ? t("category.loading") : t("category.count", { count: total })}
+          </p>
+          {currentCategory?.description && (
+            <p className="mt-4 text-neutral-600 max-w-2xl">{currentCategory.description}</p>
+          )}
+          
+          {childCategories.length > 0 && (
+            <div className="mt-6 flex flex-wrap gap-2">
+              {childCategories.map(child => (
+                <Link
+                  key={child.id}
+                  href={`/categories/${child.slug}`}
+                  className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors"
+                >
+                  {child.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {currentCategory?.image_url && (
+          <div className="shrink-0">
+            <img 
+              src={currentCategory.image_url} 
+              alt={name}
+              className="h-32 w-48 object-cover rounded-xl border border-neutral-200 shadow-sm"
+            />
+          </div>
+        )}
       </header>
 
       <div className="mt-6">

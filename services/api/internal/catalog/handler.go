@@ -73,10 +73,18 @@ func (h *CatalogHandler) GetCategories(c *gin.Context) {
 
 	var res []CategoryResponse
 	for _, cat := range categories {
+		imgUrl := ""
+		if cat.ImagePath != nil && *cat.ImagePath != "" {
+			imgUrl = storage.PublicImageURL(h.supabaseURL, *cat.ImagePath)
+		}
 		res = append(res, CategoryResponse{
-			ID:   cat.ID,
-			Slug: cat.Slug,
-			Name: getI18nString(cat.NameI18n, lang, cat.Name),
+			ID:          cat.ID,
+			Slug:        cat.Slug,
+			Name:        getI18nString(cat.NameI18n, lang, cat.Name),
+			ParentID:    cat.ParentID,
+			Description: getI18nString(cat.DescriptionI18n, lang, ""),
+			ImageURL:    imgUrl,
+			Position:    cat.Position,
 		})
 	}
 

@@ -70,7 +70,128 @@ func (h *AdminHandler) ListProducts(c *gin.Context) {
 	})
 }
 
-// UpdateOrderStatus memperbarui status pesanan.
+func (h *AdminHandler) ListCategories(c *gin.Context) {
+	categories, err := h.repo.GetCategories()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil daftar kategori"},
+		})
+		return
+	}
+
+	var data []AdminCategoryResponse
+	for _, cat := range categories {
+		data = append(data, AdminCategoryResponse{
+			ID:              cat.ID,
+			Slug:            cat.Slug,
+			Name:            cat.Name,
+			ParentID:        cat.ParentID,
+			DescriptionI18n: cat.DescriptionI18n,
+			ImagePath:       cat.ImagePath,
+			Position:        cat.Position,
+			IsActive:        cat.IsActive,
+		})
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{Data: data})
+}
+
+func (h *AdminHandler) GetCategory(c *gin.Context) {
+	id := c.Param("id")
+	cat, err := h.repo.GetCategory(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "not_found", Message: "Kategori tidak ditemukan"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: AdminCategoryResponse{
+		ID:              cat.ID,
+		Slug:            cat.Slug,
+		Name:            cat.Name,
+		ParentID:        cat.ParentID,
+		DescriptionI18n: cat.DescriptionI18n,
+		ImagePath:       cat.ImagePath,
+		Position:        cat.Position,
+		IsActive:        cat.IsActive,
+	}})
+}
+
+func (h *AdminHandler) CreateCategory(c *gin.Context) {
+	var req AdminCategoryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		})
+		return
+	}
+
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
+	cat := Category{
+		ID:              uuid.New().String(),
+		Slug:            req.Slug,
+		Name:            req.Name,
+		ParentID:        req.ParentID,
+		DescriptionI18n: req.DescriptionI18n,
+		ImagePath:       req.ImagePath,
+		Position:        req.Position,
+		IsActive:        isActive,
+	}
+
+	if err := h.repo.CreateCategory(&cat); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membuat kategori"},
+		})
+		return
+	}
+	c.JSON(http.StatusCreated, httpx.Response{Data: gin.H{"id": cat.ID}})
+}
+
+func (h *AdminHandler) UpdateCategory(c *gin.Context) {
+	id := c.Param("id")
+	var req AdminCategoryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		})
+		return
+	}
+
+	updates := map[string]interface{}{
+		"slug":             req.Slug,
+		"name":             req.Name,
+		"parent_id":        req.ParentID,
+		"description_i18n": req.DescriptionI18n,
+		"image_path":       req.ImagePath,
+		"position":         req.Position,
+	}
+	if req.IsActive != nil {
+		updates["is_active"] = *req.IsActive
+	}
+
+	if err := h.repo.UpdateCategory(id, updates); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui kategori"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
+}
+
+func (h *AdminHandler) DeleteCategory(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.repo.DeleteCategory(id); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghapus kategori"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
+}
 
 // CreateProduct membuat produk baru lengkap beserta varian & gambarnya.
 func (h *AdminHandler) CreateProduct(c *gin.Context) {

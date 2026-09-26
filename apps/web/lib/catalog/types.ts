@@ -3,6 +3,10 @@ export interface Category {
   id: string;
   slug: string;
   name: string;
+  parent_id?: string | null;
+  description?: string | null;
+  image_url?: string | null;
+  position: number;
 }
 
 export interface ProductListItem {
@@ -125,6 +129,27 @@ export interface AdminProductImage {
   url: string;
   alt: string;
   is_primary: boolean;
+}
+
+export interface AdminCategory {
+  id: string;
+  slug: string;
+  name: string;
+  parent_id?: string | null;
+  description_i18n: Record<string, string>;
+  image_path?: string | null;
+  position: number;
+  is_active: boolean;
+}
+
+export interface AdminCategoryInput {
+  slug: string;
+  name: string;
+  parent_id?: string | null;
+  description_i18n: Record<string, string>;
+  image_path?: string | null;
+  position: number;
+  is_active?: boolean;
 }
 
 export interface AdminProductDetail {

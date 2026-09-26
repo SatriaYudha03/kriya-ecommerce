@@ -15,6 +15,12 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Public.GET("/products", handler.GetProducts)
 	r.Public.GET("/products/:slug", handler.GetProduct)
 
+	r.Admin.GET("/categories", adminHandler.ListCategories)
+	r.Admin.GET("/categories/:id", adminHandler.GetCategory)
+	r.Admin.POST("/categories", adminHandler.CreateCategory)
+	r.Admin.PUT("/categories/:id", adminHandler.UpdateCategory)
+	r.Admin.DELETE("/categories/:id", adminHandler.DeleteCategory)
+
 	r.Admin.GET("/products", adminHandler.ListProducts)
 	r.Admin.GET("/products/:id", adminHandler.GetProduct)
 	r.Admin.POST("/products", adminHandler.CreateProduct)

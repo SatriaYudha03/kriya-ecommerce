@@ -16,10 +16,15 @@ func NewCatalogRepository(db *gorm.DB) *CatalogRepository {
 
 // Reuse models from seed/main.go for db structures
 type Category struct {
-	ID       string
-	Slug     string
-	Name     string
-	NameI18n []byte `gorm:"type:jsonb"`
+	ID              string
+	Slug            string
+	Name            string
+	NameI18n        []byte `gorm:"type:jsonb"`
+	ParentID        *string
+	DescriptionI18n []byte `gorm:"type:jsonb"`
+	ImagePath       *string
+	Position        int
+	IsActive        bool
 }
 
 type Product struct {
@@ -72,7 +77,7 @@ type ProductImage struct {
 
 func (r *CatalogRepository) GetCategories() ([]Category, error) {
 	var categories []Category
-	err := r.db.Find(&categories).Error
+	err := r.db.Where("is_active = ?", true).Order("position ASC").Find(&categories).Error
 	return categories, err
 }
 
@@ -86,7 +91,7 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, 
 		Where("products.status = ?", "published")
 
 	if categorySlug != "" {
-		query = query.Where("category_slug = ?", categorySlug)
+		query = query.Where("category_slug IN (WITH RECURSIVE cat_tree AS (SELECT slug, id FROM categories WHERE slug = ? UNION ALL SELECT c.slug, c.id FROM categories c INNER JOIN cat_tree ct ON c.parent_id = ct.id) SELECT slug FROM cat_tree)", categorySlug)
 	}
 	if q != "" {
 		query = query.Where("name ILIKE ?", "%"+q+"%")

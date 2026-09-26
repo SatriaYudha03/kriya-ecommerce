@@ -16,12 +16,12 @@ import type {
 } from "../types";
 
 export const categories: Category[] = [
-  { id: "c1000000-0000-0000-0000-000000000001", slug: "living-room", name: "Living room" },
-  { id: "c1000000-0000-0000-0000-000000000002", slug: "bedroom", name: "Bedroom" },
-  { id: "c1000000-0000-0000-0000-000000000003", slug: "workspace", name: "Workspace" },
-  { id: "c1000000-0000-0000-0000-000000000004", slug: "dining-room", name: "Dining room" },
-  { id: "c1000000-0000-0000-0000-000000000005", slug: "storage", name: "Storage" },
-  { id: "c1000000-0000-0000-0000-000000000006", slug: "lighting", name: "Lighting" },
+  { id: "c1000000-0000-0000-0000-000000000001", slug: "living-room", name: "Living room", position: 1 },
+  { id: "c1000000-0000-0000-0000-000000000002", slug: "bedroom", name: "Bedroom", position: 2 },
+  { id: "c1000000-0000-0000-0000-000000000003", slug: "workspace", name: "Workspace", position: 3 },
+  { id: "c1000000-0000-0000-0000-000000000004", slug: "dining-room", name: "Dining room", position: 4 },
+  { id: "c1000000-0000-0000-0000-000000000005", slug: "storage", name: "Storage", position: 5 },
+  { id: "c1000000-0000-0000-0000-000000000006", slug: "lighting", name: "Lighting", position: 6 },
 ];
 
 const categoryName: Record<string, string> = Object.fromEntries(

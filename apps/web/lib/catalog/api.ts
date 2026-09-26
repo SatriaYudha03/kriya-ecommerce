@@ -12,6 +12,8 @@ import type {
   VariantInput,
   ProductImageInput,
   AdminProductImage,
+  AdminCategory,
+  AdminCategoryInput,
 } from "./types";
 import { fixtures } from "./fixtures";
 
@@ -202,4 +204,42 @@ export async function deleteProductImage(productId: string, imageId: string): Pr
     `/api/v1/admin/products/${productId}/images/${imageId}`,
     { method: "DELETE", auth: true },
   );
+}
+
+export async function getAdminCategories(): Promise<AdminCategory[]> {
+  const { data } = await request<Envelope<AdminCategory[]>>("/api/v1/admin/categories", {
+    auth: true,
+  });
+  return data;
+}
+
+export async function getAdminCategory(id: string): Promise<AdminCategory> {
+  const { data } = await request<Envelope<AdminCategory>>(`/api/v1/admin/categories/${id}`, {
+    auth: true,
+  });
+  return data;
+}
+
+export async function createCategory(payload: AdminCategoryInput): Promise<{ id: string }> {
+  const { data } = await request<Envelope<{ id: string }>>("/api/v1/admin/categories", {
+    method: "POST",
+    body: payload,
+    auth: true,
+  });
+  return data;
+}
+
+export async function updateCategory(id: string, payload: AdminCategoryInput): Promise<void> {
+  await request<Envelope<{ id: string }>>(`/api/v1/admin/categories/${id}`, {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  await request<Envelope<{ id: string }>>(`/api/v1/admin/categories/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
 }

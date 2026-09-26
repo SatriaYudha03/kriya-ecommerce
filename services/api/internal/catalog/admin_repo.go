@@ -142,3 +142,27 @@ func (r *AdminRepository) UpdateImage(id, alt string, isPrimary bool) error {
 func (r *AdminRepository) DeleteImage(id string) error {
 	return r.db.Where("id = ?", id).Delete(&ProductImage{}).Error
 }
+
+func (r *AdminRepository) GetCategories() ([]Category, error) {
+	var categories []Category
+	err := r.db.Order("position ASC").Find(&categories).Error
+	return categories, err
+}
+
+func (r *AdminRepository) GetCategory(id string) (*Category, error) {
+	var category Category
+	err := r.db.Where("id = ?", id).First(&category).Error
+	return &category, err
+}
+
+func (r *AdminRepository) CreateCategory(c *Category) error {
+	return r.db.Create(c).Error
+}
+
+func (r *AdminRepository) UpdateCategory(id string, updates map[string]interface{}) error {
+	return r.db.Model(&Category{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *AdminRepository) DeleteCategory(id string) error {
+	return r.db.Where("id = ?", id).Delete(&Category{}).Error
+}

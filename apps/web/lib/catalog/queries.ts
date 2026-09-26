@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, type ProductsQuery, type AdminProductsQuery } from "./api";
+import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, type ProductsQuery, type AdminProductsQuery } from "./api";
 import { ApiError } from "../http";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { promoKeys } from "../promo/queries";
@@ -8,6 +8,8 @@ import { promoKeys } from "../promo/queries";
 export const catalogKeys = {
   all: ["catalog"] as const,
   categories: (locale: string) => [...catalogKeys.all, "categories", locale] as const,
+  adminCategories: () => [...catalogKeys.all, "adminCategories"] as const,
+  adminCategory: (id: string) => [...catalogKeys.all, "adminCategory", id] as const,
   products: (query: ProductsQuery, locale: string) => [...catalogKeys.all, "products", query, locale] as const,
   product: (slug: string, locale: string) => [...catalogKeys.all, "product", slug, locale] as const,
   search: (q: string, locale: string) => [...catalogKeys.all, "search", q, locale] as const,
@@ -86,6 +88,63 @@ export function useDeleteProduct() {
     },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : "Gagal menghapus produk");
+    },
+  });
+}
+
+export function useAdminCategories() {
+  return useQuery({
+    queryKey: catalogKeys.adminCategories(),
+    queryFn: getAdminCategories,
+  });
+}
+
+export function useAdminCategory(id: string, enabled = true) {
+  return useQuery({
+    queryKey: catalogKeys.adminCategory(id),
+    queryFn: () => getAdminCategory(id),
+    enabled: enabled && Boolean(id),
+  });
+}
+
+export function useCreateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createCategory,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: catalogKeys.all });
+      toast.success('Kategori berhasil dibuat');
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : 'Gagal membuat kategori');
+    },
+  });
+}
+
+export function useUpdateCategory(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: import('./types').AdminCategoryInput) => updateCategory(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: catalogKeys.all });
+      toast.success('Kategori berhasil diperbarui');
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : 'Gagal memperbarui kategori');
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteCategory,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: catalogKeys.all });
+      toast.success('Kategori dihapus');
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : 'Gagal menghapus kategori');
     },
   });
 }

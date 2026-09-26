@@ -25,9 +25,13 @@ func getI18nString(data []byte, locale string, fallback string) string {
 }
 
 type CategoryResponse struct {
-	ID   string `json:"id"`
-	Slug string `json:"slug"`
-	Name string `json:"name"`
+	ID          string  `json:"id"`
+	Slug        string  `json:"slug"`
+	Name        string  `json:"name"`
+	ParentID    *string `json:"parent_id,omitempty"`
+	Description string  `json:"description,omitempty"`
+	ImageURL    string  `json:"image_url,omitempty"`
+	Position    int     `json:"position"`
 }
 
 type ProductListResponse struct {
@@ -311,4 +315,25 @@ type AdminProductDetailResponse struct {
 	HasAssemblyGuide bool                 `json:"has_assembly_guide"`
 	Variants         []AdminVariantResponse `json:"variants"`
 	Images           []AdminImageResponse `json:"images"`
+}
+
+type AdminCategoryRequest struct {
+	Slug            string          `json:"slug" binding:"required"`
+	Name            string          `json:"name" binding:"required"`
+	ParentID        *string         `json:"parent_id"`
+	DescriptionI18n json.RawMessage `json:"description_i18n"`
+	ImagePath       *string         `json:"image_path"`
+	Position        int             `json:"position"`
+	IsActive        *bool           `json:"is_active"`
+}
+
+type AdminCategoryResponse struct {
+	ID              string          `json:"id"`
+	Slug            string          `json:"slug"`
+	Name            string          `json:"name"`
+	ParentID        *string         `json:"parent_id"`
+	DescriptionI18n json.RawMessage `json:"description_i18n"`
+	ImagePath       *string         `json:"image_path"`
+	Position        int             `json:"position"`
+	IsActive        bool            `json:"is_active"`
 }
