@@ -69,7 +69,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | B5 | Lanjut bayar | ⬜ | | | | | | |
 | B6 | Admin pelanggan & pengaturan | ⬜ | | | | | | |
 | B7 | E2E customer | ⬜ | | | | | | |
-| C1 | Kupon admin | 🟦 | C | 2026-09-26 | | | | |
+| C1 | Kupon admin | ✅ | C | 2026-09-26 | `ec/C1-kupon-admin` | `4f558b2` | `docs/report/C1.md` | |
 | C2 | Mesin diskon | ⬜ | | | | | | |
 | C3 | Validasi kupon & promo publik | ⬜ | | | | | | |
 | C4 | Laporan | ⬜ | | | | | | |
