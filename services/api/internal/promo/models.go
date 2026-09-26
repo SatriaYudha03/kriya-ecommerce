@@ -36,8 +36,8 @@ type Coupon struct {
 	TotalRedemptions    int             `json:"total_redemptions"`
 	
 	// Relations (fetched on Detail)
-	Products            []string        `json:"products,omitempty"`
-	Categories          []string        `json:"categories,omitempty"`
+	Products            []string        `json:"products,omitempty" gorm:"-"`
+	Categories          []string        `json:"categories,omitempty" gorm:"-"`
 }
 
 type CouponFilter struct {
