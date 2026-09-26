@@ -62,7 +62,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | A5 | Ledger stok | ⬜ | | | | | | |
 | A6 | Produk terkait & rating | ⬜ | | | | | | |
 | A7 | Seed & E2E katalog | ⬜ | | | | | | |
-| B1 | Buku alamat | ⬜ | | | | | | |
+| B1 | Buku alamat | 🟦 | B | 2026-09-26 | | | | |
 | B2 | Keranjang relasional | ⬜ | | | | | | |
 | B3 | Wishlist | ⬜ | | | | | | |
 | B4 | Ongkir tabel | ⬜ | | | | | | |
