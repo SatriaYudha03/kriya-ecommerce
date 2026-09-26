@@ -16,7 +16,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
-  const syncFromServer = useCartStore((s) => s.syncFromServer);
+  const mergeWithServer = useCartStore((s) => s.mergeWithServer);
   const { t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,7 +32,7 @@ function LoginForm() {
       if (error) throw error;
       
       if (data.session) {
-        await syncFromServer(); // Sync cart from server
+        await mergeWithServer(); // Sync cart from server
         toast.success(t("auth.login.success"));
         router.push(next);
       }

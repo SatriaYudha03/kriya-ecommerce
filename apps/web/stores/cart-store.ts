@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartItem } from "@/lib/types";
-import { getCart, updateCart } from "@/lib/api";
+import type { CartItem } from "@/lib/customer/types";
+import { getCart, updateCart, mergeCart } from "@/lib/customer/api";
 
 interface CartState {
   items: CartItem[];
@@ -12,6 +12,7 @@ interface CartState {
   removeItem: (variantId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   syncFromServer: () => Promise<void>;
+  mergeWithServer: () => Promise<void>;
 }
 
 export const useCartStore = create<CartState>()(
@@ -106,6 +107,20 @@ export const useCartStore = create<CartState>()(
           set({ loading: false });
         }
       },
+
+      mergeWithServer: async () => {
+        set({ loading: true });
+        try {
+          const { items } = get();
+          const reqItems = items.map((i) => ({ variant_id: i.variant_id, qty: i.qty }));
+          const cart = await mergeCart(reqItems);
+          set({ items: cart.items, total: cart.total });
+        } catch {
+          console.error("Failed to merge cart");
+        } finally {
+          set({ loading: false });
+        }
+      },
     }),
     {
       name: "kriya-cart",
@@ -114,3 +129,4 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
+

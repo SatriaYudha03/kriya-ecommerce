@@ -7,6 +7,7 @@ export const cart: Cart = {
       variant_id: productDetails["taru-work-desk"].variants[0].id,
       qty: 1,
       price: 1800000,
+      stock: 5,
       subtotal: 1800000,
       product: {
         slug: "taru-work-desk",

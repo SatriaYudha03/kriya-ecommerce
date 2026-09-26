@@ -35,6 +35,8 @@ export const coreId = {
   "cart.total": "Total belanja",
   "cart.checkout": "Lanjut ke Checkout",
   "cart.taxNote": "Belum termasuk biaya pengiriman",
+  "cart.outOfStock": "Stok habis",
+  "cart.notEnoughStock": "Hanya tersisa {stock}",
 
   // Category
   "category.room": "Ruangan",

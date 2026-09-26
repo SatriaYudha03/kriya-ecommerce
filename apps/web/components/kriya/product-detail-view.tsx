@@ -63,15 +63,16 @@ export function ProductDetailView({ slug }: { slug: string }) {
     setQty(1);
   };
 
-  const handleAdd = async () => {
-    if (!product || !selected) return;
-    try {
-      await addItem({
-        variant_id: selected.id,
-        qty,
-        price: selected.price,
-        product: {
-          slug: product.slug,
+    const handleAdd = async () => {
+      if (!product || !selected) return;
+      try {
+        await addItem({
+          variant_id: selected.id,
+          qty,
+          price: selected.price,
+          stock: selected.stock,
+          product: {
+            slug: product.slug,
           name: product.name,
           thumbnail_url: product.images[0]?.url || "",
           color: selected.color,

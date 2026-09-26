@@ -27,4 +27,5 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 
 	r.Authed.GET("/cart", cartHandler.GetCart)
 	r.Authed.PUT("/cart", cartHandler.PutCart)
+	r.Authed.POST("/cart/merge", cartHandler.MergeCart)
 }

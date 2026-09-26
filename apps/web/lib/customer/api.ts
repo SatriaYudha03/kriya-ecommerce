@@ -39,6 +39,22 @@ export async function updateCart(items: { variant_id: string; qty: number }[]): 
   return data;
 }
 
+export async function mergeCart(items: { variant_id: string; qty: number }[]): Promise<Cart> {
+  if (USE_FIXTURES) {
+    return new Promise((resolve) => setTimeout(() => resolve(fixtures.cart), 500));
+  }
+  if (!items || items.length === 0) {
+     return getCart();
+  }
+  const { data } = await request<Envelope<Cart>>("/api/v1/cart/merge", {
+    method: "POST",
+    body: { items },
+    auth: true
+  });
+  return data;
+}
+
+
 export async function getAddresses(): Promise<Address[]> {
   const { data } = await request<Envelope<Address[]>>("/api/v1/addresses", { auth: true });
   return data;

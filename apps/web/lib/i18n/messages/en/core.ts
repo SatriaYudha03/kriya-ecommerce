@@ -36,6 +36,8 @@ export const coreEn: typeof coreId = {
   "cart.total": "Total",
   "cart.checkout": "Proceed to Checkout",
   "cart.taxNote": "Shipping cost not included",
+  "cart.outOfStock": "Out of stock",
+  "cart.notEnoughStock": "Only {stock} available",
 
   // Category
   "category.room": "Room",

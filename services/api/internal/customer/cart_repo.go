@@ -18,6 +18,16 @@ type Cart struct {
 
 func (Cart) TableName() string { return "carts" }
 
+type CartItem struct {
+	CartID    string    `gorm:"column:cart_id;type:uuid;primaryKey"`
+	VariantID string    `gorm:"column:variant_id;type:uuid;primaryKey"`
+	Qty       int       `gorm:"column:qty"`
+	AddedAt   time.Time `gorm:"column:added_at;autoCreateTime"`
+	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime"`
+}
+
+func (CartItem) TableName() string { return "cart_items" }
+
 // VariantWithProduct adalah hasil join product_variants + products + gambar utama,
 // dipakai untuk membangun respons cart dan order (harga selalu dari sini, bukan dari client).
 type VariantWithProduct struct {
@@ -43,36 +53,116 @@ func NewCartRepository(db *gorm.DB) *CartRepository {
 	return &CartRepository{db: db}
 }
 
-// GetByUserID mengembalikan nil (tanpa error) bila cart belum ada.
-func (r *CartRepository) GetByUserID(userID string) (*Cart, error) {
+func (r *CartRepository) getOrCreateCart(tx *gorm.DB, userID string) (*Cart, error) {
 	var cart Cart
-	err := r.db.Where("user_id = ?", userID).First(&cart).Error
+	err := tx.Where("user_id = ?", userID).First(&cart).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			cart = Cart{UserID: userID, Items: []byte("[]")}
+			if err := tx.Create(&cart).Error; err != nil {
+				return nil, err
+			}
+			return &cart, nil
 		}
 		return nil, err
 	}
 	return &cart, nil
 }
 
-// UpsertItems mengganti seluruh items cart milik user (upsert penuh sesuai kontrak PUT).
-func (r *CartRepository) UpsertItems(userID string, itemsJSON []byte) error {
-	cart := Cart{UserID: userID, Items: itemsJSON}
-	return r.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"items", "updated_at"}),
-	}).Create(&cart).Error
+// GetCartItems mengembalikan daftar item di dalam cart_items untuk user terkait.
+func (r *CartRepository) GetCartItems(userID string) ([]CartItem, error) {
+	var cart Cart
+	err := r.db.Where("user_id = ?", userID).First(&cart).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return []CartItem{}, nil
+		}
+		return nil, err
+	}
+
+	var items []CartItem
+	err = r.db.Where("cart_id = ?", cart.ID).Order("added_at ASC").Find(&items).Error
+	return items, err
+}
+
+// ReplaceItems mengganti seluruh items cart milik user (sesuai kontrak PUT).
+func (r *CartRepository) ReplaceItems(userID string, items []CartItemRequest) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		cart, err := r.getOrCreateCart(tx, userID)
+		if err != nil {
+			return err
+		}
+
+		if err := tx.Where("cart_id = ?", cart.ID).Delete(&CartItem{}).Error; err != nil {
+			return err
+		}
+
+		if len(items) > 0 {
+			cartItems := make([]CartItem, 0, len(items))
+			for _, it := range items {
+				cartItems = append(cartItems, CartItem{
+					CartID:    cart.ID,
+					VariantID: it.VariantID,
+					Qty:       it.Qty,
+				})
+			}
+			if err := tx.Create(&cartItems).Error; err != nil {
+				return err
+			}
+		}
+
+		return tx.Model(cart).Update("updated_at", time.Now()).Error
+	})
+}
+
+// MergeItems melakukan upsert items ke cart (sesuai kontrak POST merge). Qty terbaru menang.
+func (r *CartRepository) MergeItems(userID string, items []CartItemRequest) error {
+	if len(items) == 0 {
+		return nil
+	}
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		cart, err := r.getOrCreateCart(tx, userID)
+		if err != nil {
+			return err
+		}
+
+		cartItems := make([]CartItem, 0, len(items))
+		for _, it := range items {
+			cartItems = append(cartItems, CartItem{
+				CartID:    cart.ID,
+				VariantID: it.VariantID,
+				Qty:       it.Qty,
+			})
+		}
+
+		err = tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "cart_id"}, {Name: "variant_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"qty", "updated_at"}),
+		}).Create(&cartItems).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Model(cart).Update("updated_at", time.Now()).Error
+	})
 }
 
 // ClearItems mengosongkan cart (dipanggil setelah order berhasil dibuat).
 func (r *CartRepository) ClearItems(userID string) error {
-	return r.db.Model(&Cart{}).Where("user_id = ?", userID).
-		Update("items", []byte("[]")).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var cart Cart
+		if err := tx.Where("user_id = ?", userID).First(&cart).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil
+			}
+			return err
+		}
+		return tx.Where("cart_id = ?", cart.ID).Delete(&CartItem{}).Error
+	})
 }
 
 // GetVariantsByIDs mengambil harga, stok, dan info produk terbaru untuk sekumpulan variant_id.
-// Ini satu-satunya sumber kebenaran harga — client tidak pernah dipercaya.
+// Ini satu-satunya sumber kebenaran harga - client tidak pernah dipercaya.
 func (r *CartRepository) GetVariantsByIDs(ids []string) ([]VariantWithProduct, error) {
 	if len(ids) == 0 {
 		return nil, nil

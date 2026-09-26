@@ -101,6 +101,7 @@ type CartItemResponse struct {
 	VariantID string              `json:"variant_id"`
 	Qty       int                 `json:"qty"`
 	Price     int                 `json:"price"`
+	Stock     int                 `json:"stock"`
 	Subtotal  int                 `json:"subtotal"`
 	Product   CartProductResponse `json:"product"`
 }

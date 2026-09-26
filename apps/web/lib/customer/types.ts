@@ -22,6 +22,7 @@ export interface CartItem {
   variant_id: string;
   qty: number;
   price: number;
+  stock: number;
   subtotal: number;
   product: {
     slug: string;
