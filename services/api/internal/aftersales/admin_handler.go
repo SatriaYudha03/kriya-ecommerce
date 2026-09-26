@@ -120,7 +120,7 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"status": string(newStatus)}})
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"status": string(newStatus)}})
 }
 
 // AddOrderNote menambahkan catatan.
@@ -144,7 +144,7 @@ func (h *AdminHandler) AddOrderNote(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, httpx.Response{Data: gin.H{"status": "ok"}})
+	c.JSON(http.StatusCreated, httpx.Response{Data: map[string]string{"status": "ok"}})
 }
 
 // CreateProduct membuat produk baru lengkap beserta varian & gambarnya.

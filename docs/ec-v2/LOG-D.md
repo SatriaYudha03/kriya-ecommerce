@@ -14,8 +14,10 @@
   predates 0C's real merge. Direview & direwrite oleh Claude 2026-09-26 —
   lihat `docs/report/D1.md` dan `docs/ec-v2/AUDIT-F1-A1D1-2026-09-26.md` §4
   langkah 5. Hasil rework di-merge ke main.
+- 2026-09-26 - D2 (Event, catatan, resi) diimplementasikan, branch `ec/D2-event-catatan-resi`. Menerapkan `OrderEventRecorder` di `aftersales/events.go`. Admin order detail (FE & BE) dan timeline+notes pada customer detail.
 
 ## Permintaan lintas-domain
-*Format: YYYY-MM-DD · TaskID · BUTUH: ... · ALASAN: ... · MEMBLOKIR: (ya/tidak) · USULAN: ...*
+*Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*
 
-- [Kosong]
+- 2026-09-26 | D2 | BUTUH: Wiring `aftersales.NewOrderEventRecorder()` ke dalam `checkout.Ports` di F2 | ALASAN: Saat F0, 0B menaruh file `ports_legacy.go` di `checkout/` (dan tidak pernah dipakai) alih-alih di tiap package domain, jadi file tersebut masuk kepemilikan I-BE. Saya tidak bisa mendaftarkan `events.go` secara langsung ke checkout. | MEMBLOKIR: tidak (untuk D2, tapi akan memblokir fitur F2) | USULAN: Integrator F2 harus memodifikasi `cmd/api/main.go` atau `checkout.RegisterRoutes` untuk menginjeksi `aftersales.NewOrderEventRecorder()` ke dalam `checkout.OrderHandler`.
+- 2026-09-26 | D2 | BUTUH: Implementasi `orderflow.Transition` | ALASAN: Endpoint `PUT /admin/orders/:id/status` memanggil `orderflow.Transition` seperti di RENCANA, namun fungsi ini saat ini berisi `return StatusPendingPayment, errors.New("not implemented")` yang mana ini merupakan hak milik F2 (I-BE). Saya menambahkan dummy implementation di repo sementara sebagai fallback. | MEMBLOKIR: tidak (saya membungkusnya dengan fallback sementara di F1) | USULAN: I-BE di F2 perlu melengkapi `orderflow.Transition`.

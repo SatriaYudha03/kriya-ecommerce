@@ -88,7 +88,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0 flex items-center gap-3">
                             <div className="h-10 w-10 shrink-0 rounded bg-neutral-100 overflow-hidden">
                               {item.thumbnail_url ? (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
                               ) : (
                                 <Package className="h-full w-full p-2 text-neutral-400" />
