@@ -28,14 +28,18 @@ fi
 PY=python
 command -v python >/dev/null 2>&1 || PY=python3
 
-$PY - "$AGENT" "$OWNERSHIP_FILE" << 'EOF'
+SCRIPT_FILE="$(mktemp)"
+trap 'rm -f "$SCRIPT_FILE"' EXIT
+cat > "$SCRIPT_FILE" << 'EOF'
 import sys
 import fnmatch
 import os
 
 agent = sys.argv[1]
 ownership_file = sys.argv[2]
-changed_files = sys.stdin.read().splitlines()
+changed_files_file = sys.argv[3]
+with open(changed_files_file, 'r') as f:
+    changed_files = f.read().splitlines()
 
 # Parse ownership file
 # Keep rules in order, last match might win, but we'll collect all owners for a file
@@ -108,3 +112,9 @@ if violations:
 else:
     print(f"Ownership check passed for agent {agent}.")
 EOF
+
+CHANGED_FILES_FILE="$(mktemp)"
+trap 'rm -f "$SCRIPT_FILE" "$CHANGED_FILES_FILE"' EXIT
+printf '%s\n' "$CHANGED_FILES" > "$CHANGED_FILES_FILE"
+
+$PY "$SCRIPT_FILE" "$AGENT" "$OWNERSHIP_FILE" "$CHANGED_FILES_FILE"
