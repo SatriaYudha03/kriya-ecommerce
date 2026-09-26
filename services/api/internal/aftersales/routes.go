@@ -13,6 +13,7 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 
 	r.Authed.GET("/orders", orderHandler.ListOrders)
 	r.Authed.GET("/orders/:id", orderHandler.GetOrder)
+	r.Authed.POST("/orders/:id/cancel", orderHandler.CancelOrder)
 
 	r.Admin.GET("/orders", adminHandler.ListOrders)
 	r.Admin.GET("/orders/:id", adminHandler.GetOrder)

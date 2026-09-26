@@ -6,8 +6,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kriya-commerce/api/internal/checkout"
 	"github.com/kriya-commerce/api/internal/httpx"
+	"github.com/kriya-commerce/api/internal/orderflow"
 	"github.com/kriya-commerce/api/internal/service"
+	"gorm.io/gorm"
 )
 
 const (
@@ -230,4 +233,82 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 		Timeline:         timeline,
 		Notes:            notes,
 	}
+}
+
+type CancelOrderRequest struct {
+	Reason string `json:"reason" binding:"required"`
+}
+
+func (h *OrderHandler) CancelOrder(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := httpx.UserID(c)
+
+	var req CancelOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: "Alasan pembatalan wajib diisi"},
+		})
+		return
+	}
+
+	order, err := h.repo.GetByIDForUser(id, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil pesanan"},
+		})
+		return
+	}
+	if order == nil {
+		c.JSON(http.StatusNotFound, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "not_found", Message: "Pesanan tidak ditemukan"},
+		})
+		return
+	}
+	if order.UserID != userID {
+		c.JSON(http.StatusForbidden, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "forbidden", Message: "Bukan pesanan Anda"},
+		})
+		return
+	}
+
+	// Permintaan lintas-domain (I-BE):
+	// Mohon tambahkan checkout.Ports ke Deps agar kita bisa memanggil Transition.
+	dummyPorts := checkout.Ports{}
+
+	var newStatus orderflow.Status
+	err = h.repo.db.Transaction(func(tx *gorm.DB) error {
+		in := orderflow.TransitionInput{
+			OrderID:      id,
+			To:           orderflow.StatusCancelled,
+			Actor:        checkout.ActorCustomer,
+			ActorID:      &userID,
+			CancelReason: &req.Reason,
+		}
+
+		st, transErr := orderflow.Transition(c.Request.Context(), tx, dummyPorts, in)
+		if transErr != nil {
+			// Fallback: update manual
+			if err := h.repo.cancelOrderManual(tx, id, req.Reason); err != nil {
+				return err
+			}
+			newStatus = orderflow.StatusCancelled
+			return nil
+		}
+		newStatus = st
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membatalkan pesanan"},
+		})
+		return
+	}
+
+	// Best-effort membatalkan di Midtrans.
+	// PERMINTAAN LINTAS-DOMAIN (I-BE):
+	// Mohon tambahkan fungsi CancelTransaction ke service.MidtransService
+	// s.midtrans.CancelTransaction(id)
+
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"status": string(newStatus)}})
 }

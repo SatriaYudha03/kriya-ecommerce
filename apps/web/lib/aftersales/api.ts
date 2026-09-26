@@ -68,3 +68,11 @@ export async function addAdminOrderNote(
     auth: true,
   });
 }
+
+export async function cancelOrder(id: string, reason: string): Promise<void> {
+  await request<Envelope<{ status: string }>>(`/api/v1/orders/${id}/cancel`, {
+    method: "POST",
+    body: { reason },
+    auth: true,
+  });
+}
