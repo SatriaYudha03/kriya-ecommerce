@@ -9,12 +9,13 @@
 ## 0. Cara pakai
 
 **Agent opencode:** di awal setiap sesi, baca berurutan:
-1. `docs/agents/KRIYA-MASTER.md` Bagian 5 (konvensi, larangan `any`) dan Bagian 10 (larangan global). **Bagian 3 (teritori FE/BE) dan Bagian 8 (ritual push langsung ke main) DIGANTIKAN oleh dokumen ini selama program EC-v2.**
-2. Dokumen ini: §0–§5 (aturan, kepemilikan, antarmuka), lalu **hanya** bagian task-mu (§6/§7/§8/§9).
-3. Bagian RENCANA yang dirujuk task-mu.
-4. `docs/ec-v2/LOG-<kamu>.md` untuk mengetahui posisi terakhir.
+1. `docs/ec-v2/STATUS.md` — **cek dulu apakah taskmu sudah 🟦/✅ oleh agent lain.** Kalau ⬜, klaim sekarang (R18) sebelum baca lebih lanjut.
+2. `docs/agents/KRIYA-MASTER.md` Bagian 5 (konvensi, larangan `any`) dan Bagian 10 (larangan global). **Bagian 3 (teritori FE/BE) dan Bagian 8 (ritual push langsung ke main) DIGANTIKAN oleh dokumen ini selama program EC-v2.**
+3. Dokumen ini: §0–§5 (aturan, kepemilikan, antarmuka), lalu **hanya** bagian task-mu (§6/§7/§8/§9).
+4. Bagian RENCANA yang dirujuk task-mu.
+5. `docs/ec-v2/LOG-<kamu>.md` untuk mengetahui posisi terakhir.
 
-**Claude (reviewer/integrator):** §10 (protokol permintaan), §11 (checklist review & merge), §12 (prompt peluncuran).
+**Claude (reviewer/integrator):** §10 (protokol permintaan), §11 (checklist review & merge — **langkah 0 wajib cek STATUS.md**), §12 (prompt peluncuran), §14 (template report).
 
 **Satria:** gerbang G0–G3 (§6.5, §7.5, §8.4, §9.3). Keputusan pra-F0 (RENCANA §11 O1–O4) sudah dikunci 2026-09-24.
 
@@ -57,8 +58,8 @@ Perkiraan sesi (1 sesi = 1 task): F0 ≈ 1–2 sesi per agent · F1 ≈ 6–7 se
 | # | Aturan |
 |---|---|
 | R1 | **Kepemilikan file (§3) menggantikan teritori FE/BE.** Agent boleh menulis di Go **dan** FE, tetapi hanya file yang cocok dengan polanya. File tanpa pemilik di §3 = core = **dilarang disentuh** |
-| R2 | **Satu worktree per agent.** `git worktree add C:\Porto\kriya-wt\agent-a -b ec/A1-status-produk main` (dan seterusnya). Dua agent di satu folder = dilarang |
-| R3 | **Branch per task** `ec/<ID>-<slug>` dari `main` terbaru (`git fetch && git rebase origin/main` sebelum mulai). Agent **push branch**, **tidak pernah merge ke main**; yang merge Claude (§11) |
+| R2 | **Satu worktree per agent, path fixed** (§2.1): `git worktree add C:\Porto\kriya-wt\agent-a -b ec/A1-status-produk main` (dan seterusnya). Dua agent di satu folder = dilarang. **Worktree tidak boleh dihapus/dipindah** sampai G1 — kalau hilang, riwayat kerja task itu tidak bisa diverifikasi dan dianggap belum ada |
+| R3 | **Branch per task** `ec/<ID>-<slug>` dari `main` terbaru (`git fetch && git rebase origin/main` sebelum mulai). Agent **push branch di akhir SETIAP sesi kerja**, bukan cuma di akhir task — kerja yang tidak di-push dianggap tidak ada. **Tidak pernah merge ke main**; yang merge Claude (§11). Nama branch harus persis `ec/<ID>-<slug>` — branch dengan nama lain tidak akan ditemukan reviewer dan task dianggap belum diklaim |
 | R4 | Commit `[ec-A] <ringkas>` (A/B/C/D/0A/0B/0C/0D/I). Body commit memuat contoh `curl` endpoint yang disentuh |
 | R5 | **Tidak ada DDL di F1 dan F2.** Butuh kolom/tabel/index → permintaan (§10). Migrasi 013+ hanya ditulis Claude/Satria di gerbang |
 | R6 | **Port Go & stub FE beku sejak G0** (§4, §5). Pemilik mengisi implementasinya, tapi **tidak mengubah signature**. Konsumen hanya memakai lewat antarmuka itu |
@@ -69,10 +70,11 @@ Perkiraan sesi (1 sesi = 1 task): F0 ≈ 1–2 sesi per agent · F1 ≈ 6–7 se
 | R11 | **i18n: key baru hanya di file domainmu** dengan prefix domain (§5.4). Teks key core yang sudah ada tidak boleh diubah |
 | R12 | **DB dev dipakai bersama.** Data uji wajib berprefix (§2.1), hanya mengubah data yang kamu buat sendiri, dan **dibersihkan di akhir sesi**. Dilarang mengubah stok/harga produk seed asli |
 | R13 | **Dependency beku:** `go.mod`, `package.json`, lockfile, `components/ui/**`. Butuh library atau komponen shadcn baru → permintaan. Grafik laporan dibuat dengan SVG/CSS, bukan library chart |
-| R14 | **Satu task per sesi.** Tutup sesi: DoD §2.2 hijau → commit → push branch → satu baris di `docs/ec-v2/LOG-<X>.md` |
+| R14 | **Satu task per sesi.** Tutup sesi: DoD §2.2 hijau → commit → **push branch (WAJIB, cek dengan `git log origin/ec/<ID>-* -1` bahwa remote benar-benar punya commit terakhir)** → satu baris di `docs/ec-v2/LOG-<X>.md` → tulis `docs/report/<ID>.md` (template §14) → **update `docs/ec-v2/STATUS.md` jadi ✅ dengan branch+commit SHA+link report** |
 | R15 | Larangan KRIYA-MASTER Bagian 5 & 10 tetap berlaku penuh: tanpa `any`/`as any`/`interface{}`/`map[string]interface{}`/`gin.H` untuk payload, tanpa `eslint-disable`/`@ts-ignore`, tanpa `AutoMigrate` |
 | R16 | Next.js di repo ini versi 16 dengan perubahan besar: **baca `apps/web/node_modules/next/dist/docs/`** sebelum menulis routing/middleware/proxy (lihat `apps/web/AGENTS.md`) |
 | R17 | Terblokir? Tulis permintaan (§10), **kerjakan bagian task yang tidak terblokir**, laporkan di log. Jangan menambal di luar kepemilikan, jangan diam menunggu |
+| R18 | **Klaim task WAJIB di `docs/ec-v2/STATUS.md` sebelum menulis kode** (ubah baris jadi 🟦 + Agent + tanggal, commit `[ec-status] klaim <ID>`, push). Tanpa klaim, dua agent bisa mengerjakan task yang sama tanpa sadar, atau task selesai tapi tidak tercatat di mana pun (ini yang terjadi pada 0A). Tutup klaim sesuai R14. **Verifikasi wajib sebelum lapor "selesai":** jalankan `git branch -a \| grep ec/<ID>` DAN `git log origin/ec/<ID>-* -1` dari root repo (bukan dari worktree) — kalau kosong, task **belum** selesai apa pun yang diklaim di percakapan/opencode |
 
 ### 2.1 Lingkungan per agent
 
@@ -95,6 +97,7 @@ Perkiraan sesi (1 sesi = 1 task): F0 ≈ 1–2 sesi per agent · F1 ≈ 6–7 se
 7. Teks UI lewat kamus i18n EN **dan** ID.
 8. Spec Playwright domainmu (`e2e/ec-<domain>.spec.ts`) bertambah untuk fitur ini dan hijau.
 9. Data uji dibersihkan; satu baris log.
+10. **`docs/ec-v2/STATUS.md` diubah ke ✅** untuk task ini (Branch, Commit SHA 7 karakter, link Report terisi) **dan** `docs/report/<ID>.md` ditulis memakai template §14. Task tanpa kedua ini = **tidak dianggap selesai**, apa pun status build atau klaim di tempat lain.
 
 ---
 
@@ -607,14 +610,16 @@ Agent **tidak menunggu**: lanjutkan bagian yang tidak terblokir atau task beriku
 ## 11. Checklist review & merge (Claude)
 
 Per branch `ec/<ID>-*`:
-1. `git fetch && git log --oneline origin/main..origin/ec/<ID>-*`: commit berprefix benar, satu task.
+0. **Cek `docs/ec-v2/STATUS.md`: baris task ini harus ✅ dengan Branch + Commit SHA + link Report terisi.** Kalau bukan ✅, atau kalau Branch/Commit di STATUS.md tidak cocok dengan `git log`, **tolak review** — minta agent menutup sesi dengan benar dulu (R14, R18). Jangan review branch yang tidak diklaim/ditutup di STATUS.md, walau kodenya terlihat lengkap — ini pernah gagal di 0A: kerja diklaim selesai secara lisan tapi tidak ada branch/commit sama sekali.
+1. `git fetch && git log --oneline origin/main..origin/ec/<ID>-*`: commit berprefix benar, satu task, SHA terakhir cocok dengan yang tercatat di STATUS.md.
 2. `bash scripts/ec-v2/check-ownership.sh <X> origin/main...origin/ec/<ID>-*` → **pelanggaran = tolak**, minta dipindah atau dijadikan permintaan.
 3. Checkout branch di worktree review: build Go + `tsc` + `eslint` + `next build`; `any-check.sh`.
 4. Kontrak: jalankan `curl` dari body commit terhadap API branch; bandingkan dengan RENCANA §7 field per field; cek fixtures cocok.
 5. Aturan domain: tulis DB hanya ke tabel sendiri (grep `Table("`/`Model(&` ke tabel domain lain); tidak ada `UPDATE orders SET status` di luar `orderflow`; tidak ada import package domain lain.
 6. Jalankan spec E2E domain + `transaksi.spec.ts` (**wajib** untuk A5, B2, C2, D2, D3 karena port-nya aktif di jalur checkout).
-7. Merge `git merge --no-ff`, lalu **build ulang di `main`** (menangkap tabrakan lintas branch yang lolos di masing-masing branch), push, dan hapus branch.
-8. Balas di log agent bila ada catatan; cek bagian permintaan lintas-domain.
+7. Baca `docs/report/<ID>.md` (§14) — bandingkan output DoD yang ditempel di sana dengan hasil build ulangmu sendiri; kalau tidak cocok/tidak ada, tolak.
+8. Merge `git merge --no-ff`, lalu **build ulang di `main`** (menangkap tabrakan lintas branch yang lolos di masing-masing branch), push, dan hapus branch.
+9. Balas di log agent bila ada catatan; cek bagian permintaan lintas-domain. Update `docs/ec-v2/STATUS.md` kolom Catatan dengan tanggal merge.
 
 Urutan merge antar agent bebas karena file tidak beririsan. Kalau terjadi konflik git, itu tanda pelanggaran kepemilikan: selidiki dulu, jangan langsung di-resolve.
 
@@ -622,30 +627,39 @@ Urutan merge antar agent bebas karena file tidak beririsan. Kalau terjadi konfli
 
 ## 12. Prompt peluncuran opencode
 
-opencode membaca `AGENTS.md` di root (disiapkan 0D, di-commit Satria di G0). Opsional: definisikan agent khusus per domain di konfigurasi opencode (mis. `.opencode/agent/ec-a.md`); cek dokumentasi opencode versi yang dipakai untuk format pastinya.
+opencode membaca `AGENTS.md` di root — **sudah dibuat 2026-09-26** (lebih awal dari rencana semula "0D, di-commit Satria di G0") justru karena audit menemukan tidak ada apa pun yang ter-auto-load untuk opencode sebelumnya. Isinya WAJIB tetap sinkron dengan §0/R1–R18/§14 dokumen ini — kalau bagian itu diubah, update `AGENTS.md` di commit yang sama. Opsional: definisikan agent khusus per domain di konfigurasi opencode (mis. `.opencode/agent/ec-a.md`); cek dokumentasi opencode versi yang dipakai untuk format pastinya.
 
 **Template (satu sesi = satu task):**
 ```
 Kamu adalah Agent {X} ({nama domain}) dalam program KRIYA E-commerce v2.
 Worktree: C:\Porto\kriya-wt\agent-{x}. Task: {ID} — {judul}.
 
-Sebelum menulis kode, baca:
+LANGKAH 0 (WAJIB, sebelum baca apa pun lain): buka docs/ec-v2/STATUS.md. Kalau baris {ID}
+sudah 🟦/✅, BERHENTI dan laporkan konflik — jangan mulai kerja. Kalau ⬜, ubah jadi 🟦
+(isi Agent={X}, Tanggal=hari ini), commit HANYA file itu dengan pesan "[ec-status] klaim {ID}",
+push, baru lanjut baca:
 - docs/agents/KRIYA-MASTER.md Bagian 5 dan 10
 - docs/rencana/EKSEKUSI-PARALEL-V2.md §0–§5 dan baris task {ID} di §7.{X}
 - docs/rencana/RENCANA-ECOMMERCE-V2.md bagian yang dirujuk task {ID}
 - docs/ec-v2/LOG-{X}.md
 
 Aturan keras:
-- Kerjakan HANYA task {ID}. Branch: ec/{ID}-{slug} dari origin/main terbaru.
+- Kerjakan HANYA task {ID}. Branch: ec/{ID}-{slug} dari origin/main terbaru, di worktree
+  C:\Porto\kriya-wt\agent-{x} (jangan buat worktree lain, jangan hapus worktree ini).
 - Hanya ubah file yang cocok dengan pola kepemilikan {X} di §3. Tidak ada DDL.
 - Jangan ubah signature port Go (§4) atau props komponen lintas domain (§5.3).
 - Dilarang any / as any / interface{} / gin.H / eslint-disable / @ts-ignore.
 - Data uji berprefix sesuai §2.1 dan dibersihkan di akhir.
+- Push branch di akhir SETIAP sesi kerja, bukan hanya saat task selesai (R3).
 
 Selesai = seluruh DoD §2.2 hijau (tempel output ringkas), commit "[ec-{x}] …" dengan contoh curl
-di body, push branch, satu baris di docs/ec-v2/LOG-{X}.md. Jangan merge ke main.
+di body, push branch (verifikasi dengan `git log origin/ec/{ID}-* -1`), satu baris di
+docs/ec-v2/LOG-{X}.md, tulis docs/report/{ID}.md (template §14), lalu ubah baris {ID} di
+docs/ec-v2/STATUS.md jadi ✅ dengan Branch+Commit SHA+link Report, commit
+"[ec-status] tutup {ID}", push. Jangan merge ke main.
 Bila butuh sesuatu di luar kepemilikanmu: tulis di "Permintaan lintas-domain" LOG-{X}.md,
-kerjakan bagian yang tidak terblokir, dan sebutkan di ringkasan akhir.
+kerjakan bagian yang tidak terblokir, tandai STATUS.md 🟥 bila total terblokir, dan sebutkan
+di ringkasan akhir.
 ```
 
 **Tambahan khusus F0** (untuk 0A/0B/0C/0D): ganti baris task dengan "§6.{n} Task 0{A|B|C|D}" dan kepemilikan dengan §3.3 / "core (F0 saja)". Untuk 0B dan 0C tambahkan: *"Ini refactor tanpa perubahan perilaku. Bukti: golden diff 0 (0B) / screenshot identik + E2E lama hijau (0C)."*
@@ -664,3 +678,42 @@ kerjakan bagian yang tidak terblokir, dan sebutkan di ringkasan akhir.
 | Agent D | 0D (QA) atau 0B | D1–D7 | I-QA | seed/audit after-sales |
 | Claude | review, terapkan migrasi, G0 | review & merge per branch, triase permintaan, migrasi 013 | review ketat / kerjakan I-BE | F3-Z, update dokumen |
 | Satria | setujui G0, commit AGENTS.md + addendum master | putuskan permintaan dependency/kontrak | demo G2 | setujui drop kolom, G3 |
+
+---
+
+## 14. Template report wajib (`docs/report/<ID>.md`)
+
+Ditulis di akhir SETIAP task (R14, DoD §2.2 poin 10) — bukan opsional, bukan cuma untuk task besar.
+Tanpa file ini (dengan field terisi nyata, bukan placeholder), task **tidak dianggap selesai**
+oleh reviewer (§11 langkah 0/7) walau branch-nya sudah ada.
+
+```markdown
+# Report <ID>: <judul task singkat>
+
+**Agent:** <A|B|C|D|0A|0B|0C|0D|I-BE|I-FE|I-QA>
+**Tanggal:** <YYYY-MM-DD>
+**Branch:** `ec/<ID>-<slug>`
+**Commit SHA terakhir:** `<7 karakter, dari git log -1 --format=%h di branch ini>`
+**Status:** selesai | sebagian (jelaskan sisanya) | diblokir (lihat Permintaan lintas-domain)
+
+## DoD §2.2 — output asli (tempel, jangan diringkas jadi "OK" saja)
+1. Go build/vet/test: <tempel baris terakhir output, atau "N/A — task ini tidak menyentuh Go">
+2. tsc/eslint/next build: <tempel baris terakhir output, atau "N/A">
+3. check-ownership.sh: <tempel output>
+4. any-check.sh: <tempel output>
+5. curl endpoint yang disentuh + respons JSON asli (bukan contoh dari RENCANA)
+6. Fixtures diperbarui: <ya/tidak, file mana>
+7. i18n EN+ID: <ya/tidak, key apa>
+8. E2E spec: <nama file, hijau/merah, jumlah test>
+9. Data uji dibersihkan: <ya, cara verifikasi>
+
+## Permintaan lintas-domain
+<isi sesuai §10, atau "Tidak ada">
+
+## Next
+<task berikutnya yang disarankan untuk agent ini>
+```
+
+Reviewer (Claude) yang menemukan report dengan field placeholder (`<...>` belum diisi) atau output
+DoD yang tidak konsisten dengan hasil build ulangnya sendiri **menolak review** dan meminta
+agent menulis ulang report-nya — ini persis kegagalan yang membuat status 0A tidak terlacak.
