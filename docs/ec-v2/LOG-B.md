@@ -16,6 +16,8 @@
   docs/report/B1.md dan docs/ec-v2/AUDIT-F1-A1D1-2026-09-26.md.
 - 2026-09-26 - B2 (keranjang relasional): Menyelesaikan migrasi keranjang relasional di branch `ec/B2-keranjang-relasional`. Backfill `cart_items` dijalankan via psql. Endpoint `GET/PUT /cart` dipindahkan ke `cart_items`, membuat `POST /cart/merge`. Halaman FE Keranjang diperbarui menggunakan PriceTag dan menambahkan peringatan stok. `cart-store` memanggil `mergeWithServer` saat user login/register. Catatan: aplikasi berhenti menulis ke `carts.items` (perlu update untuk integrasi n8n).
 
+- 2026-09-27 - B4 (ongkir tabel): Menyelesaikan B4 dengan implementasi `shippingQuoter` dan halaman admin `/admin/shipping` di branch `ec/B4-ongkir-tabel`. Semua unit test lulus.
+
 ## Permintaan lintas-domain
 *Format: YYYY-MM-DD · TaskID · BUTUH: ... · ALASAN: ... · MEMBLOKIR: (ya/tidak) · USULAN: ...*
 
