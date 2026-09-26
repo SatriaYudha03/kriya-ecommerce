@@ -1,4 +1,5 @@
-export const en: typeof import("./id").id = {
+import type { coreId } from "../id/core";
+export const coreEn: typeof coreId = {
   // Navigation
   "nav.home": "Home",
   "nav.search": "Search furniture",

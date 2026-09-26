@@ -14,6 +14,7 @@ const STATUS: Record<OrderStatus, { label: string; cls: string }> = {
   completed: { label: "Selesai", cls: "bg-neutral-100 text-neutral-800" },
   cancelled: { label: "Dibatalkan", cls: "bg-red-100 text-red-800" },
   expired: { label: "Kadaluarsa", cls: "bg-red-100 text-red-800" },
+  refunded: { label: "Dikembalikan", cls: "bg-red-100 text-red-800" },
 };
 
 const STATUS_KEYS = Object.keys(STATUS) as OrderStatus[];

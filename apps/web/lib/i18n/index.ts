@@ -1,7 +1,7 @@
 export type Locale = "en" | "id";
 
-import { en } from "./messages/en";
-import { id } from "./messages/id";
+import { en } from "./messages/en/index";
+import { id } from "./messages/id/index";
 
 export const dictionaries = { en, id };
 

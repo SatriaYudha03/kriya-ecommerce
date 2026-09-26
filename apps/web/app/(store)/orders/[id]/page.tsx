@@ -9,16 +9,17 @@ import { formatRupiah } from "@/lib/format";
 import type { OrderStatus } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const map: Record<OrderStatus, { label: string; cls: string }> = {
-    pending_payment: { label: "Menunggu Pembayaran", cls: "bg-yellow-100 text-yellow-800" },
-    paid: { label: "Dibayar", cls: "bg-green-100 text-green-800" },
-    processing: { label: "Diproses", cls: "bg-blue-100 text-blue-800" },
-    shipped: { label: "Dikirim", cls: "bg-indigo-100 text-indigo-800" },
-    completed: { label: "Selesai", cls: "bg-neutral-100 text-neutral-800" },
-    cancelled: { label: "Dibatalkan", cls: "bg-red-100 text-red-800" },
-    expired: { label: "Kadaluarsa", cls: "bg-red-100 text-red-800" },
-  };
+  function StatusBadge({ status }: { status: OrderStatus }) {
+    const map: Record<OrderStatus, { label: string; cls: string }> = {
+      pending_payment: { label: "Menunggu Pembayaran", cls: "bg-yellow-100 text-yellow-800" },
+      paid: { label: "Dibayar", cls: "bg-green-100 text-green-800" },
+      processing: { label: "Diproses", cls: "bg-blue-100 text-blue-800" },
+      shipped: { label: "Dikirim", cls: "bg-indigo-100 text-indigo-800" },
+      completed: { label: "Selesai", cls: "bg-neutral-100 text-neutral-800" },
+      cancelled: { label: "Dibatalkan", cls: "bg-red-100 text-red-800" },
+      expired: { label: "Kadaluarsa", cls: "bg-red-100 text-red-800" },
+      refunded: { label: "Dikembalikan", cls: "bg-red-100 text-red-800" },
+    };
   const { label, cls } = map[status];
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium ${cls}`}>

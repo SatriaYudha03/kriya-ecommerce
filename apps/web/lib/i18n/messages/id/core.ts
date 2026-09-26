@@ -1,4 +1,4 @@
-export const id = {
+export const coreId = {
   // Navigation
   "nav.home": "Beranda",
   "nav.search": "Cari furniture",
