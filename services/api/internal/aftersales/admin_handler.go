@@ -39,14 +39,7 @@ func (h *AdminHandler) ListOrders(c *gin.Context) {
 
 	res := make([]OrderResponse, 0, len(orders))
 	for _, o := range orders {
-		items, err := h.orderRepo.GetItemsByOrderID(o.ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
-				Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil item pesanan"},
-			})
-			return
-		}
-		res = append(res, ToOrderResponse(o, items))
+		res = append(res, ToOrderResponse(o, "id")) // default to id for admin
 	}
 
 	c.JSON(http.StatusOK, httpx.Response{

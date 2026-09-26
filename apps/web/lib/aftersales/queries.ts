@@ -13,11 +13,11 @@ export const afterKeys = {
   adminOrders: (query: AdminOrdersQuery) => [...afterKeys.all, "admin-orders", query] as const,
 };
 
-export function useOrders() {
+export function useOrders(page: number = 1, limit: number = 10, status?: string) {
   const { locale } = useLanguage();
   return useQuery({
-    queryKey: afterKeys.orders(locale),
-    queryFn: getOrders,
+    queryKey: [...afterKeys.orders(locale), page, limit, status],
+    queryFn: () => getOrders(page, limit, status),
   });
 }
 

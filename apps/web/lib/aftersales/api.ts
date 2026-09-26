@@ -3,10 +3,17 @@ import type { Envelope, ListEnvelope } from "../http";
 import type { Order, OrderStatus, AdminOrdersQuery } from "./types";
 import { fixtures } from "./fixtures";
 
-export async function getOrders(): Promise<Order[]> {
-  if (USE_FIXTURES) return fixtures.orders;
-  const { data } = await request<Envelope<Order[]>>("/api/v1/orders", { auth: true });
-  return data;
+export async function getOrders(
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+): Promise<ListEnvelope<Order>> {
+  if (USE_FIXTURES) {
+    return { data: fixtures.orders, meta: { page, limit, total: fixtures.orders.length } };
+  }
+  const query = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (status) query.append("status", status);
+  return request<ListEnvelope<Order>>(`/api/v1/orders?${query.toString()}`, { auth: true });
 }
 
 export async function getOrder(id: string): Promise<Order> {

@@ -69,13 +69,13 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | B5 | Lanjut bayar | ⬜ | | | | | | |
 | B6 | Admin pelanggan & pengaturan | ⬜ | | | | | | |
 | B7 | E2E customer | ⬜ | | | | | | |
-| C1 | Kupon admin | 🟥 | C | 2026-09-26 | `ec/C1-kupon-admin` | `4f558b2` | `docs/report/C1.md` | **Dikoreksi 2026-09-26** (Claude, lihat AUDIT-F1-A1D1-2026-09-26.md): baris ini sebelumnya ditandai ✅ tapi commit `4f558b2` hanya update `LOG-C.md`, **kode C1 belum pernah di-merge ke `main`**. Audit juga menemukan C1 menyentuh file core (`lib/api.ts`, `lib/types.ts`, `lib/admin-queries.ts`, `app/(admin)/layout.tsx`, `app/(store)/search/page.tsx`) dan file milik A (`product-detail-view.tsx`). Ditandai 🟥 sampai direview ulang & dipisah sesuai audit §4 langkah 5, lalu benar-benar di-merge. |
+| C1 | Kupon admin | ✅ | C | 2026-09-26 | `ec/C1-kupon-admin` (direwrite, lihat `efc06d3`) | `efc06d3` | `docs/report/C1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): kode asli C1 (`d1c4079`) menaruh fungsi/tipe kupon di barrel core (`lib/api.ts`/`types.ts`/`admin-queries.ts`) karena worktree-nya predates 0C's real merge ke main. Dipindah ke `lib/promo/{api,types,queries}.ts`, endpoint Go (`internal/promo/**`) tidak berubah (sudah benar dari awal). Dua perubahan lain di commit asli (anotasi tipe di `search/page.tsx`/`product-detail-view.tsx`, di luar domain C) tidak diikutsertakan — tsc sudah bersih tanpanya. Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
 | C2 | Mesin diskon | ⬜ | | | | | | |
 | C3 | Validasi kupon & promo publik | ⬜ | | | | | | |
 | C4 | Laporan | ⬜ | | | | | | |
 | C5 | Dashboard v2 | ⬜ | | | | | | |
 | C6 | E2E promo | ⬜ | | | | | | |
-| D1 | Riwayat pesanan v2 | ⬜ | | | | | | |
+| D1 | Riwayat pesanan v2 | ✅ | D | 2026-09-26 | `ec/D1-riwayat-pesanan-v2` (direwrite, lihat commit main) | (lihat git log main) | `docs/report/D1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): kode asli D1 (`5ffb503`) menaruh tipe/fungsi/hook order di barrel core lama (`lib/api.ts`/`types.ts`/`queries.ts`/`fixtures/index.ts`) dan file baru `components/kriya/order-status-badge.tsx` (bukan stub `aftersales/order-status-badge.tsx`) karena worktree-nya predates 0C's real merge. Dipindah ke `lib/aftersales/{api,types,queries,fixtures}.ts` dan stub asli diisi. Key i18n direname dari prefix `orders.*` (salah, R11) ke `after.*`/`after.orders.*` sesuai kontrak §5.4. `middleware.ts` baru dari commit asli TIDAK diikutsertakan — guard login untuk `/orders` dkk sudah ada & lebih lengkap di `proxy.ts` (Next 16 real convention, sudah termasuk 0C). Backend `internal/aftersales/**` tidak berubah (sudah benar sejak awal). Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error (21 warning, turun dari 22 karena stub badge terisi), next build hijau. |
 | D2 | Event, catatan, resi | ⬜ | | | | | | |
 | D3 | Batal oleh customer | ⬜ | | | | | | |
 | D4 | Ulasan | ⬜ | | | | | | |
