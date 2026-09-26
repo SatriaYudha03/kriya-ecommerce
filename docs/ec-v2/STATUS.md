@@ -36,7 +36,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 
 | Gerbang | Status | Tanggal | Catatan |
 |---|---|---|---|
-| G0 (fondasi → domain) | 🟦 | 2026-09-26 | Claude |
+| G0 (fondasi → domain) | ✅ | 2026-09-26 | Migrasi selesai, tag ec-v2-g0 |
 | G1 (domain → integrasi) | ⬜ | | |
 | G2 (integrasi → pengerasan) | ⬜ | | |
 | G3 (rilis) | ⬜ | | |
