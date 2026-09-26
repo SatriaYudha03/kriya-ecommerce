@@ -15,7 +15,9 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Authed.GET("/orders/:id", orderHandler.GetOrder)
 
 	r.Admin.GET("/orders", adminHandler.ListOrders)
+	r.Admin.GET("/orders/:id", adminHandler.GetOrder)
 	r.Admin.PUT("/orders/:id/status", adminHandler.UpdateOrderStatus)
+	r.Admin.POST("/orders/:id/notes", adminHandler.AddOrderNote)
 
 	r.Internal.GET("/orders/status", orderHandler.InternalOrderStatus)
 }

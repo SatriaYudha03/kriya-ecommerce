@@ -48,6 +48,14 @@ export interface PaymentInfo {
   expires_at: string | null;
 }
 
+export interface OrderNote {
+  id: string;
+  body: string;
+  is_customer_visible: boolean;
+  created_at: string;
+  author_name: string | null;
+}
+
 export interface Order {
   id: string;
   order_number: string;
@@ -74,6 +82,7 @@ export interface Order {
   cancelled_at: string | null;
   created_at: string;
   timeline: OrderTimeline[];
+  notes?: OrderNote[];
 }
 
 export interface AdminOrdersQuery {
