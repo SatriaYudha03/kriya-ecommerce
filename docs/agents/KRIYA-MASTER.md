@@ -236,3 +236,6 @@ WAJIB tutup sesi dengan menulis ringkasan di docs/state/ (lihat
 docs/agents/KRIYA-MASTER.md Bagian 8.1) agar sesi berikutnya mengenali
 konteks fitur/bug yang sudah dicatat.
 ```
+## Addendum (EC-v2 G0)
+- Kontrak API: Lihat docs/rencana/RENCANA-ECOMMERCE-V2.md Bagian 7. Kontrak di Bagian 6 KRIYA-MASTER.md sudah digantikan oleh spesifikasi EC-v2.
+- Skema Database: Lihat docs/rencana/RENCANA-ECOMMERCE-V2.md Bagian 5.6. Skema di Bagian 7 KRIYA-MASTER.md telah dimutakhirkan.
