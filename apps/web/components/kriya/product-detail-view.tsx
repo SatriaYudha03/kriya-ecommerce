@@ -15,6 +15,7 @@ import { ProductGallery } from "./product-gallery";
 import { ProductTabs } from "./product-tabs";
 import { VariantSelector } from "./variant-selector";
 import { ProductCard } from "./product-card";
+import { PriceTag } from "./catalog/price-tag";
 import { useLanguage } from "./language-provider";
 
 function SimilarProducts({ productId }: { productId: string }) {
@@ -63,16 +64,15 @@ export function ProductDetailView({ slug }: { slug: string }) {
     setQty(1);
   };
 
-    const handleAdd = async () => {
-      if (!product || !selected) return;
-      try {
-        await addItem({
-          variant_id: selected.id,
-          qty,
-          price: selected.price,
-          stock: selected.stock,
-          product: {
-            slug: product.slug,
+  const handleAdd = async () => {
+    if (!product || !selected) return;
+    try {
+      await addItem({
+        variant_id: selected.id,
+        qty,
+        price: selected.price,
+        product: {
+          slug: product.slug,
           name: product.name,
           thumbnail_url: product.images[0]?.url || "",
           color: selected.color,
@@ -135,18 +135,23 @@ export function ProductDetailView({ slug }: { slug: string }) {
             {product.name}
           </h1>
 
-          <div className="mt-4 flex items-center gap-3">
-            <p className="text-2xl font-semibold text-neutral-900">
-              {formatRupiah(selected.price)}
-            </p>
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-medium",
-                stock > 0 ? "bg-brand-tint text-brand-strong" : "bg-neutral-100 text-neutral-500",
-              )}
-            >
-              {stockLabel}
-            </span>
+          <div className="mt-4 flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <PriceTag price={selected.price} regularPrice={selected.regular_price} size="lg" />
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-medium",
+                  stock > 0 ? "bg-brand-tint text-brand-strong" : "bg-neutral-100 text-neutral-500",
+                )}
+              >
+                {stockLabel}
+              </span>
+            </div>
+            {selected.sale_ends_at && (
+              <p className="text-xs text-red-600 font-medium">
+                Promo berakhir {new Date(selected.sale_ends_at).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            )}
           </div>
 
           <p className="mt-4 max-w-md text-sm leading-relaxed text-neutral-600">

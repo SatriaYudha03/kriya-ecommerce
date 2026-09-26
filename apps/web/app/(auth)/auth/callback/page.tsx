@@ -8,7 +8,7 @@ import { useCartStore } from "@/stores/cart-store";
 function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const mergeWithServer = useCartStore((s) => s.mergeWithServer);
+  const syncFromServer = useCartStore((s) => s.syncFromServer);
 
   useEffect(() => {
     async function handleCallback() {
@@ -19,14 +19,14 @@ function CallbackHandler() {
       
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        await mergeWithServer();
+        await syncFromServer();
       }
       const next = searchParams.get("next") || "/";
       router.replace(next);
     }
     
     handleCallback();
-  }, [router, searchParams, mergeWithServer]);
+  }, [router, searchParams, syncFromServer]);
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4 py-8 text-center">

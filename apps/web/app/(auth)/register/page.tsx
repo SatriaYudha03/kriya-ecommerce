@@ -16,7 +16,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
-  const mergeWithServer = useCartStore((s) => s.mergeWithServer);
+  const syncFromServer = useCartStore((s) => s.syncFromServer);
   const { t } = useLanguage();
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -32,7 +32,7 @@ function RegisterForm() {
       if (error) throw error;
       
       if (data.session) {
-        await mergeWithServer();
+        await syncFromServer();
         toast.success(t("auth.register.success"));
         router.push(next);
       } else {

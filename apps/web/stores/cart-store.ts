@@ -7,7 +7,7 @@ interface CartState {
   items: CartItem[];
   total: number;
   loading: boolean;
-  addItem: (item: Omit<CartItem, "subtotal">) => Promise<void>;
+  addItem: (item: Omit<CartItem, "subtotal" | "stock"> & { stock?: number }) => Promise<void>;
   updateQty: (variantId: string, qty: number) => Promise<void>;
   removeItem: (variantId: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -35,7 +35,7 @@ export const useCartStore = create<CartState>()(
               : i
           );
         } else {
-          newItems = [...items, { ...newItem, subtotal: newItem.price * newItem.qty }];
+          newItems = [...items, { ...newItem, stock: newItem.stock ?? 999, subtotal: newItem.price * newItem.qty }];
         }
         
         set({ items: newItems, total: newItems.reduce((acc, i) => acc + i.subtotal, 0) });
@@ -99,8 +99,15 @@ export const useCartStore = create<CartState>()(
       syncFromServer: async () => {
         set({ loading: true });
         try {
-          const cart = await getCart();
-          set({ items: cart.items, total: cart.total });
+          const { items } = get();
+          if (items.length > 0) {
+            const reqItems = items.map((i) => ({ variant_id: i.variant_id, qty: i.qty }));
+            const cart = await mergeCart(reqItems);
+            set({ items: cart.items, total: cart.total });
+          } else {
+            const cart = await getCart();
+            set({ items: cart.items, total: cart.total });
+          }
         } catch {
           console.error("Failed to sync cart");
         } finally {
