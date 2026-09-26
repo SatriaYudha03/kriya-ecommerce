@@ -51,6 +51,14 @@ type TimelineEvent struct {
 	Note      *string   `json:"note"`
 }
 
+type OrderNoteResponse struct {
+	ID                string    `json:"id"`
+	Body              string    `json:"body"`
+	IsCustomerVisible bool      `json:"is_customer_visible"`
+	CreatedAt         time.Time `json:"created_at"`
+	AuthorName        *string   `json:"author_name"`
+}
+
 type OrderResponse struct {
 	ID               string                   `json:"id"`
 	OrderNumber      string                   `json:"order_number"`
@@ -77,7 +85,9 @@ type OrderResponse struct {
 	CancelledAt      *time.Time               `json:"cancelled_at"`
 	CreatedAt        time.Time                `json:"created_at"`
 	Timeline         []TimelineEvent          `json:"timeline"`
+	Notes            []OrderNoteResponse      `json:"notes,omitempty"`
 }
+
 
 // ===== Internal =====
 
@@ -91,5 +101,14 @@ type InternalOrderStatusResponse struct {
 // ===== Admin =====
 
 type AdminUpdateOrderStatusRequest struct {
-	Status string `json:"status" binding:"required,oneof=pending_payment paid processing shipped completed cancelled expired"`
+	Status         string  `json:"status" binding:"required"`
+	Note           string  `json:"note"`
+	Courier        *string `json:"courier"`
+	TrackingNumber *string `json:"tracking_number"`
+	CancelReason   *string `json:"cancel_reason"`
+}
+
+type AdminNoteRequest struct {
+	Body              string `json:"body" binding:"required"`
+	IsCustomerVisible bool   `json:"is_customer_visible"`
 }

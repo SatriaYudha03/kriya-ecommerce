@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Loader2, Package } from "lucide-react";
 import { useAdminOrders, useUpdateOrderStatus } from "@/lib/aftersales/queries";
@@ -100,7 +101,9 @@ export default function AdminOrdersPage() {
                   return (
                     <tr key={o.id}>
                       <td className="whitespace-nowrap px-6 py-4 font-mono text-sm text-neutral-900">
-                        {o.id.split("-")[0]}
+                        <Link href={`/admin/orders/${o.id}`} className="hover:underline text-blue-600">
+                          {o.id.split("-")[0]}
+                        </Link>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
                         {new Date(o.created_at).toLocaleDateString("id-ID", {

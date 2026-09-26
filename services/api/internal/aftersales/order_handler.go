@@ -188,6 +188,17 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 		})
 	}
 
+	notes := make([]OrderNoteResponse, 0, len(o.Notes))
+	for _, n := range o.Notes {
+		notes = append(notes, OrderNoteResponse{
+			ID:                n.ID,
+			Body:              n.Body,
+			IsCustomerVisible: n.IsCustomerVisible,
+			CreatedAt:         n.CreatedAt,
+			AuthorName:        n.AuthorName,
+		})
+	}
+
 	canCancel := o.Status == "pending_payment"
 	canReturn := o.Status == "completed" // Simplification for now, might need time check
 
@@ -217,5 +228,6 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 		CancelledAt:      o.CancelledAt,
 		CreatedAt:        o.CreatedAt,
 		Timeline:         timeline,
+		Notes:            notes,
 	}
 }
