@@ -1,4 +1,4 @@
-import type { Order } from "./types";
+import type { Order, Review, ReviewSummary } from "./types";
 
 export const orders: Order[] = [
   {
@@ -61,6 +61,35 @@ export const orders: Order[] = [
   },
 ];
 
+export const reviews: Review[] = [
+  {
+    id: "rev10000-0000-0000-0000-000000000001",
+    product_id: "p1000000-0000-0000-0000-000000000001",
+    user_id: "u1000000-0000-0000-0000-000000000001",
+    order_item_id: "oi100000-0000-0000-0000-000000000001",
+    rating: 5,
+    title: "Sangat bagus",
+    body: "Meja kerja TARU sangat nyaman.",
+    status: "approved",
+    admin_reply: null,
+    replied_at: null,
+    created_at: "2026-07-10T14:00:00Z",
+    updated_at: "2026-07-10T14:00:00Z",
+    user_name: "Satria",
+    product_name: "TARU work desk",
+    product_slug: "taru-work-desk",
+    variant_name: "natural",
+  }
+];
+
+export const reviewSummary: ReviewSummary = {
+  average_rating: 5,
+  total_reviews: 1,
+  rating_counts: { "5": 1 }
+};
+
 export const fixtures = {
   orders,
+  reviews,
+  reviewSummary
 };
