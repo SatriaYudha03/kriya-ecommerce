@@ -1,6 +1,7 @@
 "use client";
 
 import { useOrder } from "@/lib/aftersales/queries";
+import type { OrderStatus } from "@/lib/aftersales/types";
 import { formatRupiah } from "@/lib/format";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Package } from "lucide-react";
@@ -87,7 +88,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0 flex items-center gap-3">
                             <div className="h-10 w-10 shrink-0 rounded bg-neutral-100 overflow-hidden">
                               {item.thumbnail_url ? (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={item.thumbnail_url} alt="" className="h-full w-full object-cover" />
                               ) : (
                                 <Package className="h-full w-full p-2 text-neutral-400" />
@@ -122,18 +122,70 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 </div>
               </div>
             </div>
+
+            {/* Timeline */}
+            <div className="mt-10 border-t border-neutral-200 pt-6">
+              <h2 className="font-semibold text-neutral-900">{t("after.orders.detail.timeline")}</h2>
+              <div className="mt-4 space-y-4">
+                {order.timeline?.length > 0 ? (
+                  order.timeline.map((ev, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="w-24 shrink-0 text-sm text-neutral-500">
+                        {new Date(ev.created_at).toLocaleDateString(locale, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                      <div className="flex-1 text-sm">
+                        <div className="font-medium text-neutral-900"><OrderStatusBadge status={ev.status as OrderStatus} /></div>
+                        {ev.note && <div className="mt-1 text-neutral-600">{ev.note}</div>}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-neutral-500">{t("after.orders.detail.timelineEmpty")}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Public Notes */}
+            {order.notes && order.notes.length > 0 && (
+              <div className="mt-10 border-t border-neutral-200 pt-6">
+                <h2 className="font-semibold text-neutral-900">{t("after.orders.detail.publicNotes")}</h2>
+                <div className="mt-4 space-y-4">
+                  {order.notes.map((note) => (
+                    <div key={note.id} className="rounded-md bg-yellow-50 p-4 text-sm text-yellow-800">
+                      <div className="font-medium">{note.author_name || "Admin"} • {new Date(note.created_at).toLocaleDateString(locale, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                      <div className="mt-1">{note.body}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="bg-neutral-50 p-6 lg:bg-transparent">
-            <h2 className="font-semibold text-neutral-900">{t("after.orders.detail.shippingAddress")}</h2>
-            <div className="mt-4 text-sm text-neutral-600">
-              <p className="font-medium text-neutral-900">{order.shipping_address.recipient}</p>
-              <p className="mt-1">{order.shipping_address.phone}</p>
-              <p className="mt-2">{order.shipping_address.address_line}</p>
-              <p>
-                {order.shipping_address.city}, {order.shipping_address.province}{" "}
-                {order.shipping_address.postal_code}
-              </p>
+          <div className="bg-neutral-50 p-6 lg:bg-transparent space-y-8">
+            {/* Courier Info */}
+            {(order.courier || order.tracking_number) && (
+              <div>
+                <h2 className="font-semibold text-neutral-900">{t("after.orders.detail.shipping")}</h2>
+                <div className="mt-4 text-sm text-neutral-600">
+                  <p className="font-medium text-neutral-900">{order.courier || t("after.orders.detail.courier")}</p>
+                  {order.tracking_number && (
+                    <p className="mt-1">{t("after.orders.detail.trackingNumber")}: <span className="font-medium text-neutral-900">{order.tracking_number}</span></p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <h2 className="font-semibold text-neutral-900">{t("after.orders.detail.shippingAddress")}</h2>
+              <div className="mt-4 text-sm text-neutral-600">
+                <p className="font-medium text-neutral-900">{order.shipping_address.recipient}</p>
+                <p className="mt-1">{order.shipping_address.phone}</p>
+                <p className="mt-2">{order.shipping_address.address_line}</p>
+                <p>
+                  {order.shipping_address.city}, {order.shipping_address.province}{" "}
+                  {order.shipping_address.postal_code}
+                </p>
+              </div>
             </div>
 
             <div className="mt-8 border-t border-neutral-200 pt-6">

@@ -37,10 +37,34 @@ export async function getAdminOrders(
   return request<ListEnvelope<Order>>(`/api/v1/admin/orders${qs ? "?" + qs : ""}`, { auth: true });
 }
 
-export async function updateAdminOrderStatus(id: string, status: OrderStatus): Promise<void> {
+export async function getAdminOrder(id: string): Promise<Order> {
+  const { data } = await request<Envelope<Order>>(`/api/v1/admin/orders/${id}`, { auth: true });
+  return data;
+}
+
+export async function updateAdminOrderStatus(
+  id: string,
+  status: OrderStatus,
+  note?: string,
+  courier?: string,
+  tracking_number?: string,
+  cancel_reason?: string,
+): Promise<void> {
   await request<Envelope<{ status: string }>>(`/api/v1/admin/orders/${id}/status`, {
     method: "PUT",
-    body: { status },
+    body: { status, note, courier, tracking_number, cancel_reason },
+    auth: true,
+  });
+}
+
+export async function addAdminOrderNote(
+  id: string,
+  body: string,
+  is_customer_visible: boolean,
+): Promise<void> {
+  await request<Envelope<{ status: string }>>(`/api/v1/admin/orders/${id}/notes`, {
+    method: "POST",
+    body: { body, is_customer_visible },
     auth: true,
   });
 }

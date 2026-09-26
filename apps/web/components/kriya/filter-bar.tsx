@@ -33,13 +33,17 @@ const sortOptions: { value: SortValue; labelKey: MessageKey }[] = [
 export function FilterBar({
   sort,
   priceKey,
+  onSale,
   onSort,
   onPrice,
+  onSaleChange,
 }: {
   sort: SortValue;
   priceKey: string;
+  onSale?: boolean;
   onSort: (v: SortValue) => void;
   onPrice: (key: string) => void;
+  onSaleChange?: (v: boolean) => void;
 }) {
   const { t } = useLanguage();
   return (
@@ -58,12 +62,26 @@ export function FilterBar({
               "rounded-full border px-3 py-1.5 text-sm transition-colors",
               priceKey === p.key
                 ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 text-neutral-600 hover:border-neutral-400",
+                : "border-neutral-200 bg-transparent text-neutral-600 hover:border-neutral-300",
             )}
           >
             {t(p.labelKey)}
           </button>
         ))}
+        {onSaleChange && (
+          <button
+            type="button"
+            onClick={() => onSaleChange(!onSale)}
+            className={cn(
+              "ml-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+              onSale
+                ? "border-red-600 bg-red-600 text-white"
+                : "border-neutral-200 bg-transparent text-red-600 hover:border-red-600"
+            )}
+          >
+            SALE
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-2">

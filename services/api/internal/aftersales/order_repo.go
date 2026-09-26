@@ -27,7 +27,20 @@ func getI18nString(data []byte, locale string, fallback string) string {
 	return fallback
 }
 
+type OrderNote struct {
+	ID                string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	OrderID           string    `gorm:"column:order_id;type:uuid"`
+	AuthorID          *string   `gorm:"column:author_id;type:uuid"`
+	Body              string    `gorm:"column:body"`
+	IsCustomerVisible bool      `gorm:"column:is_customer_visible"`
+	CreatedAt         time.Time `gorm:"column:created_at"`
+	AuthorName        *string   `gorm:"->;column:author_name"`
+}
+
+func (OrderNote) TableName() string { return "order_notes" }
+
 type OrderEvent struct {
+
 	ID        string    `gorm:"type:uuid;primaryKey"`
 	OrderID   string    `gorm:"column:order_id;type:uuid"`
 	FromStatus *string   `gorm:"column:from_status"`
@@ -79,6 +92,7 @@ type Order struct {
 
 	Items           []OrderItem      `gorm:"foreignKey:OrderID"`
 	Events          []OrderEvent     `gorm:"foreignKey:OrderID"`
+	Notes           []OrderNote      `gorm:"foreignKey:OrderID"`
 	PaymentAttempts []PaymentAttempt `gorm:"foreignKey:OrderID"`
 	
 	TotalCount      int64      `gorm:"->;column:total_count"`
@@ -236,6 +250,17 @@ func (r *OrderRepository) GetByIDForUser(id, userID string) (*Order, error) {
 		Where("order_id = ?", id).
 		Order("created_at ASC").
 		Find(&order.Events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Notes
+	err = r.db.Model(&OrderNote{}).
+		Select("order_notes.*, p.name as author_name").
+		Joins("LEFT JOIN profiles p ON p.id = order_notes.author_id").
+		Where("order_notes.order_id = ? AND order_notes.is_customer_visible = true", id).
+		Order("order_notes.created_at ASC").
+		Find(&order.Notes).Error
 	if err != nil {
 		return nil, err
 	}

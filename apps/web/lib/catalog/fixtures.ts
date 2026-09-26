@@ -463,6 +463,7 @@ const details = seeds.map((seed, idx): ProductDetail => {
     images: buildImages(seed),
     variants,
     has_assembly_guide: seed.has_assembly_guide,
+    price_min: Math.min(...variants.map(v => v.price)),
   };
 });
 

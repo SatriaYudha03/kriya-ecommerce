@@ -55,6 +55,9 @@ export const orders: Order[] = [
     timeline: [
       { status: "paid", created_at: "2026-07-06T14:05:00Z", note: null },
     ],
+    notes: [
+      { id: "n1", body: "Tolong kirim sebelum jam 3", is_customer_visible: true, created_at: "2026-07-06T14:02:00Z", author_name: "Satria" }
+    ],
   },
 ];
 
