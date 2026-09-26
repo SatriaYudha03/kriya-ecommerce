@@ -1,4 +1,4 @@
-package model
+package aftersales
 
 import "time"
 
@@ -38,17 +38,17 @@ type ProductListResponse struct {
 }
 
 type ProductDetailResponse struct {
-	ID               string           `json:"id"`
-	Slug             string           `json:"slug"`
-	Name             string           `json:"name"`
-	Description      string           `json:"description"`
-	Category         CategoryRef      `json:"category"`
-	Materials        []string         `json:"materials"`
-	Dimensions       Dimensions       `json:"dimensions"`
-	WeightKg         float64          `json:"weight_kg"`
-	Images           []ImageResponse  `json:"images"`
+	ID               string            `json:"id"`
+	Slug             string            `json:"slug"`
+	Name             string            `json:"name"`
+	Description      string            `json:"description"`
+	Category         CategoryRef       `json:"category"`
+	Materials        []string          `json:"materials"`
+	Dimensions       Dimensions        `json:"dimensions"`
+	WeightKg         float64           `json:"weight_kg"`
+	Images           []ImageResponse   `json:"images"`
 	Variants         []VariantResponse `json:"variants"`
-	HasAssemblyGuide bool             `json:"has_assembly_guide"`
+	HasAssemblyGuide bool              `json:"has_assembly_guide"`
 }
 
 type CategoryRef struct {
@@ -96,11 +96,11 @@ type CartProductResponse struct {
 }
 
 type CartItemResponse struct {
-	VariantID string               `json:"variant_id"`
-	Qty       int                  `json:"qty"`
-	Price     int                  `json:"price"`
-	Subtotal  int                  `json:"subtotal"`
-	Product   CartProductResponse  `json:"product"`
+	VariantID string              `json:"variant_id"`
+	Qty       int                 `json:"qty"`
+	Price     int                 `json:"price"`
+	Subtotal  int                 `json:"subtotal"`
+	Product   CartProductResponse `json:"product"`
 }
 
 type CartResponse struct {

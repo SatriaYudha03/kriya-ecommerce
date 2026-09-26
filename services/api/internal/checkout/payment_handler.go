@@ -1,4 +1,4 @@
-package handler
+package checkout
 
 import (
 	"encoding/json"
@@ -7,17 +7,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kriya-commerce/api/internal/model"
-	"github.com/kriya-commerce/api/internal/repository"
 	"github.com/kriya-commerce/api/internal/service"
 )
 
 type PaymentHandler struct {
-	repo     *repository.OrderRepository
+	repo     *OrderRepository
 	midtrans *service.MidtransService
 }
 
-func NewPaymentHandler(repo *repository.OrderRepository, midtrans *service.MidtransService) *PaymentHandler {
+func NewPaymentHandler(repo *OrderRepository, midtrans *service.MidtransService) *PaymentHandler {
 	return &PaymentHandler{repo: repo, midtrans: midtrans}
 }
 
@@ -34,23 +32,23 @@ type midtransNotification struct {
 func (h *PaymentHandler) MidtransNotification(c *gin.Context) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
 		})
 		return
 	}
 
 	var notif midtransNotification
 	if err := json.Unmarshal(body, &notif); err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error: ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
 		})
 		return
 	}
 
 	if !h.midtrans.VerifySignature(notif.OrderID, notif.StatusCode, notif.GrossAmount, notif.SignatureKey) {
-		c.JSON(http.StatusForbidden, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "forbidden", Message: "signature tidak valid"},
+		c.JSON(http.StatusForbidden, ErrorResponse{
+			Error: ErrorDetail{Code: "forbidden", Message: "signature tidak valid"},
 		})
 		return
 	}
@@ -64,14 +62,14 @@ func (h *PaymentHandler) MidtransNotification(c *gin.Context) {
 	}
 
 	if err := h.repo.ApplyPaymentUpdate(notif.OrderID, orderStatus, notif.TransactionStatus, body); err != nil {
-		if errors.Is(err, repository.ErrPaymentNotFound) {
-			c.JSON(http.StatusNotFound, model.ErrorResponse{
-				Error: model.ErrorDetail{Code: "not_found", Message: "order tidak ditemukan"},
+		if errors.Is(err, ErrPaymentNotFound) {
+			c.JSON(http.StatusNotFound, ErrorResponse{
+				Error: ErrorDetail{Code: "not_found", Message: "order tidak ditemukan"},
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
-			Error: model.ErrorDetail{Code: "internal", Message: "Gagal memproses notifikasi"},
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: ErrorDetail{Code: "internal", Message: "Gagal memproses notifikasi"},
 		})
 		return
 	}
