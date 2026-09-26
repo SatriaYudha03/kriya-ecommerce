@@ -1,11 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { getProfile } from "./api";
-import type { ShippingAddress } from "./types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getProfile,
+  getAddresses,
+  createAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress,
+  getProvinces,
+} from "./api";
+import type { AddressInput } from "./types";
 
 export const customerKeys = {
   all: ["customer"] as const,
   profile: () => [...customerKeys.all, "profile"] as const,
   addresses: () => [...customerKeys.all, "addresses"] as const,
+  provinces: () => [...customerKeys.all, "provinces"] as const,
 };
 
 export function useProfile(enabled = true) {
@@ -17,10 +26,33 @@ export function useProfile(enabled = true) {
   });
 }
 
-export function useAddresses() {
+export function useAddresses(enabled = true) {
   return useQuery({
     queryKey: customerKeys.addresses(),
-    queryFn: async (): Promise<ShippingAddress[]> => [], // STUB
-    enabled: false,
+    queryFn: getAddresses,
+    enabled,
   });
+}
+
+export function useProvinces() {
+  return useQuery({
+    queryKey: customerKeys.provinces(),
+    queryFn: getProvinces,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+}
+
+export function useAddressMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: customerKeys.addresses() });
+
+  const create = useMutation({ mutationFn: createAddress, onSuccess: invalidate });
+  const update = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AddressInput }) => updateAddress(id, payload),
+    onSuccess: invalidate,
+  });
+  const remove = useMutation({ mutationFn: deleteAddress, onSuccess: invalidate });
+  const setAsDefault = useMutation({ mutationFn: setDefaultAddress, onSuccess: invalidate });
+
+  return { create, update, remove, setAsDefault };
 }
