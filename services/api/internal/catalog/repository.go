@@ -21,21 +21,26 @@ type Category struct {
 }
 
 type Product struct {
-	ID               string
-	Slug             string
-	Name             string
-	NameI18n         []byte `gorm:"type:jsonb"`
-	CategorySlug     string
-	Description      string
-	DescriptionI18n  []byte `gorm:"type:jsonb"`
-	Materials        []byte
-	MaterialsI18n    []byte `gorm:"type:jsonb"`
-	Dimensions       []byte
-	WeightKg         float64
-	HasAssemblyGuide bool
-	Category         Category         `gorm:"foreignKey:CategorySlug;references:Slug"`
-	Variants         []ProductVariant `gorm:"foreignKey:ProductID"`
-	Images           []ProductImage   `gorm:"foreignKey:ProductID"`
+	ID                   string
+	Slug                 string
+	Name                 string
+	NameI18n             []byte `gorm:"type:jsonb"`
+	CategorySlug         string
+	Description          string
+	DescriptionI18n      []byte `gorm:"type:jsonb"`
+	Materials            []byte
+	MaterialsI18n        []byte `gorm:"type:jsonb"`
+	Dimensions           []byte
+	WeightKg             float64
+	HasAssemblyGuide     bool
+	Status               string
+	ShortDescriptionI18n []byte `gorm:"type:jsonb"`
+	IsFeatured           bool
+	MetaTitleI18n        []byte `gorm:"type:jsonb"`
+	MetaDescriptionI18n  []byte `gorm:"type:jsonb"`
+	Category             Category         `gorm:"foreignKey:CategorySlug;references:Slug"`
+	Variants             []ProductVariant `gorm:"foreignKey:ProductID"`
+	Images               []ProductImage   `gorm:"foreignKey:ProductID"`
 }
 
 type ProductVariant struct {
@@ -48,6 +53,7 @@ type ProductVariant struct {
 	SizeI18n  []byte `gorm:"type:jsonb"`
 	Price     int
 	Stock     int
+	IsActive  bool
 }
 
 type ProductImage struct {
@@ -69,7 +75,10 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, 
 	var products []Product
 	var total int64
 
-	query := r.db.Model(&Product{}).Preload("Variants").Preload("Images", "is_primary = ?", true)
+	query := r.db.Model(&Product{}).
+		Preload("Variants", "is_active = ?", true).
+		Preload("Images", "is_primary = ?", true).
+		Where("products.status = ?", "published")
 
 	if categorySlug != "" {
 		query = query.Where("category_slug = ?", categorySlug)
@@ -81,6 +90,7 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, 
 	// Filter by price (requires joining variants)
 	if minPrice > 0 || maxPrice > 0 {
 		query = query.Joins("JOIN product_variants ON product_variants.product_id = products.id")
+		query = query.Where("product_variants.is_active = ?", true)
 		if minPrice > 0 {
 			query = query.Where("product_variants.price >= ?", minPrice)
 		}
@@ -112,7 +122,11 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, sort string, minPrice, 
 
 func (r *CatalogRepository) GetProductBySlug(slug string) (*Product, error) {
 	var product Product
-	err := r.db.Preload("Category").Preload("Variants").Preload("Images").Where("slug = ?", slug).First(&product).Error
+	err := r.db.Preload("Category").
+		Preload("Variants", "is_active = ?", true).
+		Preload("Images").
+		Where("slug = ? AND status = ?", slug, "published").
+		First(&product).Error
 	if err != nil {
 		return nil, err
 	}

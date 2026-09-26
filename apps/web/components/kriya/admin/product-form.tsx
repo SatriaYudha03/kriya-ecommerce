@@ -8,11 +8,9 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X, Plus, Trash2, Star, Loader2, ImagePlus } from "lucide-react";
-import { useCategories } from "@/lib/queries";
-import { useAdminProduct } from "@/lib/admin-queries";
+import { useCategories, useAdminProduct } from "@/lib/catalog/queries";
 import { uploadProductImage } from "@/lib/storage";
 import {
-  ApiError,
   createProduct,
   updateProduct,
   createVariant,
@@ -21,8 +19,9 @@ import {
   addProductImage,
   updateProductImage,
   deleteProductImage,
-} from "@/lib/api";
-import type { VariantInput } from "@/lib/types";
+} from "@/lib/catalog/api";
+import { ApiError } from "@/lib/http";
+import type { VariantInput } from "@/lib/catalog/types";
 
 type VariantRow = {
   key: string;
@@ -32,6 +31,7 @@ type VariantRow = {
   size: string;
   price: number;
   stock: number;
+  is_active?: boolean;
 };
 
 type ImageRow = {
@@ -76,6 +76,11 @@ export function ProductForm({
   const [height, setHeight] = useState(0);
   const [weight, setWeight] = useState(0);
   const [hasGuide, setHasGuide] = useState(false);
+  const [status, setStatus] = useState("published");
+  const [featured, setFeatured] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  
   const [variants, setVariants] = useState<VariantRow[]>([emptyVariant()]);
   const [images, setImages] = useState<ImageRow[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
@@ -97,9 +102,13 @@ export function ProductForm({
     setWidth(detail.dimensions?.width_cm ?? 0);
     setDepth(detail.dimensions?.depth_cm ?? 0);
     setHeight(detail.dimensions?.height_cm ?? 0);
-    setWeight(detail.weight_kg ?? 0);
-    setHasGuide(detail.has_assembly_guide);
-    setVariants(
+      setWeight(detail.weight_kg ?? 0);
+      setHasGuide(detail.has_assembly_guide);
+      setStatus(detail.status ?? "published");
+      setFeatured(detail.featured ?? false);
+      setSummary(detail.summary ?? "");
+      setSeoTitle(detail.seo_metadata?.en ?? "");
+      setVariants(
       detail.variants.map((v) => ({
         key: uid(),
         id: v.id,
@@ -181,6 +190,7 @@ export function ProductForm({
       size: v.size.trim() ? v.size.trim() : null,
       price: v.price,
       stock: v.stock,
+      is_active: v.is_active ?? true,
     };
   }
 
@@ -201,6 +211,10 @@ export function ProductForm({
         dimensions: { width_cm: width, depth_cm: depth, height_cm: height },
         weight_kg: weight,
         has_assembly_guide: hasGuide,
+        status: status,
+        featured: featured,
+        summary: summary.trim(),
+        seo_metadata: seoTitle ? { en: seoTitle, id: seoTitle } : undefined,
       };
 
       if (!isEdit) {
@@ -284,46 +298,76 @@ export function ProductForm({
         ) : (
           <div className="max-h-[70vh] space-y-6 overflow-y-auto px-6 py-5">
             {/* Field produk */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Nama produk">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Nama produk">
+                  <input
+                    className={inputCls}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="TARU work desk"
+                  />
+                </Field>
+                <Field label="Slug">
+                  <input
+                    className={inputCls}
+                    value={effectiveSlug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setSlugTouched(true);
+                    }}
+                    placeholder="taru-work-desk"
+                  />
+                </Field>
+                <Field label="Kategori">
+                  <select className={inputCls} value={categorySlug} onChange={(e) => setCategorySlug(e.target.value)}>
+                    <option value="">Pilih kategori...</option>
+                    {categories?.map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Berat (kg)">
+                  <input
+                    type="number"
+                    step="0.1"
+                    className={inputCls}
+                    value={weight}
+                    onChange={(e) => setWeight(Number(e.target.value))}
+                  />
+                </Field>
+                <Field label="Status">
+                  <select className={inputCls} value={status} onChange={(e) => setStatus(e.target.value)}>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </Field>
+                <Field label="Pilihan (Featured)">
+                  <select className={inputCls} value={featured ? "true" : "false"} onChange={(e) => setFeatured(e.target.value === "true")}>
+                    <option value="false">Tidak</option>
+                    <option value="true">Ya</option>
+                  </select>
+                </Field>
+                <Field label="SEO Title">
+                  <input
+                    className={inputCls}
+                    value={seoTitle}
+                    onChange={(e) => setSeoTitle(e.target.value)}
+                    placeholder="Title for SEO"
+                  />
+                </Field>
+              </div>
+
+              <Field label="Ringkasan Pendek (Summary)">
                 <input
                   className={inputCls}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="TARU work desk"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  placeholder="Deskripsi singkat untuk kartu produk"
                 />
               </Field>
-              <Field label="Slug">
-                <input
-                  className={inputCls}
-                  value={effectiveSlug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setSlugTouched(true);
-                  }}
-                  placeholder="taru-work-desk"
-                />
-              </Field>
-              <Field label="Kategori">
-                <select className={inputCls} value={categorySlug} onChange={(e) => setCategorySlug(e.target.value)}>
-                  <option value="">Pilih kategori…</option>
-                  {categories?.map((c) => (
-                    <option key={c.slug} value={c.slug}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Berat (kg)">
-                <input
-                  type="number"
-                  step="0.1"
-                  className={inputCls}
-                  value={weight}
-                  onChange={(e) => setWeight(Number(e.target.value))}
-                />
-              </Field>
-            </div>
 
             <Field label="Deskripsi">
               <textarea
@@ -371,50 +415,58 @@ export function ProductForm({
                 </button>
               </div>
               <div className="space-y-2">
-                {variants.map((v) => (
-                  <div key={v.key} className="grid grid-cols-12 items-center gap-2">
-                    <input
-                      className={`${inputCls} col-span-3`}
-                      placeholder="SKU"
-                      value={v.sku}
-                      onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sku: e.target.value } : r)))}
-                    />
-                    <input
-                      className={`${inputCls} col-span-2`}
-                      placeholder="Warna"
-                      value={v.color}
-                      onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, color: e.target.value } : r)))}
-                    />
-                    <input
-                      className={`${inputCls} col-span-2`}
-                      placeholder="Ukuran"
-                      value={v.size}
-                      onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, size: e.target.value } : r)))}
-                    />
-                    <input
-                      type="number"
-                      className={`${inputCls} col-span-2`}
-                      placeholder="Harga"
-                      value={v.price}
-                      onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, price: Number(e.target.value) } : r)))}
-                    />
-                    <input
-                      type="number"
-                      className={`${inputCls} col-span-2`}
-                      placeholder="Stok"
-                      value={v.stock}
-                      onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, stock: Number(e.target.value) } : r)))}
-                    />
-                    <button
-                      onClick={() => setVariants((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== v.key) : rows))}
-                      disabled={variants.length <= 1}
-                      title={variants.length <= 1 ? "Minimal satu varian" : "Hapus varian"}
-                      className="col-span-1 flex justify-center text-neutral-400 hover:text-red-600 disabled:opacity-30"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                  {variants.map((v) => (
+                    <div key={v.key} className="grid grid-cols-12 items-center gap-2">
+                      <input
+                        className={`${inputCls} col-span-2`}
+                        placeholder="SKU"
+                        value={v.sku}
+                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sku: e.target.value } : r)))}
+                      />
+                      <input
+                        className={`${inputCls} col-span-2`}
+                        placeholder="Warna"
+                        value={v.color}
+                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, color: e.target.value } : r)))}
+                      />
+                      <input
+                        className={`${inputCls} col-span-2`}
+                        placeholder="Ukuran"
+                        value={v.size}
+                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, size: e.target.value } : r)))}
+                      />
+                      <input
+                        type="number"
+                        className={`${inputCls} col-span-2`}
+                        placeholder="Harga"
+                        value={v.price}
+                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, price: Number(e.target.value) } : r)))}
+                      />
+                      <input
+                        type="number"
+                        className={`${inputCls} col-span-2`}
+                        placeholder="Stok"
+                        value={v.stock}
+                        onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, stock: Number(e.target.value) } : r)))}
+                      />
+                      <label className="col-span-1 flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          checked={v.is_active ?? true}
+                          onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, is_active: e.target.checked } : r)))}
+                          title="Aktif?"
+                        />
+                      </label>
+                      <button
+                        onClick={() => setVariants((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== v.key) : rows))}
+                        disabled={variants.length <= 1}
+                        title={variants.length <= 1 ? "Minimal satu varian" : "Hapus varian"}
+                        className="col-span-1 flex justify-center text-neutral-400 hover:text-red-600 disabled:opacity-30"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
               </div>
             </div>
 

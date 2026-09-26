@@ -96,6 +96,26 @@ export async function getSimilarProducts(id: string): Promise<SimilarEnvelope> {
   return request<SimilarEnvelope>(`/ai/v1/products/${id}/similar`, { base: "ai" });
 }
 
+export interface AdminProductsQuery {
+  q?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+export async function getAdminProducts(
+  query: AdminProductsQuery = {}
+): Promise<ListEnvelope<ProductListItem>> {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined) params.set(k, String(v));
+  }
+  const qs = params.toString();
+  return request<ListEnvelope<ProductListItem>>(`/api/v1/admin/products${qs ? "?" + qs : ""}`, {
+    auth: true,
+  });
+}
+
 export async function getAdminProduct(id: string): Promise<AdminProductDetail> {
   const { data } = await request<Envelope<AdminProductDetail>>(`/api/v1/admin/products/${id}`, {
     auth: true,

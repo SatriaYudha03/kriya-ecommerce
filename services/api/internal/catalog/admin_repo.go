@@ -29,9 +29,14 @@ func (r *AdminRepository) UpdateProduct(id string, updates map[string]interface{
 	return r.db.Model(&Product{}).Where("id = ?", id).Updates(updates).Error
 }
 
-// DeleteProduct menghapus produk dari DB.
+// DeleteProduct menghapus produk dari DB. Jika gagal karena terpakai (dipesan), set ke archived.
 func (r *AdminRepository) DeleteProduct(id string) error {
-	return r.db.Where("id = ?", id).Delete(&Product{}).Error
+	err := r.db.Where("id = ?", id).Delete(&Product{}).Error
+	if err != nil {
+		// Kalau gagal, asumsikan karena constraint di order_items, jadi arsipkan
+		return r.db.Model(&Product{}).Where("id = ?", id).Update("status", "archived").Error
+	}
+	return nil
 }
 
 // CreateVariant membuat varian produk baru.
@@ -76,6 +81,28 @@ func (r *AdminRepository) GetProductByID(id string) (*Product, error) {
 		return nil, err
 	}
 	return &p, nil
+}
+
+func (r *AdminRepository) GetAdminProducts(q string, status string, page, limit int) ([]Product, int64, error) {
+	var products []Product
+	var total int64
+
+	query := r.db.Model(&Product{}).Preload("Variants").Preload("Images", "is_primary = ?", true)
+
+	if q != "" {
+		query = query.Where("name ILIKE ?", "%"+q+"%")
+	}
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	query.Count(&total)
+
+	offset := (page - 1) * limit
+	query = query.Offset(offset).Limit(limit).Order("created_at DESC")
+
+	err := query.Find(&products).Error
+	return products, total, err
 }
 
 // CreateImage menambah baris gambar produk. Bila is_primary, gambar lain produk
