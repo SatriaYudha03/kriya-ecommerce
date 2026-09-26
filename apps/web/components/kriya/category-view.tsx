@@ -27,6 +27,7 @@ export function CategoryView({ slug }: { slug: string }) {
   const hargaParam = searchParams.get("harga");
   const priceKey = pricePresets.some((p) => p.key === hargaParam) ? hargaParam! : "all";
   const page = Math.max(1, Number(searchParams.get("hal")) || 1);
+  const onSale = searchParams.get("sale") === "1";
   const preset = pricePresets.find((p) => p.key === priceKey)!;
 
   const { locale, t } = useLanguage();
@@ -42,6 +43,7 @@ export function CategoryView({ slug }: { slug: string }) {
     sort,
     min_price: preset.min,
     max_price: preset.max,
+    on_sale: onSale,
     page,
     limit: LIMIT,
   });
@@ -67,6 +69,13 @@ export function CategoryView({ slug }: { slug: string }) {
       sp.delete("hal");
     });
 
+  const onSaleChange = (sale: boolean) =>
+    pushParams((sp) => {
+      if (sale) sp.set("sale", "1");
+      else sp.delete("sale");
+      sp.delete("hal");
+    });
+
   const onPage = (p: number) =>
     pushParams((sp) => {
       if (p <= 1) sp.delete("hal");
@@ -78,12 +87,13 @@ export function CategoryView({ slug }: { slug: string }) {
       sp.delete("harga");
       sp.delete("urut");
       sp.delete("hal");
+      sp.delete("sale");
     });
 
   const products = data?.data ?? [];
   const total = data?.meta.total ?? 0;
   const totalPages = data ? Math.ceil(total / data.meta.limit) : 1;
-  const filtered = priceKey !== "all";
+  const filtered = priceKey !== "all" || onSale;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -97,7 +107,14 @@ export function CategoryView({ slug }: { slug: string }) {
       </header>
 
       <div className="mt-6">
-        <FilterBar sort={sort} priceKey={priceKey} onSort={onSort} onPrice={onPrice} />
+        <FilterBar 
+          sort={sort} 
+          priceKey={priceKey} 
+          onSale={onSale} 
+          onSort={onSort} 
+          onPrice={onPrice} 
+          onSaleChange={onSaleChange} 
+        />
       </div>
 
       <div className="mt-8">

@@ -1,14 +1,15 @@
 # Log Agent - Agent A
 
 ## Status Terkini
-- **Task Terakhir:** A1 - Status produk & arsip
+- **Task Terakhir:** A2 - Harga sale terjadwal
 - **Status:** Selesai
-- **Commit Terakhir:** 935938f
+- **Commit Terakhir:** e161ddf
 
 ## Log
 *Catat langkah-langkah yang sudah diambil, keputusan penting, dan masalah (beserta solusinya) di sini. Satu baris atau paragraf per sesi.*
 
 - 2026-09-26 - Mengerjakan A1. Menambahkan filter status='published' dan is_active=true pada katalog publik. Membuat GET /admin/products. Menambahkan field status, featured, summary, dan seo_metadata pada Create/Update produk BE/FE. Menangani arsip saat DeleteProduct. Selesai dan di-push.
+- 2026-09-26 - Mengerjakan A2. Menambahkan field sale terjadwal di Go `ProductVariant` dan FE `ProductDetail`. Update query `GetProducts` dengan `kriya_effective_price`. Tambah filter `on_sale`. Update UI `ProductCard` dengan badge SALE dan `PriceTag` dengan harga coret. Update admin `ProductForm` (Tambah row jadwal sale dan harga).
 
 ## Permintaan lintas-domain
 *Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*
