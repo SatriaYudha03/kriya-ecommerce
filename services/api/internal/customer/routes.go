@@ -17,6 +17,8 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	wishlistRepo := NewWishlistRepository(deps.DB)
 	wishlistHandler := NewWishlistHandler(wishlistRepo, deps.SupabaseURL)
 
+	shippingHandler := NewShippingHandler(deps.DB)
+
 	r.Authed.GET("/profile", profileHandler.GetProfile)
 	r.Authed.PUT("/profile", profileHandler.PutProfile)
 
@@ -35,4 +37,7 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Authed.GET("/wishlist", wishlistHandler.GetWishlist)
 	r.Authed.PUT("/wishlist", wishlistHandler.PutWishlist)
 	r.Authed.DELETE("/wishlist", wishlistHandler.DeleteWishlist)
+
+	r.Admin.GET("/shipping/zones", shippingHandler.GetAdminZones)
+	r.Admin.PUT("/shipping/methods/:id", shippingHandler.UpdateMethod)
 }
