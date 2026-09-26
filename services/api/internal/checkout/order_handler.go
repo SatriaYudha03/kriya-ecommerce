@@ -31,8 +31,8 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 
 	var req CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
 		})
 		return
 	}
@@ -44,8 +44,8 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 
 	shippingAddressJSON, err := json.Marshal(req.ShippingAddress)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal memproses alamat"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memproses alamat"},
 		})
 		return
 	}
@@ -57,8 +57,8 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 
 	midtransOrderID, err := service.GenerateOrderID()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal membuat order_id"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membuat order_id"},
 		})
 		return
 	}
@@ -69,16 +69,16 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		var notFoundErr *VariantNotFoundError
 		switch {
 		case errors.As(err, &stockErr):
-			c.JSON(http.StatusConflict, ErrorResponse{
-				Error: ErrorDetail{Code: "conflict", Message: "Stok tidak cukup untuk salah satu produk"},
+			c.JSON(http.StatusConflict, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "conflict", Message: "Stok tidak cukup untuk salah satu produk"},
 			})
 		case errors.As(err, &notFoundErr):
-			c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error: ErrorDetail{Code: "validation_error", Message: notFoundErr.Error()},
+			c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "validation_error", Message: notFoundErr.Error()},
 			})
 		default:
-			c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error: ErrorDetail{Code: "internal", Message: "Gagal membuat order"},
+			c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membuat order"},
 			})
 		}
 		return
@@ -89,13 +89,13 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		// Order & reservasi stok sudah dibuat di DB tapi Snap token gagal dibuat —
 		// batalkan supaya tidak ada order "pending_payment" nyangkut tanpa cara bayar.
 		if compErr := h.repo.CompensateFailedOrder(order.ID); compErr != nil {
-			c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error: ErrorDetail{Code: "internal", Message: "Gagal membuat transaksi pembayaran dan gagal membatalkan order"},
+			c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membuat transaksi pembayaran dan gagal membatalkan order"},
 			})
 			return
 		}
-		c.JSON(http.StatusBadGateway, ErrorResponse{
-			Error: ErrorDetail{Code: "payment_error", Message: "Gagal membuat transaksi pembayaran"},
+		c.JSON(http.StatusBadGateway, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "payment_error", Message: "Gagal membuat transaksi pembayaran"},
 		})
 		return
 	}
@@ -105,7 +105,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		SnapToken:         snapToken,
 		MidtransClientKey: h.midtrans.ClientKey(),
 	}
-	c.JSON(http.StatusCreated, Response{Data: res})
+	c.JSON(http.StatusCreated, httpx.Response{Data: res})
 }
 
 // InternalOrderStatus dipakai chatbot n8n untuk cek status pesanan by order_id+email

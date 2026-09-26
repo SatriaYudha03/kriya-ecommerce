@@ -2,26 +2,6 @@ package checkout
 
 import "time"
 
-type Meta struct {
-	Page  int   `json:"page"`
-	Limit int   `json:"limit"`
-	Total int64 `json:"total"`
-}
-
-type Response struct {
-	Data interface{} `json:"data,omitempty"`
-	Meta *Meta       `json:"meta,omitempty"`
-}
-
-type ErrorDetail struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
-type ErrorResponse struct {
-	Error ErrorDetail `json:"error"`
-}
-
 type CategoryResponse struct {
 	ID   string `json:"id"`
 	Slug string `json:"slug"`

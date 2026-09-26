@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/kriya-commerce/api/internal/httpx"
 	"github.com/kriya-commerce/api/internal/storage"
 )
 
@@ -27,8 +28,8 @@ func NewAdminHandler(repo *AdminRepository, supabaseURL string) *AdminHandler {
 func (h *AdminHandler) CreateProduct(c *gin.Context) {
 	var req AdminCreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -77,13 +78,13 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 	}
 
 	if err := h.repo.CreateProduct(&p); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal membuat produk"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membuat produk"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, Response{Data: gin.H{"id": productID}})
+	c.JSON(http.StatusCreated, httpx.Response{Data: gin.H{"id": productID}})
 }
 
 // UpdateProduct memperbarui properti produk (tidak termasuk varian & gambar).
@@ -91,8 +92,8 @@ func (h *AdminHandler) UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
 	var req AdminUpdateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -120,25 +121,25 @@ func (h *AdminHandler) UpdateProduct(c *gin.Context) {
 	updates["has_assembly_guide"] = req.HasAssemblyGuide
 
 	if err := h.repo.UpdateProduct(id, updates); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal memperbarui produk"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui produk"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
 }
 
 // DeleteProduct menghapus produk beserta relasinya.
 func (h *AdminHandler) DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.repo.DeleteProduct(id); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menghapus produk"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghapus produk"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, Response{Data: gin.H{"id": id}})
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": id}})
 }
 
 // CreateVariant menambahkan varian baru untuk suatu produk.
@@ -146,8 +147,8 @@ func (h *AdminHandler) CreateVariant(c *gin.Context) {
 	productID := c.Param("id")
 	var req AdminVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -163,13 +164,13 @@ func (h *AdminHandler) CreateVariant(c *gin.Context) {
 	}
 
 	if err := h.repo.CreateVariant(&v); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal membuat varian"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membuat varian"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, Response{Data: v})
+	c.JSON(http.StatusCreated, httpx.Response{Data: v})
 }
 
 // UpdateVariant memperbarui properti suatu varian (termasuk harga & stok).
@@ -177,8 +178,8 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 	variantID := c.Param("variant_id")
 	var req AdminVariantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -192,25 +193,25 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 	}
 
 	if err := h.repo.UpdateVariant(variantID, updates); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal memperbarui varian"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui varian"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, Response{Data: gin.H{"id": variantID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": variantID}})
 }
 
 // DeleteVariant menghapus varian.
 func (h *AdminHandler) DeleteVariant(c *gin.Context) {
 	variantID := c.Param("variant_id")
 	if err := h.repo.DeleteVariant(variantID); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, Response{Data: gin.H{"id": variantID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": variantID}})
 }
 
 // Stats mengembalikan metrik ringkas untuk dashboard admin.
@@ -221,8 +222,8 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 	id := c.Param("id")
 	p, err := h.repo.GetProductByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, ErrorResponse{
-			Error: ErrorDetail{Code: "not_found", Message: "Produk tidak ditemukan"},
+		c.JSON(http.StatusNotFound, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "not_found", Message: "Produk tidak ditemukan"},
 		})
 		return
 	}
@@ -258,7 +259,7 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, Response{Data: AdminProductDetailResponse{
+	c.JSON(http.StatusOK, httpx.Response{Data: AdminProductDetailResponse{
 		ID:               p.ID,
 		Slug:             p.Slug,
 		Name:             p.Name,
@@ -279,8 +280,8 @@ func (h *AdminHandler) AddProductImage(c *gin.Context) {
 	productID := c.Param("id")
 	var req AdminImageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
@@ -293,13 +294,13 @@ func (h *AdminHandler) AddProductImage(c *gin.Context) {
 		IsPrimary:   req.IsPrimary,
 	}
 	if err := h.repo.CreateImage(&img); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menambah gambar"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menambah gambar"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, Response{Data: AdminImageResponse{
+	c.JSON(http.StatusCreated, httpx.Response{Data: AdminImageResponse{
 		ID:          img.ID,
 		StoragePath: img.StoragePath,
 		URL:         storage.PublicImageURL(h.supabaseURL, img.StoragePath),
@@ -313,28 +314,28 @@ func (h *AdminHandler) UpdateProductImage(c *gin.Context) {
 	imageID := c.Param("image_id")
 	var req AdminImageUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: err.Error()},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
 		})
 		return
 	}
 	if err := h.repo.UpdateImage(imageID, req.Alt, req.IsPrimary); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal memperbarui gambar"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui gambar"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, Response{Data: gin.H{"id": imageID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": imageID}})
 }
 
 // DeleteProductImage menghapus satu gambar produk.
 func (h *AdminHandler) DeleteProductImage(c *gin.Context) {
 	imageID := c.Param("image_id")
 	if err := h.repo.DeleteImage(imageID); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menghapus gambar"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghapus gambar"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, Response{Data: gin.H{"id": imageID}})
+	c.JSON(http.StatusOK, httpx.Response{Data: gin.H{"id": imageID}})
 }

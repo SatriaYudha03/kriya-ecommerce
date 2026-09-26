@@ -31,8 +31,8 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 
 	cart, err := h.repo.GetByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal mengambil cart"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil cart"},
 		})
 		return
 	}
@@ -44,13 +44,13 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 
 	res, err := h.buildCartResponse(items, lang)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }
 
 func (h *CartHandler) PutCart(c *gin.Context) {
@@ -59,8 +59,8 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 
 	var req PutCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
 		})
 		return
 	}
@@ -72,8 +72,8 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 
 	variants, err := h.repo.GetVariantsByIDs(ids)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal memvalidasi varian"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memvalidasi varian"},
 		})
 		return
 	}
@@ -83,8 +83,8 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 	}
 	for _, it := range req.Items {
 		if !found[it.VariantID] {
-			c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error: ErrorDetail{Code: "validation_error", Message: "variant_id tidak ditemukan: " + it.VariantID},
+			c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "validation_error", Message: "variant_id tidak ditemukan: " + it.VariantID},
 			})
 			return
 		}
@@ -97,21 +97,21 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 	itemsJSON, _ := json.Marshal(items)
 
 	if err := h.repo.UpsertItems(userID, itemsJSON); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menyimpan cart"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menyimpan cart"},
 		})
 		return
 	}
 
 	res, err := h.buildCartResponse(items, lang)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }
 
 // buildCartResponse menghitung ulang harga/subtotal/total dari data varian TERBARU di DB.

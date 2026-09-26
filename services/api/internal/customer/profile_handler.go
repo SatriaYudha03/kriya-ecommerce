@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kriya-commerce/api/internal/httpx"
 )
 
 type ProfileHandler struct {
@@ -29,13 +30,13 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 
 	p, err := h.repo.GetByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal mengambil profil"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil profil"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, Response{Data: toProfileResponse(p)})
+	c.JSON(http.StatusOK, httpx.Response{Data: toProfileResponse(p)})
 }
 
 // PUT /api/v1/profile — simpan/replace data diri + alamat default.
@@ -44,8 +45,8 @@ func (h *ProfileHandler) PutProfile(c *gin.Context) {
 
 	var req UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: "Body tidak valid"},
 		})
 		return
 	}
@@ -60,21 +61,21 @@ func (h *ProfileHandler) PutProfile(c *gin.Context) {
 	}
 
 	if err := h.repo.Update(userID, fields); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal menyimpan profil"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menyimpan profil"},
 		})
 		return
 	}
 
 	p, err := h.repo.GetByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal mengambil profil"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil profil"},
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, Response{Data: toProfileResponse(p)})
+	c.JSON(http.StatusOK, httpx.Response{Data: toProfileResponse(p)})
 }
 
 func toProfileResponse(p *Profile) ProfileResponse {

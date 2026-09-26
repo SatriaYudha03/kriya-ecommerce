@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kriya-commerce/api/internal/httpx"
 )
 
 type AdminHandler struct {
@@ -18,12 +19,12 @@ func NewAdminHandler(repo *AdminRepository) *AdminHandler {
 func (h *AdminHandler) Stats(c *gin.Context) {
 	totalOrders, revenue, activeProducts, err := h.repo.Stats()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Gagal mengambil statistik"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil statistik"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, Response{Data: AdminStatsResponse{
+	c.JSON(http.StatusOK, httpx.Response{Data: AdminStatsResponse{
 		TotalOrders:    totalOrders,
 		Revenue:        revenue,
 		ActiveProducts: activeProducts,

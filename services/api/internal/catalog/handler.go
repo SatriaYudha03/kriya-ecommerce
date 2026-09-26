@@ -43,8 +43,8 @@ func (h *CatalogHandler) GetCategories(c *gin.Context) {
 	lang := httpx.ResolveLocale(c)
 	categories, err := h.repo.GetCategories()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Failed to fetch categories"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Failed to fetch categories"},
 		})
 		return
 	}
@@ -58,7 +58,7 @@ func (h *CatalogHandler) GetCategories(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }
 
 func (h *CatalogHandler) GetProducts(c *gin.Context) {
@@ -81,8 +81,8 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 
 	products, total, err := h.repo.GetProducts(category, q, sort, minPrice, maxPrice, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{Code: "internal", Message: "Failed to fetch products"},
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Failed to fetch products"},
 		})
 		return
 	}
@@ -118,9 +118,9 @@ func (h *CatalogHandler) GetProducts(c *gin.Context) {
 		res = []ProductListResponse{} // return empty array instead of null
 	}
 
-	c.JSON(http.StatusOK, Response{
+	c.JSON(http.StatusOK, httpx.Response{
 		Data: res,
-		Meta: &Meta{
+		Meta: &httpx.Meta{
 			Page:  page,
 			Limit: limit,
 			Total: total,
@@ -133,8 +133,8 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 	slug := c.Param("slug")
 	p, err := h.repo.GetProductBySlug(slug)
 	if err != nil {
-		c.JSON(http.StatusNotFound, ErrorResponse{
-			Error: ErrorDetail{Code: "not_found", Message: "Product not found"},
+		c.JSON(http.StatusNotFound, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "not_found", Message: "Product not found"},
 		})
 		return
 	}
@@ -192,5 +192,5 @@ func (h *CatalogHandler) GetProduct(c *gin.Context) {
 		HasAssemblyGuide: p.HasAssemblyGuide,
 	}
 
-	c.JSON(http.StatusOK, Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }
