@@ -55,7 +55,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 
 | ID | Task | Status | Agent | Tgl klaim | Branch | Commit | Report | Catatan |
 |---|---|---|---|---|---|---|---|---|
-| A1 | Status produk & arsip | ⬜ | | | | | | |
+| A1 | Status produk & arsip | 🟦 | A | 2026-09-26 | | | | |
 | A2 | Harga sale terjadwal | ⬜ | | | | | | |
 | A3 | Kategori bertingkat | ⬜ | | | | | | |
 | A4 | Tag, atribut & facet | ⬜ | | | | | | |
