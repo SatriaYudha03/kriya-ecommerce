@@ -116,3 +116,32 @@ export async function validateCoupon(code: string, items: { variant_id: string; 
     };
   }
 }
+
+import type { ReportSummary, ReportSalesItem, ReportTopProduct } from "./types";
+
+export async function getReportSummary(from?: string, to?: string): Promise<ReportSummary> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const { data } = await request<Envelope<ReportSummary>>(`/api/v1/admin/reports/summary?${params.toString()}`, { auth: true });
+  return data;
+}
+
+export async function getReportSales(from?: string, to?: string, interval?: string): Promise<ReportSalesItem[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  if (interval) params.set("interval", interval);
+  const { data } = await request<Envelope<ReportSalesItem[]>>(`/api/v1/admin/reports/sales?${params.toString()}`, { auth: true });
+  return data;
+}
+
+export async function getReportTopProducts(from?: string, to?: string, limit?: number): Promise<ReportTopProduct[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  if (limit) params.set("limit", String(limit));
+  const { data } = await request<Envelope<ReportTopProduct[]>>(`/api/v1/admin/reports/top-products?${params.toString()}`, { auth: true });
+  return data;
+}
+

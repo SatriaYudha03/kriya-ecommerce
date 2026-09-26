@@ -38,3 +38,34 @@ export interface CouponRedemption {
 }
 
 export type CouponPayload = Omit<Coupon, "id" | "status" | "total_redemptions">;
+
+export interface ReportSummary {
+  gross_sales: number;
+  discount_total: number;
+  refunded_total: number;
+  net_sales: number;
+  shipping_total: number;
+  orders_count: number;
+  items_sold: number;
+  avg_order_value: number;
+  new_customers: number;
+}
+
+export interface ReportSalesItem {
+  period: string;
+  orders_count: number;
+  gross_sales: number;
+  discount_total: number;
+  refunded_total: number;
+  net_sales: number;
+  shipping_total: number;
+}
+
+export interface ReportTopProduct {
+  product_id: string;
+  slug: string;
+  name: string;
+  items_sold: number;
+  revenue: number;
+}
+
