@@ -5,18 +5,28 @@ import { Loader2, Package } from "lucide-react";
 import { useAdminOrders, useUpdateOrderStatus } from "@/lib/admin-queries";
 import { formatRupiah } from "@/lib/format";
 import type { OrderStatus } from "@/lib/types";
+import { OrderStatusBadge } from "@/components/kriya/order-status-badge";
 
-const STATUS: Record<OrderStatus, { label: string; cls: string }> = {
-  pending_payment: { label: "Menunggu Pembayaran", cls: "bg-yellow-100 text-yellow-800" },
-  paid: { label: "Dibayar", cls: "bg-green-100 text-green-800" },
-  processing: { label: "Diproses", cls: "bg-blue-100 text-blue-800" },
-  shipped: { label: "Dikirim", cls: "bg-indigo-100 text-indigo-800" },
-  completed: { label: "Selesai", cls: "bg-neutral-100 text-neutral-800" },
-  cancelled: { label: "Dibatalkan", cls: "bg-red-100 text-red-800" },
-  expired: { label: "Kadaluarsa", cls: "bg-red-100 text-red-800" },
+const STATUS_KEYS: OrderStatus[] = [
+  "pending_payment",
+  "paid",
+  "processing",
+  "shipped",
+  "completed",
+  "cancelled",
+  "expired",
+];
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending_payment: "Menunggu Pembayaran",
+  paid: "Dibayar",
+  processing: "Diproses",
+  shipped: "Dikirim",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
+  expired: "Kadaluarsa",
 };
 
-const STATUS_KEYS = Object.keys(STATUS) as OrderStatus[];
 const LIMIT = 20;
 
 export default function AdminOrdersPage() {
@@ -51,7 +61,7 @@ export default function AdminOrdersPage() {
           <option value="">Semua status</option>
           {STATUS_KEYS.map((s) => (
             <option key={s} value={s}>
-              {STATUS[s].label}
+              {STATUS_LABELS[s]}
             </option>
           ))}
         </select>
@@ -105,13 +115,9 @@ export default function AdminOrdersPage() {
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900">
                         {formatRupiah(o.total)}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS[o.status].cls}`}
-                        >
-                          {STATUS[o.status].label}
-                        </span>
-                      </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <OrderStatusBadge status={o.status} />
+                        </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right">
                         <select
                           value={o.status}
@@ -123,7 +129,7 @@ export default function AdminOrdersPage() {
                         >
                           {STATUS_KEYS.map((s) => (
                             <option key={s} value={s}>
-                              {STATUS[s].label}
+                              {STATUS_LABELS[s]}
                             </option>
                           ))}
                         </select>

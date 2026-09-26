@@ -12,23 +12,80 @@ func NewAdminRepository(db *gorm.DB) *AdminRepository {
 	return &AdminRepository{db: db}
 }
 
-// ListAllOrders mengambil semua pesanan dari DB.
+// ListAllOrders mengambil semua pesanan dari DB beserta relasinya.
 func (r *AdminRepository) ListAllOrders(page, limit int, status string) ([]Order, int64, error) {
 	var orders []Order
-	var total int64
 
-	query := r.db.Model(&Order{})
+	// Query 1: Orders
+	q := r.db.Model(&Order{}).
+		Select("orders.*, COUNT(*) OVER() as total_count, pa.status as pa_status, pa.expires_at as pa_expires_at").
+		Joins("LEFT JOIN payment_attempts pa ON pa.order_id = orders.id AND pa.status = 'active'")
+
 	if status != "" {
-		query = query.Where("status = ?", status)
-	}
-
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
+		q = q.Where("orders.status = ?", status)
 	}
 
 	offset := (page - 1) * limit
-	err := query.Offset(offset).Limit(limit).Order("created_at DESC").Find(&orders).Error
-	return orders, total, err
+	err := q.Order("orders.created_at DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&orders).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(orders) == 0 {
+		return nil, 0, nil
+	}
+
+	total := int64(0)
+	if len(orders) > 0 {
+		total = orders[0].TotalCount
+	}
+
+	orderIDs := make([]string, len(orders))
+	for i, o := range orders {
+		orderIDs[i] = o.ID
+	}
+
+	// Query 2: Items
+	var items []OrderItem
+	err = r.db.Model(&OrderItem{}).
+		Select("order_items.*, p.slug as product_slug, img.storage_path as thumbnail_url").
+		Joins("LEFT JOIN products p ON p.id = order_items.product_id").
+		Joins("LEFT JOIN product_images img ON img.product_id = p.id AND img.is_primary = true").
+		Where("order_items.order_id IN ?", orderIDs).
+		Find(&items).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Query 3: Events
+	var events []OrderEvent
+	err = r.db.Model(&OrderEvent{}).
+		Where("order_id IN ?", orderIDs).
+		Order("created_at ASC").
+		Find(&events).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	itemsByOrderID := make(map[string][]OrderItem)
+	for _, it := range items {
+		itemsByOrderID[it.OrderID] = append(itemsByOrderID[it.OrderID], it)
+	}
+	eventsByOrderID := make(map[string][]OrderEvent)
+	for _, ev := range events {
+		eventsByOrderID[ev.OrderID] = append(eventsByOrderID[ev.OrderID], ev)
+	}
+
+	for i := range orders {
+		orders[i].Items = itemsByOrderID[orders[i].ID]
+		orders[i].Events = eventsByOrderID[orders[i].ID]
+	}
+
+	return orders, total, nil
 }
 
 // UpdateOrderStatus memperbarui status pesanan secara admin, dan

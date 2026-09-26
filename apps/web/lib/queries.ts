@@ -35,11 +35,11 @@ export function useProduct(slug: string) {
   });
 }
 
-export function useOrders() {
+export function useOrders(page = 1, limit = 10, status?: string) {
   const { locale } = useLanguage();
   return useQuery({
-    queryKey: ["orders", locale],
-    queryFn: getOrders,
+    queryKey: ["orders", locale, page, limit, status],
+    queryFn: () => getOrders(page, limit, status),
   });
 }
 
