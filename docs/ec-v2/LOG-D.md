@@ -12,12 +12,14 @@
   di `ec/D1-riwayat-pesanan-v2` (`5ffb503`), tapi tidak pernah benar-benar
   di-merge ke main dan menaruh kode FE di barrel core lama karena worktree
   predates 0C's real merge. Direview & direwrite oleh Claude 2026-09-26 —
-  lihat `docs/report/D1.md` dan `docs/ec-v2/AUDIT-F1-A1D1-2026-09-26.md` §4
+  lihat `docs/report/D1.md` dan `docs/ec-v2/AUDIT-F1-A1D1-2026-09-26.md` § 4
   langkah 5. Hasil rework di-merge ke main.
 - 2026-09-26 - D2 (Event, catatan, resi) diimplementasikan, branch `ec/D2-event-catatan-resi`. Menerapkan `OrderEventRecorder` di `aftersales/events.go`. Admin order detail (FE & BE) dan timeline+notes pada customer detail.
+- 2026-09-27 - D3 (Batal oleh customer) selesai dikerjakan di `ec/D3-batal-oleh-customer`. Endpoint `POST /orders/:id/cancel` ditambah, fallback DB pembatalan, dan FE `CancelOrderDialog` pada detail order.
 
 ## Permintaan lintas-domain
 *Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*
 
 - 2026-09-26 | D2 | BUTUH: Wiring `aftersales.NewOrderEventRecorder()` ke dalam `checkout.Ports` di F2 | ALASAN: Saat F0, 0B menaruh file `ports_legacy.go` di `checkout/` (dan tidak pernah dipakai) alih-alih di tiap package domain, jadi file tersebut masuk kepemilikan I-BE. Saya tidak bisa mendaftarkan `events.go` secara langsung ke checkout. | MEMBLOKIR: tidak (untuk D2, tapi akan memblokir fitur F2) | USULAN: Integrator F2 harus memodifikasi `cmd/api/main.go` atau `checkout.RegisterRoutes` untuk menginjeksi `aftersales.NewOrderEventRecorder()` ke dalam `checkout.OrderHandler`.
 - 2026-09-26 | D2 | BUTUH: Implementasi `orderflow.Transition` | ALASAN: Endpoint `PUT /admin/orders/:id/status` memanggil `orderflow.Transition` seperti di RENCANA, namun fungsi ini saat ini berisi `return StatusPendingPayment, errors.New("not implemented")` yang mana ini merupakan hak milik F2 (I-BE). Saya menambahkan dummy implementation di repo sementara sebagai fallback. | MEMBLOKIR: tidak (saya membungkusnya dengan fallback sementara di F1) | USULAN: I-BE di F2 perlu melengkapi `orderflow.Transition`.
+- 2026-09-27 | D3 | BUTUH: Wiring `checkout.Ports` dan `MidtransService.CancelTransaction` | ALASAN: `order_handler.go` butuh port untuk cancel (stok/kupon), dan API midtrans butuh integrasi. | MEMBLOKIR: tidak (ditangani fallback DB sementara tanpa release port) | USULAN: I-BE di F2 harap memasukkan `Ports` ke `Deps` dan tambahkan `CancelTransaction` ke service Midtrans.
