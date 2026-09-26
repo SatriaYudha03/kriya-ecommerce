@@ -42,7 +42,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0 dan R18.
 | 0D | Tooling baseline QA | ✅ | 0D | 2026-09-24 | `ec/0D-tooling` | `ef9527d` | `docs/report/0D.md`? | ⚠️ **Perlu verifikasi**: report belum ditemukan saat audit 2026-09-26 |
 | 0B | Restrukturisasi Go | ✅ | 0B | 2026-09-24 | `ec/0B-go-refactor` | `c7ae1f8` | `docs/report/0B.md`? | ⚠️ **Perlu verifikasi**: report belum ditemukan saat audit 2026-09-26 |
 | 0C | Restrukturisasi FE | ✅ | 0C | 2026-09-24 | `ec/0C-fe-refactor-2` (merged ke main) | `0186854` | `docs/report/0C.md` | Merged ke `main` di `194ecfc` |
-| **0A** | **Migrasi SQL 008–012** | 🟦 | 0A (Claude) | 2026-09-26 | `ec/0A-sql-migrations` | — | — | Diklaim 2026-09-26 setelah audit menemukan task ini tidak pernah dikerjakan. |
+| **0A** | **Migrasi SQL 008–012** | ✅ | 0A (Claude) | 2026-09-26 | `ec/0A-sql-migrations` | `389cd2e` | `docs/report/0A.md` | Diuji lokal (Supabase CLI+Docker): clean apply, backfill, idempotensi 2x, CHECK constraint, fungsi harga sale — semua lulus. Belum diterapkan ke DB dev (tugas G0). Lihat ⚠ verifikasi wajib di report sebelum G0. |
 
 ## F1 — Domain (paralel penuh, menunggu G0)
 
