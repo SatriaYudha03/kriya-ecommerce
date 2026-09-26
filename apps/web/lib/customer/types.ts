@@ -61,8 +61,16 @@ export interface Address {
 
 export type AddressInput = Omit<Address, "id" | "province" | "created_at">;
 
+import type { ProductListItem } from "@/lib/types";
+
 export interface Province {
   code: string;
   name: string;
   zone_code: string;
 }
+
+export interface Wishlist {
+  items: ProductListItem[];
+}
+
+

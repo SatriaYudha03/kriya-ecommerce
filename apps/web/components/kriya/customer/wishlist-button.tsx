@@ -1,2 +1,68 @@
-export interface WishlistButtonProps { productId: string; variant?: "icon" | "full"; }
-export function WishlistButton({ productId, variant = "icon" }: WishlistButtonProps) { return null; }
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import { Heart } from "lucide-react";
+import { useAuth } from "@/components/kriya/auth-provider";
+import { useWishlist, useWishlistMutations } from "@/lib/customer/queries";
+import { Button } from "@/components/ui/button";
+
+export interface WishlistButtonProps {
+  productId: string;
+  variant?: "icon" | "full";
+}
+
+export function WishlistButton({ productId, variant = "icon" }: WishlistButtonProps) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const { data: wishlist } = useWishlist(!!user);
+  const { add, remove } = useWishlistMutations();
+
+  const isInWishlist = wishlist?.items.some((item) => item.id === productId) ?? false;
+  const isPending = add.isPending || remove.isPending;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (loading) return;
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (isInWishlist) {
+      remove.mutate(productId);
+    } else {
+      add.mutate(productId);
+    }
+  };
+
+  if (variant === "icon") {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleClick}
+        disabled={isPending}
+        className={isInWishlist ? "text-red-500 hover:text-red-600" : "text-muted-foreground"}
+      >
+        <Heart className={isInWishlist ? "fill-current" : ""} />
+        <span className="sr-only">Wishlist</span>
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      onClick={handleClick}
+      disabled={isPending}
+      className={isInWishlist ? "text-red-500 border-red-200 bg-red-50 hover:bg-red-100" : ""}
+    >
+      <Heart className={`mr-2 h-4 w-4 ${isInWishlist ? "fill-current" : ""}`} />
+      {isInWishlist ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}
+    </Button>
+  );
+}

@@ -1,6 +1,6 @@
 import { request, USE_FIXTURES } from "../http";
 import type { Envelope } from "../http";
-import type { Profile, UpdateProfilePayload, Cart, Address, AddressInput, Province } from "./types";
+import type { Profile, UpdateProfilePayload, Cart, Address, AddressInput, Province, Wishlist } from "./types";
 import { fixtures } from "./fixtures";
 
 export async function getProfile(): Promise<Profile> {
@@ -97,3 +97,27 @@ export async function getProvinces(): Promise<Province[]> {
   const { data } = await request<Envelope<Province[]>>("/api/v1/shipping/provinces");
   return data;
 }
+
+export async function getWishlist(): Promise<Wishlist> {
+  const { data } = await request<Envelope<Wishlist>>("/api/v1/wishlist", {
+    auth: true,
+  });
+  return data;
+}
+
+export async function putWishlist(productId: string): Promise<void> {
+  await request("/api/v1/wishlist", {
+    method: "PUT",
+    auth: true,
+    body: { product_id: productId },
+  });
+}
+
+export async function deleteWishlist(productId: string): Promise<void> {
+  await request("/api/v1/wishlist", {
+    method: "DELETE",
+    auth: true,
+    body: { product_id: productId },
+  });
+}
+

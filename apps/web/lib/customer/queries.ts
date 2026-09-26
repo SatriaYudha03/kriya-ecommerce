@@ -7,6 +7,9 @@ import {
   deleteAddress,
   setDefaultAddress,
   getProvinces,
+  getWishlist,
+  putWishlist,
+  deleteWishlist,
 } from "./api";
 import type { AddressInput } from "./types";
 
@@ -15,6 +18,7 @@ export const customerKeys = {
   profile: () => [...customerKeys.all, "profile"] as const,
   addresses: () => [...customerKeys.all, "addresses"] as const,
   provinces: () => [...customerKeys.all, "provinces"] as const,
+  wishlist: () => [...customerKeys.all, "wishlist"] as const,
 };
 
 export function useProfile(enabled = true) {
@@ -56,3 +60,22 @@ export function useAddressMutations() {
 
   return { create, update, remove, setAsDefault };
 }
+
+export function useWishlist(enabled = true) {
+  return useQuery({
+    queryKey: customerKeys.wishlist(),
+    queryFn: getWishlist,
+    enabled,
+  });
+}
+
+export function useWishlistMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: customerKeys.wishlist() });
+
+  const add = useMutation({ mutationFn: putWishlist, onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: deleteWishlist, onSuccess: invalidate });
+
+  return { add, remove };
+}
+
