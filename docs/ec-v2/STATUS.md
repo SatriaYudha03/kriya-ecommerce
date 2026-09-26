@@ -5,7 +5,14 @@ Klaim opencode, laporan lisan, atau commit di branch **tidak dihitung** sebagai
 "selesai" sampai barisnya di tabel ini berstatus ✅ dan seluruh kolomnya terisi.
 Kalau tidak ada baris ✅ di sini — **task itu dianggap belum dikerjakan**, titik.
 
-Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0 dan R18.
+⚠️ **File INI SENDIRI juga bisa salah** — terbukti 2× (0A, 0B, lihat Riwayat audit
+di bawah). Kolom Commit di tabel ini HANYA valid kalau berasal dari
+`git log origin/<branch> -1` yang baru dijalankan, bukan disalin dari `git branch -v`
+lokal atau dipercaya begitu saja dari isi tabel sebelumnya. Siapa pun yang membaca
+✅ di sini dan akan mengambil keputusan berdasarkan itu (merge, gerbang, lapor ke
+Satria) **wajib reverifikasi sendiri** dengan `git fetch` dulu.
+
+Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11.1 (sweep pra-gerbang).
 
 ## Legenda
 

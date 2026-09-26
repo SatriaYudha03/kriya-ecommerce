@@ -75,6 +75,8 @@ Perkiraan sesi (1 sesi = 1 task): F0 ≈ 1–2 sesi per agent · F1 ≈ 6–7 se
 | R16 | Next.js di repo ini versi 16 dengan perubahan besar: **baca `apps/web/node_modules/next/dist/docs/`** sebelum menulis routing/middleware/proxy (lihat `apps/web/AGENTS.md`) |
 | R17 | Terblokir? Tulis permintaan (§10), **kerjakan bagian task yang tidak terblokir**, laporkan di log. Jangan menambal di luar kepemilikan, jangan diam menunggu |
 | R18 | **Klaim task WAJIB di `docs/ec-v2/STATUS.md` sebelum menulis kode** (ubah baris jadi 🟦 + Agent + tanggal, commit `[ec-status] klaim <ID>`, push). Tanpa klaim, dua agent bisa mengerjakan task yang sama tanpa sadar, atau task selesai tapi tidak tercatat di mana pun (ini yang terjadi pada 0A). Tutup klaim sesuai R14. **Verifikasi wajib sebelum lapor "selesai":** jalankan `git branch -a \| grep ec/<ID>` DAN `git log origin/ec/<ID>-* -1` dari root repo (bukan dari worktree) — kalau kosong, task **belum** selesai apa pun yang diklaim di percakapan/opencode |
+| R19 | **Commit lokal yang belum di-push TIDAK DIHITUNG ADA — tanpa kecuali, termasuk commit yang dibuat Satria sendiri di sesi manual.** Audit 2026-09-26 menemukan pola ini 2×: task 0A hilang total, dan task 0B punya report lengkap (`c7ae1f8`, ditulis Satria 2026-09-24) yang sempat **hanya ada di local branch**, tidak pernah sampai ke origin — tidak beda dari "tidak pernah dikerjakan" sampai digali manual. **Prosedur wajib sebelum menulis SHA apa pun ke `docs/report/*.md` atau `docs/ec-v2/STATUS.md`:**<br>1. `git fetch origin`<br>2. `git rev-parse <branch>` vs `git rev-parse origin/<branch>` — **kalau beda, push dulu**, verifikasi ulang, baru lanjut.<br>Kolom **Commit** di STATUS.md HARUS selalu hasil `git log origin/<branch> -1`, **tidak pernah** dari `git log <branch>` lokal atau `git branch -v` mentah (dua sumber itu bisa beda tanpa terlihat). Ini berlaku juga untuk Claude sendiri saat mengisi STATUS.md pertama kali — jangan salin hash dari `git branch -a -v` begitu saja tanpa cek origin, itu tepat kesalahan yang membuat gap 0B tidak ketahuan sampai audit mendalam |
+| R20 | **Nama file report harus PERSIS `docs/report/<ID>.md`** (ID sesuai ejaan §6–9, mis. `0A`, `0B`, `A1`) — dilarang varian seperti `REPORT-<ID>.md`, `Report_<id>.MD`, dsb. Sebelum lapor selesai, verifikasi dengan `test -f docs/report/<ID>.md` (path exact), bukan `ls docs/report/ \| grep -i <ID>` (grep lolos meski nama file salah format, seperti yang terjadi pada 0B dan 0D — keduanya lolos sesi masing-masing karena tidak ada yang mengecek path exact) |
 
 ### 2.1 Lingkungan per agent
 
@@ -610,24 +612,40 @@ Agent **tidak menunggu**: lanjutkan bagian yang tidak terblokir atau task beriku
 ## 11. Checklist review & merge (Claude)
 
 Per branch `ec/<ID>-*`:
-0. **Cek `docs/ec-v2/STATUS.md`: baris task ini harus ✅ dengan Branch + Commit SHA + link Report terisi.** Kalau bukan ✅, atau kalau Branch/Commit di STATUS.md tidak cocok dengan `git log`, **tolak review** — minta agent menutup sesi dengan benar dulu (R14, R18). Jangan review branch yang tidak diklaim/ditutup di STATUS.md, walau kodenya terlihat lengkap — ini pernah gagal di 0A: kerja diklaim selesai secara lisan tapi tidak ada branch/commit sama sekali.
-1. `git fetch && git log --oneline origin/main..origin/ec/<ID>-*`: commit berprefix benar, satu task, SHA terakhir cocok dengan yang tercatat di STATUS.md.
+0. **Jangan percaya kolom Commit di `docs/ec-v2/STATUS.md` mentah-mentah — verifikasi ulang selalu (R19).** Jalankan `git fetch origin` lalu `git rev-parse ec/<ID>-*` (lokal, kalau ada) vs `git rev-parse origin/ec/<ID>-*`. Kalau beda atau `origin/ec/<ID>-*` tidak ada sama sekali → **tolak review**, minta push dulu — jangan asumsikan "pasti sudah di-push karena STATUS.md bilang ✅". STATUS.md hanyalah catatan, bukan bukti; buktinya selalu `origin`. Baris task juga harus ✅ dengan Branch + Commit SHA + link Report terisi — kalau bukan ✅, tolak dan minta agent menutup sesi dengan benar (R14, R18). Ini pernah gagal 2×: 0A (kerja diklaim tapi tidak ada branch/commit sama sekali) dan 0B (report lengkap tapi hanya ada di local branch, tidak pernah ter-push, sampai digali manual).
+1. `git log --oneline origin/main..origin/ec/<ID>-*`: commit berprefix benar, satu task, SHA terakhir cocok dengan yang baru diverifikasi di langkah 0.
 2. `bash scripts/ec-v2/check-ownership.sh <X> origin/main...origin/ec/<ID>-*` → **pelanggaran = tolak**, minta dipindah atau dijadikan permintaan.
-3. Checkout branch di worktree review: build Go + `tsc` + `eslint` + `next build`; `any-check.sh`.
+3. Checkout branch di worktree review: build Go + `tsc` + `eslint` + `next build`. Jalankan `any-check.sh` **dari dalam worktree branch yang sedang direview** (bukan dari worktree lain) — script membaca file dari disk lokal, bukan dari git blob, jadi salah worktree menghasilkan hasil palsu (ini luput di audit 0D sampai ditemukan manual).
 4. Kontrak: jalankan `curl` dari body commit terhadap API branch; bandingkan dengan RENCANA §7 field per field; cek fixtures cocok.
-5. Aturan domain: tulis DB hanya ke tabel sendiri (grep `Table("`/`Model(&` ke tabel domain lain); tidak ada `UPDATE orders SET status` di luar `orderflow`; tidak ada import package domain lain.
+5. Aturan domain: tulis DB hanya ke tabel sendiri (grep `Table("`/`Model(&` ke tabel domain lain); tidak ada `UPDATE orders SET status` di luar `orderflow`; tidak ada import package domain lain. Untuk perubahan tipe bersama (mis. envelope response): cek tidak ada duplikasi definisi core — semua domain harus **import** dari package core (`internal/httpx`, dst.), bukan menyalin ulang tipe yang sama (ditemukan di 0B: `Response` didefinisikan 6× alih-alih di-import sekali).
 6. Jalankan spec E2E domain + `transaksi.spec.ts` (**wajib** untuk A5, B2, C2, D2, D3 karena port-nya aktif di jalur checkout).
-7. Baca `docs/report/<ID>.md` (§14) — bandingkan output DoD yang ditempel di sana dengan hasil build ulangmu sendiri; kalau tidak cocok/tidak ada, tolak.
+7. `test -f docs/report/<ID>.md` (path EXACT, R20) — kalau tidak ada di path itu (termasuk kalau ada tapi dengan nama lain seperti `REPORT-<ID>.md`), tolak. Baca isinya, bandingkan output DoD yang ditempel dengan hasil build ulangmu sendiri; kalau tidak cocok, tolak.
 8. Merge `git merge --no-ff`, lalu **build ulang di `main`** (menangkap tabrakan lintas branch yang lolos di masing-masing branch), push, dan hapus branch.
 9. Balas di log agent bila ada catatan; cek bagian permintaan lintas-domain. Update `docs/ec-v2/STATUS.md` kolom Catatan dengan tanggal merge.
 
 Urutan merge antar agent bebas karena file tidak beririsan. Kalau terjadi konflik git, itu tanda pelanggaran kepemilikan: selidiki dulu, jangan langsung di-resolve.
 
+### 11.1 Sweep pra-gerbang (WAJIB sebelum G0/G1/G2/G3, sekali per gerbang)
+
+Gap 0A dan 0B baru ketahuan lewat audit manual menyeluruh, bukan lewat proses rutin.
+Supaya tidak bergantung pada "kebetulan ada yang audit", jalankan sweep ini **sebelum
+setiap gerbang**, di root repo (bukan worktree):
+```
+git fetch origin
+git branch -v          # semua branch lokal + HEAD masing-masing
+git branch -rv         # semua branch remote + HEAD masing-masing
+```
+Bandingkan manual: setiap `ec/<ID>-*` yang ada di salah satu daftar tapi tidak di
+daftar lain, atau HEAD-nya beda antara lokal dan remote, adalah tanda kerja yang
+belum ter-push — push dulu sebelum lanjut ke checklist §11 langkah 0 di atas untuk
+task itu. Catat hasil sweep (bersih / ada yang diperbaiki) di `docs/ec-v2/STATUS.md`
+kolom Catatan gerbang terkait.
+
 ---
 
 ## 12. Prompt peluncuran opencode
 
-opencode membaca `AGENTS.md` di root — **sudah dibuat 2026-09-26** (lebih awal dari rencana semula "0D, di-commit Satria di G0") justru karena audit menemukan tidak ada apa pun yang ter-auto-load untuk opencode sebelumnya. Isinya WAJIB tetap sinkron dengan §0/R1–R18/§14 dokumen ini — kalau bagian itu diubah, update `AGENTS.md` di commit yang sama. Opsional: definisikan agent khusus per domain di konfigurasi opencode (mis. `.opencode/agent/ec-a.md`); cek dokumentasi opencode versi yang dipakai untuk format pastinya.
+opencode membaca `AGENTS.md` di root — **sudah dibuat 2026-09-26** (lebih awal dari rencana semula "0D, di-commit Satria di G0") justru karena audit menemukan tidak ada apa pun yang ter-auto-load untuk opencode sebelumnya. Isinya WAJIB tetap sinkron dengan §0/R1–R20/§14 dokumen ini — kalau bagian itu diubah, update `AGENTS.md` di commit yang sama. Opsional: definisikan agent khusus per domain di konfigurasi opencode (mis. `.opencode/agent/ec-a.md`); cek dokumentasi opencode versi yang dipakai untuk format pastinya.
 
 **Template (satu sesi = satu task):**
 ```
