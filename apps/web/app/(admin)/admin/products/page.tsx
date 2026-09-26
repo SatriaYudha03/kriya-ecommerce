@@ -2,17 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { Plus, Pencil, Trash2, Loader2, Package } from "lucide-react";
-import { useProducts, useCategories } from "@/lib/queries";
-import { useDeleteProduct } from "@/lib/admin-queries";
+import { useCategories, useAdminProducts, useDeleteProduct } from "@/lib/catalog/queries";
 import { formatRupiah } from "@/lib/format";
 import { ProductForm } from "@/components/kriya/admin/product-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 const LIMIT = 20;
 
 export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<string>("");
+  const [q, setQ] = useState("");
   const [form, setForm] = useState<{ open: boolean; productId?: string }>({ open: false });
-  const { data, isLoading, isError } = useProducts({ page, limit: LIMIT });
+  const { data, isLoading, isError } = useAdminProducts({ page, limit: LIMIT, status, q });
   const { data: categories } = useCategories();
   const del = useDeleteProduct();
 
@@ -47,7 +50,30 @@ export default function AdminProductsPage() {
         </button>
       </div>
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+      <div className="mt-6 flex flex-wrap gap-4">
+        <div className="w-full max-w-sm">
+          <Input 
+            placeholder="Cari produk..." 
+            value={q} 
+            onChange={(e) => { setQ(e.target.value); setPage(1); }} 
+          />
+        </div>
+        <div className="w-full max-w-xs">
+          <Select value={status} onValueChange={(val) => { setStatus(val === "all" ? "" : String(val)); setPage(1); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Semua Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-20 text-neutral-500">
             <Loader2 className="h-5 w-5 animate-spin" /> Memuat produk…
@@ -62,22 +88,24 @@ export default function AdminProductsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-200">
-              <thead className="bg-neutral-50">
-                <tr>
-                  <Th>Produk</Th>
-                  <Th>Kategori</Th>
-                  <Th>Harga (min)</Th>
-                  <Th className="text-right">Aksi</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 bg-white">
-                {products.map((p) => (
-                  <tr key={p.id}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-neutral-900">{p.name}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
-                      {catName.get(p.category_slug) ?? p.category_slug}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900">{formatRupiah(p.price_min)}</td>
+                <thead className="bg-neutral-50">
+                  <tr>
+                    <Th>Produk</Th>
+                    <Th>Kategori</Th>
+                    <Th>Status</Th>
+                    <Th>Harga (min)</Th>
+                    <Th className="text-right">Aksi</Th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200 bg-white">
+                  {products.map((p) => (
+                    <tr key={p.id}>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-neutral-900">{p.name}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
+                        {catName.get(p.category_slug) ?? p.category_slug}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500 capitalize">{p.status}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900">{formatRupiah(p.price_min)}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
                       <div className="inline-flex items-center gap-3">
                         <button

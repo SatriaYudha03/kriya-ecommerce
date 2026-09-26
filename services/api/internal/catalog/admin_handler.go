@@ -22,6 +22,54 @@ func NewAdminHandler(repo *AdminRepository, supabaseURL string) *AdminHandler {
 
 // ListOrders mengambil semua pesanan dari DB dengan pagination & filter status.
 
+// ListProducts mengambil semua produk dari DB dengan pagination & filter.
+func (h *AdminHandler) ListProducts(c *gin.Context) {
+	q := c.Query("q")
+	status := c.Query("status")
+	page, limit := httpx.ParsePagination(c)
+
+	products, total, err := h.repo.GetAdminProducts(q, status, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil daftar produk"},
+		})
+		return
+	}
+
+	var data []ProductListResponse
+	for _, p := range products {
+		priceMin := 0
+		if len(p.Variants) > 0 {
+			priceMin = p.Variants[0].Price
+			for _, v := range p.Variants {
+				if v.Price < priceMin {
+					priceMin = v.Price
+				}
+			}
+		}
+
+		thumbnailURL := ""
+		if len(p.Images) > 0 {
+			thumbnailURL = storage.PublicImageURL(h.supabaseURL, p.Images[0].StoragePath)
+		}
+
+		data = append(data, ProductListResponse{
+			ID:           p.ID,
+			Slug:         p.Slug,
+			Name:         p.Name,
+			CategorySlug: p.CategorySlug,
+			PriceMin:     priceMin,
+			ThumbnailURL: thumbnailURL,
+			Status:       p.Status,
+		})
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{
+		Data: data,
+		Meta: &httpx.Meta{Page: page, Limit: limit, Total: total},
+	})
+}
+
 // UpdateOrderStatus memperbarui status pesanan.
 
 // CreateProduct membuat produk baru lengkap beserta varian & gambarnya.
@@ -50,6 +98,11 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 			Price:     v.Price,
 			Stock:     v.Stock,
 		}
+		if v.IsActive != nil {
+			variants[i].IsActive = *v.IsActive
+		} else {
+			variants[i].IsActive = true
+		}
 	}
 
 	images := make([]ProductImage, len(req.Images))
@@ -63,18 +116,36 @@ func (h *AdminHandler) CreateProduct(c *gin.Context) {
 		}
 	}
 
+	if req.Status == "" {
+		req.Status = "published"
+	}
+	var seoMetadata []byte = []byte("{}")
+	if len(req.SeoMetadata) > 0 {
+		seoMetadata = req.SeoMetadata
+	}
+	var summaryI18n []byte = []byte("{}")
+	if req.Summary != "" {
+		// simplifikasi menyimpan summary ke jsonb format en/id
+		sumMap := map[string]string{"id": req.Summary, "en": req.Summary}
+		summaryI18n, _ = json.Marshal(sumMap)
+	}
+
 	p := Product{
-		ID:               productID,
-		Slug:             req.Slug,
-		Name:             req.Name,
-		CategorySlug:     req.CategorySlug,
-		Description:      req.Description,
-		Materials:        materialsJSON,
-		Dimensions:       dimsJSON,
-		WeightKg:         req.WeightKg,
-		HasAssemblyGuide: req.HasAssemblyGuide,
-		Variants:         variants,
-		Images:           images,
+		ID:                   productID,
+		Slug:                 req.Slug,
+		Name:                 req.Name,
+		CategorySlug:         req.CategorySlug,
+		Description:          req.Description,
+		Materials:            materialsJSON,
+		Dimensions:           dimsJSON,
+		WeightKg:             req.WeightKg,
+		HasAssemblyGuide:     req.HasAssemblyGuide,
+		Status:               req.Status,
+		IsFeatured:           req.Featured,
+		ShortDescriptionI18n: summaryI18n,
+		MetaTitleI18n:        seoMetadata, // simplifying seo storing for now
+		Variants:             variants,
+		Images:               images,
 	}
 
 	if err := h.repo.CreateProduct(&p); err != nil {
@@ -120,6 +191,19 @@ func (h *AdminHandler) UpdateProduct(c *gin.Context) {
 	updates["weight_kg"] = req.WeightKg
 	updates["has_assembly_guide"] = req.HasAssemblyGuide
 
+	if req.Status != "" {
+		updates["status"] = req.Status
+	}
+	updates["is_featured"] = req.Featured
+	if req.Summary != "" {
+		sumMap := map[string]string{"id": req.Summary, "en": req.Summary}
+		summaryI18n, _ := json.Marshal(sumMap)
+		updates["short_description_i18n"] = summaryI18n
+	}
+	if len(req.SeoMetadata) > 0 {
+		updates["meta_title_i18n"] = req.SeoMetadata
+	}
+
 	if err := h.repo.UpdateProduct(id, updates); err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui produk"},
@@ -162,6 +246,11 @@ func (h *AdminHandler) CreateVariant(c *gin.Context) {
 		Price:     req.Price,
 		Stock:     req.Stock,
 	}
+	if req.IsActive != nil {
+		v.IsActive = *req.IsActive
+	} else {
+		v.IsActive = true
+	}
 
 	if err := h.repo.CreateVariant(&v); err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
@@ -190,6 +279,9 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 		"size":  req.Size,
 		"price": req.Price,
 		"stock": req.Stock,
+	}
+	if req.IsActive != nil {
+		updates["is_active"] = *req.IsActive
 	}
 
 	if err := h.repo.UpdateVariant(variantID, updates); err != nil {

@@ -12,6 +12,7 @@ export interface ProductListItem {
   category_slug: string;
   price_min: number;
   thumbnail_url: string;
+  status?: string;
 }
 
 export interface ProductImage {
@@ -26,6 +27,7 @@ export interface ProductVariant {
   size: string | null;
   price: number;
   stock: number;
+  is_active?: boolean;
 }
 
 export interface ProductDetail {
@@ -76,6 +78,7 @@ export interface VariantInput {
   size: string | null;
   price: number;
   stock: number;
+  is_active?: boolean;
 }
 
 export interface ProductImageInput {
@@ -93,6 +96,10 @@ export interface CreateProductPayload {
   dimensions: Dimensions;
   weight_kg: number;
   has_assembly_guide: boolean;
+  status?: string;
+  featured?: boolean;
+  summary?: string;
+  seo_metadata?: Record<string, unknown>;
   variants: VariantInput[];
   images: ProductImageInput[];
 }
@@ -117,6 +124,10 @@ export interface AdminProductDetail {
   dimensions: Dimensions;
   weight_kg: number;
   has_assembly_guide: boolean;
+  status?: string;
+  featured?: boolean;
+  summary?: string;
+  seo_metadata?: Record<string, unknown>;
   variants: ProductVariant[];
   images: AdminProductImage[];
 }

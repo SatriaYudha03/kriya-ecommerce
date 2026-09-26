@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getCategories, getProduct, getProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, type ProductsQuery } from "./api";
+import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, type ProductsQuery, type AdminProductsQuery } from "./api";
 import { ApiError } from "../http";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { promoKeys } from "../promo/queries";
@@ -12,6 +12,7 @@ export const catalogKeys = {
   product: (slug: string, locale: string) => [...catalogKeys.all, "product", slug, locale] as const,
   search: (q: string, locale: string) => [...catalogKeys.all, "search", q, locale] as const,
   similar: (id: string, locale: string) => [...catalogKeys.all, "similar", id, locale] as const,
+  adminProducts: (query: AdminProductsQuery) => [...catalogKeys.all, "admin-products", query] as const,
   adminProduct: (id: string) => [...catalogKeys.all, "admin-product", id] as const,
 };
 
@@ -29,6 +30,13 @@ export function useProducts(query: ProductsQuery = {}) {
   return useQuery({
     queryKey: catalogKeys.products(query, locale),
     queryFn: () => getProducts(query),
+  });
+}
+
+export function useAdminProducts(query: AdminProductsQuery = {}) {
+  return useQuery({
+    queryKey: catalogKeys.adminProducts(query),
+    queryFn: () => getAdminProducts(query),
   });
 }
 

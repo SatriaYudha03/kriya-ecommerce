@@ -37,6 +37,7 @@ type ProductListResponse struct {
 	CategorySlug string `json:"category_slug"`
 	PriceMin     int    `json:"price_min"`
 	ThumbnailURL string `json:"thumbnail_url"`
+	Status       string `json:"status"`
 }
 
 type ProductDetailResponse struct {
@@ -213,29 +214,36 @@ type AdminCreateProductRequest struct {
 	Dimensions       Dimensions            `json:"dimensions"`
 	WeightKg         float64               `json:"weight_kg"`
 	HasAssemblyGuide bool                  `json:"has_assembly_guide"`
+	Status           string                `json:"status" binding:"omitempty,oneof=draft published archived"`
+	Featured         bool                  `json:"featured"`
+	Summary          string                `json:"summary"`
+	SeoMetadata      json.RawMessage       `json:"seo_metadata"`
 	Variants         []AdminVariantRequest `json:"variants" binding:"dive"`
 	Images           []AdminImageRequest   `json:"images" binding:"dive"`
 }
 
 type AdminUpdateProductRequest struct {
-	Slug             string     `json:"slug"`
-	Name             string     `json:"name"`
-	CategorySlug     string     `json:"category_slug"`
-	Description      string     `json:"description"`
-	Materials        []string   `json:"materials"`
-	Dimensions       Dimensions `json:"dimensions"`
-	WeightKg         float64    `json:"weight_kg"`
-	HasAssemblyGuide bool       `json:"has_assembly_guide"`
+	Slug             string          `json:"slug"`
+	Name             string          `json:"name"`
+	CategorySlug     string          `json:"category_slug"`
+	Description      string          `json:"description"`
+	Materials        []string        `json:"materials"`
+	Dimensions       Dimensions      `json:"dimensions"`
+	WeightKg         float64         `json:"weight_kg"`
+	HasAssemblyGuide bool            `json:"has_assembly_guide"`
+	Status           string          `json:"status" binding:"omitempty,oneof=draft published archived"`
+	Featured         bool            `json:"featured"`
+	Summary          string          `json:"summary"`
+	SeoMetadata      json.RawMessage `json:"seo_metadata"`
 }
 
 type AdminVariantRequest struct {
-	Sku   string  `json:"sku" binding:"required"`
-	Color string  `json:"color"`
-	Size  *string `json:"size"`
-	Price int     `json:"price" binding:"required,min=1"`
-	// Stock TIDAK pakai `required`: validator Go menganggap 0 sebagai "kosong",
-	// padahal stok 0 (habis) valid. Cukup min=0.
-	Stock int `json:"stock" binding:"min=0"`
+	Sku      string  `json:"sku" binding:"required"`
+	Color    string  `json:"color"`
+	Size     *string `json:"size"`
+	Price    int     `json:"price" binding:"required,min=1"`
+	Stock    int     `json:"stock" binding:"min=0"`
+	IsActive *bool   `json:"is_active"`
 }
 
 type AdminImageRequest struct {

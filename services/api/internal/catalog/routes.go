@@ -15,6 +15,7 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Public.GET("/products", handler.GetProducts)
 	r.Public.GET("/products/:slug", handler.GetProduct)
 
+	r.Admin.GET("/products", adminHandler.ListProducts)
 	r.Admin.GET("/products/:id", adminHandler.GetProduct)
 	r.Admin.POST("/products", adminHandler.CreateProduct)
 	r.Admin.PUT("/products/:id", adminHandler.UpdateProduct)
