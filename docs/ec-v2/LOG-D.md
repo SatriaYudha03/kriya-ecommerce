@@ -16,6 +16,7 @@
   langkah 5. Hasil rework di-merge ke main.
 - 2026-09-26 - D2 (Event, catatan, resi) diimplementasikan, branch `ec/D2-event-catatan-resi`. Menerapkan `OrderEventRecorder` di `aftersales/events.go`. Admin order detail (FE & BE) dan timeline+notes pada customer detail.
 - 2026-09-27 - D3 (Batal oleh customer) selesai dikerjakan di `ec/D3-batal-oleh-customer`. Endpoint `POST /orders/:id/cancel` ditambah, fallback DB pembatalan, dan FE `CancelOrderDialog` pada detail order.
+- 2026-09-27 - D4 (Ulasan) selesai dikerjakan di `ec/D4-ulasan` (`7124123`). Endpoint review publik/saya/admin (8 endpoint sesuai RENCANA §7.1), aturan D6 (completed, 1 per produk per user, moderasi pending), can_review/review_id di order item. FE: ProductReviews, MyReviews, AdminReviews, i18n EN+ID.
 
 ## Permintaan lintas-domain
 *Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*
