@@ -58,7 +58,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | A1 | Status produk & arsip | ✅ | A | 2026-09-26 | `ec/A1-status-produk-arsip` | `e82e21d` | `docs/report/A1.md` | |
 | A2 | Harga sale terjadwal | ✅ | A | 2026-09-26 | ec/A2-harga-sale-terjadwal | e161ddf | docs/report/A2.md | |
 | A3 | Kategori bertingkat | ✅ | A | 2026-09-26 | `ec/A3-kategori-bertingkat` | `60db1c4` | `docs/report/A3.md` | |
-| A4 | Tag, atribut & facet | ⬜ | | | | | | |
+| A4 | Tag, atribut & facet | ? | A | 2026-09-27 | `ec/A4-tag-atribut-facet` | `cb29c59` | `docs/report/A4.md` | |
 | A5 | Ledger stok | ⬜ | | | | | | |
 | A6 | Produk terkait & rating | ⬜ | | | | | | |
 | A7 | Seed & E2E katalog | ⬜ | | | | | | |
