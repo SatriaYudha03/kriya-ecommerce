@@ -132,8 +132,8 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 			DiscountAmount: it.DiscountAmount,
 			Subtotal:       it.Subtotal,
 			RefundedQty:    it.RefundedQty,
-			CanReview:      false,
-			ReviewID:       nil,
+			CanReview:      o.Status == "completed" && it.ReviewID == nil,
+			ReviewID:       it.ReviewID,
 		})
 	}
 

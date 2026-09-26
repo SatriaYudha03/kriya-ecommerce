@@ -120,6 +120,7 @@ type OrderItem struct {
 
 	ProductSlug    *string `gorm:"->;column:product_slug"`
 	ThumbnailURL   *string `gorm:"->;column:thumbnail_url"`
+	ReviewID       *string `gorm:"->;column:review_id"`
 }
 
 func (OrderItem) TableName() string { return "order_items" }
@@ -183,9 +184,10 @@ func (r *OrderRepository) ListByUser(userID string, page, limit int, status stri
 	// Query 2: Items (with products and images joined)
 	var items []OrderItem
 	err = r.db.Model(&OrderItem{}).
-		Select("order_items.*, p.slug as product_slug, img.storage_path as thumbnail_url").
+		Select("order_items.*, p.slug as product_slug, img.storage_path as thumbnail_url, pr.id as review_id").
 		Joins("LEFT JOIN products p ON p.id = order_items.product_id").
 		Joins("LEFT JOIN product_images img ON img.product_id = p.id AND img.is_primary = true").
+		Joins("LEFT JOIN product_reviews pr ON pr.order_item_id = order_items.id").
 		Where("order_items.order_id IN ?", orderIDs).
 		Find(&items).Error
 	if err != nil {
@@ -236,9 +238,10 @@ func (r *OrderRepository) GetByIDForUser(id, userID string) (*Order, error) {
 
 	// Items
 	err = r.db.Model(&OrderItem{}).
-		Select("order_items.*, p.slug as product_slug, img.storage_path as thumbnail_url").
+		Select("order_items.*, p.slug as product_slug, img.storage_path as thumbnail_url, pr.id as review_id").
 		Joins("LEFT JOIN products p ON p.id = order_items.product_id").
 		Joins("LEFT JOIN product_images img ON img.product_id = p.id AND img.is_primary = true").
+		Joins("LEFT JOIN product_reviews pr ON pr.order_item_id = order_items.id").
 		Where("order_items.order_id = ?", id).
 		Find(&order.Items).Error
 	if err != nil {

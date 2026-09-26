@@ -90,3 +90,49 @@ export interface AdminOrdersQuery {
   page?: number;
   limit?: number;
 }
+
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+export interface Review {
+  id: string;
+  product_id: string;
+  user_id: string;
+  order_item_id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  status: ReviewStatus;
+  admin_reply: string | null;
+  replied_at: string | null;
+  created_at: string;
+  updated_at: string;
+  
+  user_name?: string;
+  product_name?: string;
+  product_slug?: string;
+  variant_name?: string;
+}
+
+export interface ReviewSummary {
+  average_rating: number;
+  total_reviews: number;
+  rating_counts: Record<string, number>;
+}
+
+export interface CreateReviewRequest {
+  order_item_id: string;
+  rating: number;
+  title?: string;
+  body?: string;
+}
+
+export interface UpdateReviewRequest {
+  rating: number;
+  title?: string;
+  body?: string;
+}
+
+export interface AdminUpdateReviewRequest {
+  status?: ReviewStatus;
+  admin_reply?: string;
+}
