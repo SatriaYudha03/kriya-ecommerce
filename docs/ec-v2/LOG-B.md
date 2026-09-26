@@ -20,3 +20,5 @@
 *Format: YYYY-MM-DD · TaskID · BUTUH: ... · ALASAN: ... · MEMBLOKIR: (ya/tidak) · USULAN: ...*
 
 - [Kosong]
+
+- 2026-09-27 - B3 (wishlist): Menyelesaikan fitur Wishlist (backend GORM dan frontend) di branch ec/B3-wishlist. DoD hijau.
