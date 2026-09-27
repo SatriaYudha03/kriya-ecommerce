@@ -3,8 +3,9 @@ package checkout
 import (
 	"context"
 	"sort"
-	"strings"
+
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale string, lock bool) ([]PricedLine, []Problem, error) {
@@ -42,10 +43,14 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 		`).
 		Joins("JOIN products p ON p.id = pv.product_id").
 		Joins("LEFT JOIN categories c ON c.slug = p.category_slug").
-		Where("pv.id IN ?", variantIDs)
+		Where("pv.id IN ?", variantIDs).
+		Where("p.status = 'published' AND pv.is_active = true")
 
 	if lock {
-		query = query.Clauses(gorm.Expr("FOR UPDATE"))
+		// "FOR UPDATE OF pv": query punya LEFT JOIN ke categories, dan Postgres menolak
+		// FOR UPDATE polos di query dengan outer join ("cannot be applied to the
+		// nullable side of an outer join") — kunci eksplisit hanya baris product_variants.
+		query = query.Clauses(clause.Locking{Strength: "UPDATE", Table: clause.Table{Name: "pv"}})
 	}
 
 	type Result struct {
@@ -86,15 +91,6 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 		}
 		if r.Available < l.Qty {
 			problems = append(problems, Problem{VariantID: l.VariantID, Code: "insufficient_stock", Available: r.Available})
-			// Still calculate with what's available? No, wait, just report problem
-			// actually, standard practice is to return the PricedLine with requested Qty anyway, and let the caller handle problems.
-			// Let's check requirements.
-		}
-
-		// Mock localization for now, wait, locale is ignored here for simple struct
-		name := r.Name
-		if locale == "en" && strings.Contains(name, " (EN)") {
-			// In a real app we'd fetch translations. Keep simple for now.
 		}
 
 		var weight float64
@@ -108,7 +104,7 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 			CategoryID:   r.CategoryID,
 			ProductSlug:  r.ProductSlug,
 			SKU:          r.SKU,
-			Name:         name,
+			Name:         r.Name,
 			Color:        r.Color,
 			Size:         r.Size,
 			ThumbnailURL: r.ThumbnailURL,

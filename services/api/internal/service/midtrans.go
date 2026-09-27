@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ import (
 
 // snapSandboxURL — KRIYA-MASTER.md Bagian 2: Midtrans Snap mode Sandbox (bukan konfigurasi, fixed).
 const snapSandboxURL = "https://app.sandbox.midtrans.com/snap/v1/transactions"
+const midtransCancelSandboxURL = "https://api.sandbox.midtrans.com/v2/%s/cancel"
 
 const orderIDCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -51,8 +53,14 @@ type snapTransactionDetails struct {
 	GrossAmount int    `json:"gross_amount"`
 }
 
+type snapExpiry struct {
+	Unit     string `json:"unit"`
+	Duration int    `json:"duration"`
+}
+
 type snapRequest struct {
 	TransactionDetails snapTransactionDetails `json:"transaction_details"`
+	Expiry             *snapExpiry            `json:"expiry,omitempty"`
 }
 
 type snapResponse struct {
@@ -61,12 +69,29 @@ type snapResponse struct {
 }
 
 // CreateSnapTransaction membuat transaksi Snap sandbox dan mengembalikan snap_token.
+// Dipertahankan (jalur lama, expiry default Midtrans) — jalur baru (checkout v2)
+// memakai CreateSnapTransactionWithExpiry agar expiry mengikuti store_settings.
 func (s *MidtransService) CreateSnapTransaction(midtransOrderID string, grossAmount int) (string, error) {
+	return s.doCreateSnapTransaction(midtransOrderID, grossAmount, nil)
+}
+
+// CreateSnapTransactionWithExpiry — sama seperti CreateSnapTransaction, tapi expiry
+// transaksi Snap diset eksplisit dalam menit (RENCANA §4.5: dari store_settings.pending_payment_ttl_minutes).
+func (s *MidtransService) CreateSnapTransactionWithExpiry(midtransOrderID string, grossAmount int, expiryMinutes int) (string, error) {
+	var exp *snapExpiry
+	if expiryMinutes > 0 {
+		exp = &snapExpiry{Unit: "minute", Duration: expiryMinutes}
+	}
+	return s.doCreateSnapTransaction(midtransOrderID, grossAmount, exp)
+}
+
+func (s *MidtransService) doCreateSnapTransaction(midtransOrderID string, grossAmount int, expiry *snapExpiry) (string, error) {
 	body, err := json.Marshal(snapRequest{
 		TransactionDetails: snapTransactionDetails{
 			OrderID:     midtransOrderID,
 			GrossAmount: grossAmount,
 		},
+		Expiry: expiry,
 	})
 	if err != nil {
 		return "", err
@@ -102,6 +127,33 @@ func (s *MidtransService) CreateSnapTransaction(midtransOrderID string, grossAmo
 		return "", errors.New("midtrans snap: token kosong")
 	}
 	return snapResp.Token, nil
+}
+
+// CancelTransaction membatalkan transaksi Midtrans (dipakai D3, best-effort — dipanggil
+// di luar transaksi DB, kegagalannya tidak boleh menggagalkan pembatalan order).
+func (s *MidtransService) CancelTransaction(midtransOrderID string) error {
+	url := fmt.Sprintf(midtransCancelSandboxURL, midtransOrderID)
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(s.serverKey, "")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode >= 300 {
+		return errors.New("midtrans cancel error: " + string(respBody))
+	}
+	return nil
 }
 
 // VerifySignature memverifikasi signature_key webhook Midtrans:

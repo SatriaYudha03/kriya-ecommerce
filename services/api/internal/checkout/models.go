@@ -2,259 +2,165 @@ package checkout
 
 import "time"
 
-type CategoryResponse struct {
-	ID   string `json:"id"`
-	Slug string `json:"slug"`
-	Name string `json:"name"`
-}
-
-type ProductListResponse struct {
-	ID           string `json:"id"`
-	Slug         string `json:"slug"`
-	Name         string `json:"name"`
-	CategorySlug string `json:"category_slug"`
-	PriceMin     int    `json:"price_min"`
-	ThumbnailURL string `json:"thumbnail_url"`
-}
-
-type ProductDetailResponse struct {
-	ID               string            `json:"id"`
-	Slug             string            `json:"slug"`
-	Name             string            `json:"name"`
-	Description      string            `json:"description"`
-	Category         CategoryRef       `json:"category"`
-	Materials        []string          `json:"materials"`
-	Dimensions       Dimensions        `json:"dimensions"`
-	WeightKg         float64           `json:"weight_kg"`
-	Images           []ImageResponse   `json:"images"`
-	Variants         []VariantResponse `json:"variants"`
-	HasAssemblyGuide bool              `json:"has_assembly_guide"`
-}
-
-type CategoryRef struct {
-	Slug string `json:"slug"`
-	Name string `json:"name"`
-}
-
-type Dimensions struct {
-	WidthCm  float64 `json:"width_cm"`
-	DepthCm  float64 `json:"depth_cm"`
-	HeightCm float64 `json:"height_cm"`
-}
-
-type ImageResponse struct {
-	URL string `json:"url"` // Public Supabase Storage URL, dibangun dari storage_path
-	Alt string `json:"alt"`
-}
-
-type VariantResponse struct {
-	ID    string  `json:"id"`
-	Sku   string  `json:"sku"`
-	Color string  `json:"color"`
-	Size  *string `json:"size"`
-	Price int     `json:"price"`
-	Stock int     `json:"stock"`
-}
-
-// ===== Cart =====
-
-type CartItemRequest struct {
-	VariantID string `json:"variant_id" binding:"required,uuid"`
-	Qty       int    `json:"qty" binding:"required,min=1"`
-}
-
-type PutCartRequest struct {
-	Items []CartItemRequest `json:"items" binding:"dive"`
-}
-
-type CartProductResponse struct {
-	Slug         string  `json:"slug"`
-	Name         string  `json:"name"`
-	ThumbnailURL string  `json:"thumbnail_url"`
-	Color        string  `json:"color"`
-	Size         *string `json:"size"`
-}
-
-type CartItemResponse struct {
-	VariantID string              `json:"variant_id"`
-	Qty       int                 `json:"qty"`
-	Price     int                 `json:"price"`
-	Subtotal  int                 `json:"subtotal"`
-	Product   CartProductResponse `json:"product"`
-}
-
-type CartResponse struct {
-	Items []CartItemResponse `json:"items"`
-	Total int                `json:"total"`
-}
-
-// ===== Orders =====
+// ===== Request bersama quote & orders v2 (RENCANA §7.6) =====
 
 type OrderItemRequest struct {
 	VariantID string `json:"variant_id" binding:"required,uuid"`
 	Qty       int    `json:"qty" binding:"required,min=1"`
 }
 
-type ShippingAddressRequest struct {
-	Recipient   string `json:"recipient" binding:"required"`
-	Phone       string `json:"phone" binding:"required"`
-	AddressLine string `json:"address_line" binding:"required"`
-	City        string `json:"city" binding:"required"`
-	Province    string `json:"province" binding:"required"`
-	PostalCode  string `json:"postal_code" binding:"required"`
+type QuoteRequest struct {
+	Items            []OrderItemRequest `json:"items" binding:"required,min=1,dive"`
+	AddressID        *string            `json:"address_id" binding:"omitempty,uuid"`
+	ProvinceCode     *string            `json:"province_code"`
+	ShippingMethodID *string            `json:"shipping_method_id" binding:"omitempty,uuid"`
+	CouponCode       *string            `json:"coupon_code"`
 }
 
 type CreateOrderRequest struct {
-	Items           []OrderItemRequest     `json:"items" binding:"required,min=1,dive"`
-	ShippingZone    string                 `json:"shipping_zone" binding:"required,oneof=jawa_bali luar"`
-	ShippingAddress ShippingAddressRequest `json:"shipping_address" binding:"required"`
+	Items            []OrderItemRequest `json:"items" binding:"required,min=1,dive"`
+	AddressID        string             `json:"address_id" binding:"required,uuid"`
+	ShippingMethodID string             `json:"shipping_method_id" binding:"required,uuid"`
+	CouponCode       *string            `json:"coupon_code"`
+	CustomerNote     *string            `json:"customer_note"`
+}
+
+// ===== Quote response (POST /checkout/quote) =====
+
+type QuoteLineResponse struct {
+	VariantID      string  `json:"variant_id"`
+	ProductSlug    string  `json:"product_slug"`
+	Name           string  `json:"name"`
+	Color          string  `json:"color"`
+	Size           *string `json:"size"`
+	ThumbnailURL   string  `json:"thumbnail_url"`
+	Qty            int     `json:"qty"`
+	UnitPrice      int     `json:"unit_price"`
+	RegularPrice   int     `json:"regular_price"`
+	DiscountAmount int     `json:"discount_amount"`
+	Subtotal       int     `json:"subtotal"`
+}
+
+type QuoteShippingOption struct {
+	MethodID   string `json:"method_id"`
+	Code       string `json:"code"`
+	Name       string `json:"name"`
+	Cost       int    `json:"cost"`
+	EtaMinDays int    `json:"eta_min_days"`
+	EtaMaxDays int    `json:"eta_max_days"`
+	IsFree     bool   `json:"is_free"`
+}
+
+type QuoteCouponResponse struct {
+	Code         string  `json:"code"`
+	Valid        bool    `json:"valid"`
+	Reason       *string `json:"reason"`
+	DiscountType *string `json:"discount_type"`
+}
+
+type QuoteProblemResponse struct {
+	VariantID string `json:"variant_id"`
+	Code      string `json:"code"`
+	Available int    `json:"available"`
+}
+
+type QuoteResponse struct {
+	Lines                    []QuoteLineResponse    `json:"lines"`
+	Subtotal                 int                    `json:"subtotal"`
+	DiscountTotal            int                    `json:"discount_total"`
+	ShippingOptions          []QuoteShippingOption  `json:"shipping_options"`
+	SelectedShippingMethodID *string                `json:"selected_shipping_method_id"`
+	ShippingCost             int                    `json:"shipping_cost"`
+	ShippingDiscount         int                    `json:"shipping_discount"`
+	TaxAmount                int                    `json:"tax_amount"`
+	Total                    int                    `json:"total"`
+	TotalWeightKg            float64                `json:"total_weight_kg"`
+	Coupon                   *QuoteCouponResponse   `json:"coupon"`
+	Problems                 []QuoteProblemResponse `json:"problems"`
+}
+
+// ===== Order v2 (<order> RENCANA §7.5, dipakai balikan POST /orders) =====
+
+type ShippingMethodResponse struct {
+	Code       string `json:"code"`
+	Name       string `json:"name"`
+	EtaMinDays int    `json:"eta_min_days"`
+	EtaMaxDays int    `json:"eta_max_days"`
 }
 
 type ShippingAddressResponse struct {
-	Recipient   string `json:"recipient"`
-	Phone       string `json:"phone"`
-	AddressLine string `json:"address_line"`
-	City        string `json:"city"`
-	Province    string `json:"province"`
-	PostalCode  string `json:"postal_code"`
+	Recipient    string  `json:"recipient"`
+	Phone        string  `json:"phone"`
+	AddressLine  string  `json:"address_line"`
+	City         string  `json:"city"`
+	Province     string  `json:"province"`
+	PostalCode   string  `json:"postal_code"`
+	ProvinceCode *string `json:"province_code,omitempty"`
+	District     *string `json:"district,omitempty"`
 }
 
 type OrderItemResponse struct {
-	Name     string  `json:"name"`
-	Color    string  `json:"color"`
-	Size     *string `json:"size"`
-	Qty      int     `json:"qty"`
-	Price    int     `json:"price"`
-	Subtotal int     `json:"subtotal"`
+	ID             string  `json:"id"`
+	VariantID      string  `json:"variant_id"`
+	ProductSlug    *string `json:"product_slug"`
+	ThumbnailURL   *string `json:"thumbnail_url"`
+	Name           string  `json:"name"`
+	SKU            *string `json:"sku"`
+	Color          string  `json:"color"`
+	Size           *string `json:"size"`
+	Qty            int     `json:"qty"`
+	Price          int     `json:"price"`
+	RegularPrice   int     `json:"regular_price"`
+	DiscountAmount int     `json:"discount_amount"`
+	Subtotal       int     `json:"subtotal"`
+	RefundedQty    int     `json:"refunded_qty"`
+	CanReview      bool    `json:"can_review"`
+	ReviewID       *string `json:"review_id"`
+}
+
+type PaymentResponse struct {
+	Status      string     `json:"status"`
+	CanContinue bool       `json:"can_continue"`
+	ExpiresAt   *time.Time `json:"expires_at"`
+}
+
+type TimelineEvent struct {
+	Status    string    `json:"status"`
+	Note      *string   `json:"note"`
+	ActorType string    `json:"actor_type"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type OrderResponse struct {
-	ID              string                  `json:"id"`
-	Status          string                  `json:"status"`
-	Items           []OrderItemResponse     `json:"items"`
-	Subtotal        int                     `json:"subtotal"`
-	ShippingCost    int                     `json:"shipping_cost"`
-	Total           int                     `json:"total"`
-	ShippingAddress ShippingAddressResponse `json:"shipping_address"`
-	CreatedAt       time.Time               `json:"created_at"`
+	ID               string                  `json:"id"`
+	OrderNumber      string                  `json:"order_number"`
+	Status           string                  `json:"status"`
+	Items            []OrderItemResponse     `json:"items"`
+	Subtotal         int                     `json:"subtotal"`
+	DiscountTotal    int                     `json:"discount_total"`
+	ShippingCost     int                     `json:"shipping_cost"`
+	ShippingDiscount int                     `json:"shipping_discount"`
+	TaxAmount        int                     `json:"tax_amount"`
+	Total            int                     `json:"total"`
+	CouponCode       *string                 `json:"coupon_code"`
+	ShippingMethod   *ShippingMethodResponse `json:"shipping_method"`
+	ShippingAddress  ShippingAddressResponse `json:"shipping_address"`
+	CustomerNote     *string                 `json:"customer_note"`
+	Courier          *string                 `json:"courier"`
+	TrackingNumber   *string                 `json:"tracking_number"`
+	Payment          PaymentResponse         `json:"payment"`
+	CanCancel        bool                    `json:"can_cancel"`
+	CanReturn        bool                    `json:"can_return"`
+	PaidAt           *time.Time              `json:"paid_at"`
+	ShippedAt        *time.Time              `json:"shipped_at"`
+	CompletedAt      *time.Time              `json:"completed_at"`
+	CancelledAt      *time.Time              `json:"cancelled_at"`
+	CreatedAt        time.Time               `json:"created_at"`
+	Timeline         []TimelineEvent         `json:"timeline"`
 }
 
 type CreateOrderResponse struct {
 	Order             OrderResponse `json:"order"`
 	SnapToken         string        `json:"snap_token"`
 	MidtransClientKey string        `json:"midtrans_client_key"`
-}
-
-// ===== Profile (data diri + alamat default) =====
-
-// ProfileResponse: data diri + alamat default user, dipakai FE untuk prefill checkout.
-type ProfileResponse struct {
-	FullName    string `json:"full_name"`
-	Phone       string `json:"phone"`
-	AddressLine string `json:"address_line"`
-	City        string `json:"city"`
-	Province    string `json:"province"`
-	PostalCode  string `json:"postal_code"`
-}
-
-// UpdateProfileRequest: semua field opsional (profil boleh diisi bertahap).
-type UpdateProfileRequest struct {
-	FullName    string `json:"full_name"`
-	Phone       string `json:"phone"`
-	AddressLine string `json:"address_line"`
-	City        string `json:"city"`
-	Province    string `json:"province"`
-	PostalCode  string `json:"postal_code"`
-}
-
-// ===== Internal =====
-
-type InternalOrderStatusResponse struct {
-	OrderID   string    `json:"order_id"`
-	Status    string    `json:"status"`
-	Total     int       `json:"total"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// ===== Admin =====
-
-type AdminUpdateOrderStatusRequest struct {
-	Status string `json:"status" binding:"required,oneof=pending_payment paid processing shipped completed cancelled expired"`
-}
-
-type AdminCreateProductRequest struct {
-	Slug             string                `json:"slug" binding:"required"`
-	Name             string                `json:"name" binding:"required"`
-	CategorySlug     string                `json:"category_slug" binding:"required"`
-	Description      string                `json:"description"`
-	Materials        []string              `json:"materials"`
-	Dimensions       Dimensions            `json:"dimensions"`
-	WeightKg         float64               `json:"weight_kg"`
-	HasAssemblyGuide bool                  `json:"has_assembly_guide"`
-	Variants         []AdminVariantRequest `json:"variants" binding:"dive"`
-	Images           []AdminImageRequest   `json:"images" binding:"dive"`
-}
-
-type AdminUpdateProductRequest struct {
-	Slug             string     `json:"slug"`
-	Name             string     `json:"name"`
-	CategorySlug     string     `json:"category_slug"`
-	Description      string     `json:"description"`
-	Materials        []string   `json:"materials"`
-	Dimensions       Dimensions `json:"dimensions"`
-	WeightKg         float64    `json:"weight_kg"`
-	HasAssemblyGuide bool       `json:"has_assembly_guide"`
-}
-
-type AdminVariantRequest struct {
-	Sku   string  `json:"sku" binding:"required"`
-	Color string  `json:"color"`
-	Size  *string `json:"size"`
-	Price int     `json:"price" binding:"required,min=1"`
-	// Stock TIDAK pakai `required`: validator Go menganggap 0 sebagai "kosong",
-	// padahal stok 0 (habis) valid. Cukup min=0.
-	Stock int `json:"stock" binding:"min=0"`
-}
-
-type AdminImageRequest struct {
-	StoragePath string `json:"storage_path" binding:"required"`
-	Alt         string `json:"alt"`
-	IsPrimary   bool   `json:"is_primary"`
-}
-
-type AdminImageUpdateRequest struct {
-	Alt       string `json:"alt"`
-	IsPrimary bool   `json:"is_primary"`
-}
-
-type AdminStatsResponse struct {
-	TotalOrders    int64 `json:"total_orders"`
-	Revenue        int64 `json:"revenue"`
-	ActiveProducts int64 `json:"active_products"`
-}
-
-// AdminImageResponse memuat id + storage_path (bentuk internal, dipakai form edit).
-type AdminImageResponse struct {
-	ID          string `json:"id"`
-	StoragePath string `json:"storage_path"`
-	URL         string `json:"url"`
-	Alt         string `json:"alt"`
-	IsPrimary   bool   `json:"is_primary"`
-}
-
-// AdminProductDetailResponse = bentuk internal produk untuk panel admin:
-// menyertakan id varian & gambar, is_primary, dan storage_path (beda dari
-// kontrak publik yang hanya {url, alt}).
-type AdminProductDetailResponse struct {
-	ID               string               `json:"id"`
-	Slug             string               `json:"slug"`
-	Name             string               `json:"name"`
-	Description      string               `json:"description"`
-	CategorySlug     string               `json:"category_slug"`
-	Materials        []string             `json:"materials"`
-	Dimensions       Dimensions           `json:"dimensions"`
-	WeightKg         float64              `json:"weight_kg"`
-	HasAssemblyGuide bool                 `json:"has_assembly_guide"`
-	Variants         []VariantResponse    `json:"variants"`
-	Images           []AdminImageResponse `json:"images"`
 }
