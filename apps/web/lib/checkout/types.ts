@@ -1,10 +1,20 @@
-import type { ShippingAddress, PutCartPayloadItem } from "../customer/types";
+import type { PutCartPayloadItem } from "../customer/types";
 import type { Order } from "../aftersales/types";
+
+export interface CheckoutQuoteRequest {
+  items: PutCartPayloadItem[];
+  address_id: string | null;
+  province_code: string | null;
+  shipping_method_id: string | null;
+  coupon_code: string | null;
+}
 
 export interface CreateOrderPayload {
   items: PutCartPayloadItem[];
-  shipping_zone: "jawa_bali" | "luar";
-  shipping_address: ShippingAddress;
+  address_id: string;
+  shipping_method_id: string;
+  coupon_code: string | null;
+  customer_note: string | null;
 }
 
 export interface CreateOrderResponse {
