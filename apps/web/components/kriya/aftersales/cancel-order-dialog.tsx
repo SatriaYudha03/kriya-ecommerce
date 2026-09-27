@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { useCancelOrder } from "@/lib/aftersales/queries";
 import { Loader2, XCircle } from "lucide-react";
+import type { MessageKey } from "@/lib/i18n";
 
 interface CancelOrderDialogProps {
   orderId: string;
@@ -43,23 +44,23 @@ export function CancelOrderDialog({ orderId }: CancelOrderDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 border border-neutral-200 bg-white hover:bg-neutral-100 h-10 px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50">
         <XCircle className="mr-2 h-4 w-4" />
-        {t("after.orders.detail.items") || "Batalkan Pesanan"}
+        {t("after.orders.cancel.button" as MessageKey)}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("after.orders.title") || "Batalkan Pesanan"}</DialogTitle>
+          <DialogTitle>{t("after.orders.cancel.title" as MessageKey)}</DialogTitle>
           <DialogDescription>
-            Apakah Anda yakin ingin membatalkan pesanan ini? Aksi ini tidak dapat dibatalkan.
+            {t("after.orders.cancel.description" as MessageKey)}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="reason" className="text-sm font-medium">
-              Alasan Pembatalan
+              {t("after.orders.cancel.reasonLabel" as MessageKey)}
             </label>
             <Textarea
               id="reason"
-              placeholder="Masukkan alasan pembatalan..."
+              placeholder={t("after.orders.cancel.reasonPlaceholder" as MessageKey)}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               disabled={cancelMutation.isPending}
@@ -68,7 +69,7 @@ export function CancelOrderDialog({ orderId }: CancelOrderDialogProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={cancelMutation.isPending}>
-            Tutup
+            {t("after.orders.cancel.close" as MessageKey)}
           </Button>
           <Button
             variant="destructive"
@@ -76,7 +77,7 @@ export function CancelOrderDialog({ orderId }: CancelOrderDialogProps) {
             disabled={!reason.trim() || cancelMutation.isPending}
           >
             {cancelMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Batalkan Pesanan
+            {t("after.orders.cancel.confirm" as MessageKey)}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,14 +8,7 @@ import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-bad
 import { useLanguage } from "@/components/kriya/language-provider";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
-const STATUS_TABS = [
-  { value: "", label: "Semua" },
-  { value: "pending_payment", label: "Menunggu" },
-  { value: "processing", label: "Diproses" },
-  { value: "shipped", label: "Dikirim" },
-  { value: "completed", label: "Selesai" },
-];
+import type { MessageKey } from "@/lib/i18n";
 
 export default function OrdersPage() {
   const { t, locale } = useLanguage();
@@ -23,8 +16,16 @@ export default function OrdersPage() {
   const [status, setStatus] = useState("");
   const { data: envelope, isLoading, isError, error, refetch } = useOrders(page, 10, status);
 
+  const STATUS_TABS = [
+    { value: "", label: t("after.orders.filter.all" as MessageKey) },
+    { value: "pending_payment", label: t("after.orders.filter.pending" as MessageKey) },
+    { value: "processing", label: t("after.orders.filter.processing" as MessageKey) },
+    { value: "shipped", label: t("after.orders.filter.shipped" as MessageKey) },
+    { value: "completed", label: t("after.orders.filter.completed" as MessageKey) },
+  ];
+
   if (isLoading) {
-    return <div className="p-20 text-center text-neutral-500">{t("after.orders.loading")}</div>;
+    return <div className="p-20 text-center text-neutral-500">{t("after.orders.loading" as MessageKey)}</div>;
   }
 
   if (isError) {
@@ -33,11 +34,11 @@ export default function OrdersPage() {
       <div className="mx-auto max-w-4xl px-4 py-20 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
         <h1 className="mt-5 text-xl font-medium">
-          {isUnauthorized ? t("after.orders.error.login") : t("after.orders.error.title")}
+          {isUnauthorized ? t("after.orders.error.login" as MessageKey) : t("after.orders.error.title" as MessageKey)}
         </h1>
         {!isUnauthorized && (
           <Button onClick={() => refetch()} variant="outline" className="mt-4">
-            {t("after.orders.error.retry")}
+            {t("after.orders.error.retry" as MessageKey)}
           </Button>
         )}
       </div>
@@ -49,7 +50,7 @@ export default function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t("after.orders.title")}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t("after.orders.title" as MessageKey)}</h1>
       
       <div className="mt-6 flex flex-wrap gap-2 border-b border-neutral-200 pb-4">
         {STATUS_TABS.map((tab) => (
@@ -75,15 +76,15 @@ export default function OrdersPage() {
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-tint text-brand-strong">
             <Package className="h-6 w-6" />
           </span>
-          <h1 className="mt-5 text-2xl font-semibold tracking-tight text-neutral-900">{t("after.orders.empty.title")}</h1>
+          <h1 className="mt-5 text-2xl font-semibold tracking-tight text-neutral-900">{t("after.orders.empty.title" as MessageKey)}</h1>
           <p className="mx-auto mt-3 max-w-md text-sm text-neutral-500">
-            {t("after.orders.empty.body")}
+            {t("after.orders.empty.body" as MessageKey)}
           </p>
           <Link
             href="/"
             className="mt-6 inline-block rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
           >
-            {t("after.orders.empty.cta")}
+            {t("after.orders.empty.cta" as MessageKey)}
           </Link>
         </div>
       ) : (
@@ -106,7 +107,7 @@ export default function OrdersPage() {
                     </p>
                   </div>
                   <div className="text-left sm:text-right">
-                    <p className="text-sm text-neutral-500">{t("after.orders.card.total")}</p>
+                    <p className="text-sm text-neutral-500">{t("after.orders.card.total" as MessageKey)}</p>
                     <p className="font-medium text-neutral-900">{formatRupiah(order.total)}</p>
                   </div>
                 </div>
@@ -133,7 +134,7 @@ export default function OrdersPage() {
 
                 <div className="mt-4 border-t border-neutral-100 pt-4 flex items-center justify-between">
                   <p className="text-sm text-neutral-600">
-                    {t("after.orders.card.itemCount").replace("{count}", String(order.items.length))}
+                    {t("after.orders.card.itemCount" as MessageKey).replace("{count}", String(order.items.length))}
                   </p>
                   <div className="flex gap-3 items-center">
                     {order.payment?.can_continue && (
@@ -141,14 +142,14 @@ export default function OrdersPage() {
                         href={`/checkout?order_id=${order.id}`}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-strong"
                       >
-                        {t("after.orders.card.pay")}
+                        {t("after.orders.card.pay" as MessageKey)}
                       </Link>
                     )}
                     <Link
                       href={`/orders/${order.id}`}
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-strong"
                     >
-                      {t("after.orders.card.detail")}
+                      {t("after.orders.card.detail" as MessageKey)}
                       <MoveRight className="h-4 w-4" />
                     </Link>
                   </div>
@@ -168,7 +169,9 @@ export default function OrdersPage() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-neutral-500">
-                Halaman {page} dari {Math.ceil(meta.total / meta.limit)}
+                {t("after.orders.pagination.page" as MessageKey)
+                  .replace("{page}", String(page))
+                  .replace("{total}", String(Math.ceil(meta.total / meta.limit)))}
               </span>
               <Button
                 variant="outline"

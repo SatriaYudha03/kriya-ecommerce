@@ -211,13 +211,13 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 </div>
                 {order.discount_total > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <dt>Diskon</dt>
+                    <dt>{t("after.orders.detail.discount")}</dt>
                     <dd className="font-medium">- {formatRupiah(order.discount_total)}</dd>
                   </div>
                 )}
                 {order.shipping_discount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <dt>Diskon Ongkir</dt>
+                    <dt>{t("after.orders.detail.shippingDiscount")}</dt>
                     <dd className="font-medium">- {formatRupiah(order.shipping_discount)}</dd>
                   </div>
                 )}
