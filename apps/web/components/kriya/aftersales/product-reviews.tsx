@@ -4,12 +4,15 @@ import { useState } from "react";
 import { useProductReviews, useProductReviewSummary } from "@/lib/aftersales/queries";
 import { RatingStars } from "@/components/kriya/catalog/rating-stars";
 import { Pagination } from "@/components/kriya/pagination";
+import { useLanguage } from "@/components/kriya/language-provider";
+import type { MessageKey } from "@/lib/i18n";
 
 export interface ProductReviewsProps {
   productSlug: string;
 }
 
 export function ProductReviews({ productSlug }: ProductReviewsProps) {
+  const { t, locale } = useLanguage();
   const [page, setPage] = useState(1);
   const { data: summary } = useProductReviewSummary(productSlug);
   const { data: reviewsData, isLoading } = useProductReviews(productSlug, "approved", page, 5);
@@ -17,7 +20,7 @@ export function ProductReviews({ productSlug }: ProductReviewsProps) {
   if (!summary || summary.total_reviews === 0) {
     return (
       <div className="py-8 text-center text-muted-foreground">
-        Belum ada ulasan untuk produk ini.
+        {t("after.reviews.noReviews" as MessageKey)}
       </div>
     );
   }
@@ -36,7 +39,7 @@ export function ProductReviews({ productSlug }: ProductReviewsProps) {
             const percentage = summary.total_reviews > 0 ? (count / summary.total_reviews) * 100 : 0;
             return (
               <div key={rating} className="flex items-center gap-4 text-sm">
-                <span className="w-12">{rating} Bintang</span>
+                <span className="w-12">{rating} {t("after.reviews.stars" as MessageKey)}</span>
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary"
@@ -53,15 +56,15 @@ export function ProductReviews({ productSlug }: ProductReviewsProps) {
       {/* Daftar Ulasan */}
       <div className="space-y-6">
         {isLoading ? (
-          <div className="py-4 text-center">Memuat ulasan...</div>
+          <div className="py-4 text-center">{t("after.reviews.loading" as MessageKey)}</div>
         ) : (
           reviewsData?.data.map((review) => (
             <div key={review.id} className="border-b pb-6 last:border-0">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <div className="font-semibold">{review.user_name || "Pengguna"}</div>
+                  <div className="font-semibold">{review.user_name || t("after.reviews.user" as MessageKey)}</div>
                   <div className="text-sm text-muted-foreground">
-                    {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(review.created_at))}
+                    {new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(new Date(review.created_at))}
                   </div>
                 </div>
                 <RatingStars value={review.rating} size="sm" />
@@ -70,7 +73,7 @@ export function ProductReviews({ productSlug }: ProductReviewsProps) {
               {review.body && <p className="text-muted-foreground text-sm">{review.body}</p>}
               {review.admin_reply && (
                 <div className="mt-4 p-4 bg-muted/50 rounded-md text-sm">
-                  <div className="font-semibold mb-1">Balasan dari Kriya</div>
+                  <div className="font-semibold mb-1">{t("after.reviews.replyFrom" as MessageKey)}</div>
                   <p className="text-muted-foreground">{review.admin_reply}</p>
                 </div>
               )}

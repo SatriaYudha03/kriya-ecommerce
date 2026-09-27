@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useLanguage } from "@/components/kriya/language-provider";
+import type { MessageKey } from "@/lib/i18n";
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -20,6 +22,7 @@ function getStatusColor(status: string) {
 }
 
 export default function CustomerReturnsPage() {
+  const { t, locale } = useLanguage();
   const [page] = useState(1);
   const { data, isLoading, isError } = useReturns(page, 10);
 
@@ -28,11 +31,11 @@ export default function CustomerReturnsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Daftar Retur</h1>
+      <h1 className="text-2xl font-bold">{t("after.returns.title" as MessageKey)}</h1>
       
       {data?.data.length === 0 ? (
         <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center text-neutral-500">
-          Belum ada retur.
+          {t("after.returns.empty" as MessageKey)}
         </div>
       ) : (
         <div className="space-y-4">
@@ -48,9 +51,9 @@ export default function CustomerReturnsPage() {
               </div>
               <div>
                 <div className="text-sm text-neutral-500 mb-4">
-                  <div>Tanggal: {new Date(req.created_at).toLocaleDateString()}</div>
-                  <div>Alasan: {req.reason_code}</div>
-                  {req.admin_note && <div>Catatan Admin: {req.admin_note}</div>}
+                  <div>{t("after.returns.dateLabel" as MessageKey)}: {new Date(req.created_at).toLocaleDateString(locale)}</div>
+                  <div>{t("after.returns.reasonCodeLabel" as MessageKey)}: {req.reason_code}</div>
+                  {req.admin_note && <div>{t("after.returns.adminNoteLabel" as MessageKey)}: {req.admin_note}</div>}
                 </div>
                 
                 <div className="space-y-2">
@@ -61,7 +64,7 @@ export default function CustomerReturnsPage() {
                       )}
                       <div className="flex-1">
                         <div className="font-medium text-sm">{item.product_name}</div>
-                        <div className="text-sm text-neutral-500">Qty: {item.qty}</div>
+                        <div className="text-sm text-neutral-500">{t("after.returns.qtyLabel" as MessageKey)}: {item.qty}</div>
                       </div>
                     </div>
                   ))}
@@ -72,7 +75,7 @@ export default function CustomerReturnsPage() {
                     href={`/orders/${req.order_id}`}
                     className="inline-flex h-9 items-center justify-center rounded-md border border-neutral-200 bg-white px-4 text-sm font-medium hover:bg-neutral-100 hover:text-neutral-900"
                   >
-                    Lihat Pesanan
+                    {t("after.returns.viewOrder" as MessageKey)}
                   </Link>
                 </div>
               </div>
