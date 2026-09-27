@@ -1,16 +1,15 @@
 package aftersales
 
 import (
-	"github.com/kriya-commerce/api/internal/checkout"
 	"github.com/kriya-commerce/api/internal/platform"
 )
 
 func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	orderRepo := NewOrderRepository(deps.DB)
-	orderHandler := NewOrderHandler(orderRepo, deps.Midtrans)
+	orderHandler := NewOrderHandler(orderRepo, deps.Midtrans, deps.Ports)
 
 	adminRepo := NewAdminRepository(deps.DB)
-	adminHandler := NewAdminHandler(adminRepo, orderRepo)
+	adminHandler := NewAdminHandler(adminRepo, orderRepo, deps.Ports)
 
 	reviewRepo := NewReviewRepository(deps.DB)
 	reviewHandler := NewReviewHandler(reviewRepo)
@@ -18,12 +17,8 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	notifRepo := NewNotificationsRepository(deps.DB)
 	notifHandler := NewNotificationsHandler(notifRepo)
 
-	// PERMINTAAN LINTAS-DOMAIN (I-BE):
-	// Mohon tambahkan checkout.Ports ke platform.Deps.
-	dummyPorts := checkout.Ports{}
-
 	returnsRepo := NewReturnsRepository(deps.DB)
-	returnsHandler := NewReturnsHandler(returnsRepo, orderRepo, adminRepo, dummyPorts)
+	returnsHandler := NewReturnsHandler(returnsRepo, orderRepo, adminRepo, deps.Ports)
 
 	// Orders
 	r.Authed.GET("/orders", orderHandler.ListOrders)

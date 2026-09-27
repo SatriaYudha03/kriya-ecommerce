@@ -2,6 +2,7 @@ package aftersales
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -21,10 +22,11 @@ const (
 type OrderHandler struct {
 	repo     *OrderRepository
 	midtrans *service.MidtransService
+	ports    checkout.Ports
 }
 
-func NewOrderHandler(repo *OrderRepository, midtrans *service.MidtransService) *OrderHandler {
-	return &OrderHandler{repo: repo, midtrans: midtrans}
+func NewOrderHandler(repo *OrderRepository, midtrans *service.MidtransService, ports checkout.Ports) *OrderHandler {
+	return &OrderHandler{repo: repo, midtrans: midtrans, ports: ports}
 }
 
 func (h *OrderHandler) ListOrders(c *gin.Context) {
@@ -277,10 +279,6 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 		return
 	}
 
-	// Permintaan lintas-domain (I-BE):
-	// Mohon tambahkan checkout.Ports ke Deps agar kita bisa memanggil Transition.
-	dummyPorts := checkout.Ports{}
-
 	var newStatus orderflow.Status
 	err = h.repo.db.Transaction(func(tx *gorm.DB) error {
 		in := orderflow.TransitionInput{
@@ -291,20 +289,23 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 			CancelReason: &req.Reason,
 		}
 
-		st, transErr := orderflow.Transition(c.Request.Context(), tx, dummyPorts, in)
+		st, transErr := orderflow.Transition(c.Request.Context(), tx, h.ports, in)
 		if transErr != nil {
-			// Fallback: update manual
-			if err := h.repo.cancelOrderManual(tx, id, req.Reason); err != nil {
-				return err
-			}
-			newStatus = orderflow.StatusCancelled
-			return nil
+			return transErr
 		}
 		newStatus = st
 		return nil
 	})
 
 	if err != nil {
+		var invalidErr *orderflow.InvalidTransitionError
+		var missingShipmentErr *orderflow.MissingShipmentInfoError
+		if errors.As(err, &invalidErr) || errors.As(err, &missingShipmentErr) {
+			c.JSON(http.StatusConflict, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "invalid_transition", Message: err.Error()},
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal membatalkan pesanan"},
 		})
@@ -312,9 +313,11 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 	}
 
 	// Best-effort membatalkan di Midtrans.
-	// PERMINTAAN LINTAS-DOMAIN (I-BE):
-	// Mohon tambahkan fungsi CancelTransaction ke service.MidtransService
-	// s.midtrans.CancelTransaction(id)
+	var activeAttempt PaymentAttempt
+	if attemptErr := h.repo.db.Where("order_id = ? AND status = 'active'", id).
+		Order("created_at DESC").First(&activeAttempt).Error; attemptErr == nil && activeAttempt.MidtransOrderID != "" {
+		_ = h.midtrans.CancelTransaction(activeAttempt.MidtransOrderID)
+	}
 
 	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"status": string(newStatus)}})
 }

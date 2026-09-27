@@ -1,6 +1,7 @@
 package aftersales
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -14,10 +15,11 @@ import (
 type AdminHandler struct {
 	repo      *AdminRepository
 	orderRepo *OrderRepository
+	ports     checkout.Ports
 }
 
-func NewAdminHandler(repo *AdminRepository, orderRepo *OrderRepository) *AdminHandler {
-	return &AdminHandler{repo: repo, orderRepo: orderRepo}
+func NewAdminHandler(repo *AdminRepository, orderRepo *OrderRepository, ports checkout.Ports) *AdminHandler {
+	return &AdminHandler{repo: repo, orderRepo: orderRepo, ports: ports}
 }
 
 // ListOrders mengambil semua pesanan dari DB dengan pagination & filter status.
@@ -83,10 +85,6 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 
 	adminID := c.GetString("user_id")
 
-	// Panggil orderflow.Transition (meskipun belum diimplementasi di F1 oleh 0B)
-	// Kita sediakan port dummy karena kita dilarang menyentuh checkout/main.go
-	dummyPorts := checkout.Ports{}
-
 	var newStatus orderflow.Status
 	err := h.repo.DB.Transaction(func(tx *gorm.DB) error {
 		in := orderflow.TransitionInput{
@@ -100,20 +98,23 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 			CancelReason:   req.CancelReason,
 		}
 
-		st, err := orderflow.Transition(c.Request.Context(), tx, dummyPorts, in)
+		st, err := orderflow.Transition(c.Request.Context(), tx, h.ports, in)
 		if err != nil {
-			// Karena orderflow.Transition saat ini di F1 mengembalikan "not implemented",
-			// kita fallback ke pembaruan langsung (sementara) agar FE bisa dites.
-			// Ini bagian dari gap F0/F1, akan dibenarkan I-BE.
-			fallbackErr := h.repo.UpdateOrderStatus(id, req.Status, req.Courier, req.TrackingNumber, req.CancelReason)
-			newStatus = orderflow.Status(req.Status)
-			return fallbackErr
+			return err
 		}
 		newStatus = st
 		return nil
 	})
 
 	if err != nil {
+		var invalidErr *orderflow.InvalidTransitionError
+		var missingShipmentErr *orderflow.MissingShipmentInfoError
+		if errors.As(err, &invalidErr) || errors.As(err, &missingShipmentErr) {
+			c.JSON(http.StatusConflict, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "invalid_transition", Message: err.Error()},
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui status pesanan"},
 		})
