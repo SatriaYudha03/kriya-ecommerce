@@ -1,9 +1,9 @@
 # Log Agent - [Agent Name / Task ID]
 
 ## Status Terkini
-- **Task Terakhir:** D7
-- **Status:** Selesai
-- **Commit Terakhir:** 6fd1fe8
+- **Task Terakhir:** F3-D
+- **Status:** Selesai sebagian (seed + audit i18n kritis)
+- **Commit Terakhir:** fcf0eba
 
 ## Log
 *Catat langkah-langkah yang sudah diambil, keputusan penting, dan masalah (beserta solusinya) di sini. Satu baris atau paragraf per sesi.*
@@ -30,3 +30,10 @@
 - 2026-09-27 | D3 | BUTUH: Wiring `checkout.Ports` dan `MidtransService.CancelTransaction` | ALASAN: `order_handler.go` butuh port untuk cancel (stok/kupon), dan API midtrans butuh integrasi. | MEMBLOKIR: tidak (ditangani fallback DB sementara tanpa release port) | USULAN: I-BE di F2 harap memasukkan `Ports` ke `Deps` dan tambahkan `CancelTransaction` ke service Midtrans.
 - 2026-09-27 - D5 (Retur & refund) selesai dikerjakan di `ec/D5-retur-refund` (bc65e0d). Implementasi retur API, kalkulasi refundable amount, dan refund API menggunakan dummy ports checkout untuk memanggil restock port A5. FE customer/admin returns list dan refund dialog.
 - 2026-09-27 | D5 | BUTUH: \checkout.Ports\ dalam \platform.Deps\ | ALASAN: Endpoint refund memanggil \checkout.Ports.Inventory.Restock\, namun field tersebut belum diexpose di \platform.Deps\ | MEMBLOKIR: tidak (digunakan struct dummyPorts kosong sbg placeholder) | USULAN: I-BE wajib merakit \Ports\ ke \platform.Deps\.
+
+- 2026-09-27 - F3-D (Seed/audit after-sales) dikerjakan sebagian di `ec/F3-D-seed-audit-aftersales` (fcf0eba):
+  1. ✅ Seed demo idempoten `supabase/seed/ec-v2/aftersales.sql`: 10 ulasan approved untuk produk dari order seed minimal (idempoten via unique constraint user+product).
+  2. ✅ Audit i18n: perbaiki 60+ hardcoded text di orders/page, orders/[id]/page, cancel-dialog, return-dialog, product-reviews, returns/page, reviews/page. Tambah 40+ keys i18n (filter, pagination, cancel, return reasons, admin). **Belum diperbaiki (non-blocking):** my-reviews.tsx (~20 teks), admin/orders/page.tsx (~10 teks), admin/reviews (sudah ada keys tapi belum dipakai).
+  3. ⏭ EXPLAIN ANALYZE query after-sales: belum dikerjakan (butuh DB dev aktif + data signifikan).
+  4. ✅ E2E `ec-aftersales.spec.ts`: sudah lengkap dari D7, belum dijalankan ulang di F3 (webServer Playwright gagal start - issue pre-existing).
+  **A11y dasar:** tidak diaudit eksplisit (label form sudah ada dari D1-D7, fokus dialog sudah default shadcn/ui, kontras badge belum dicek - minor).
