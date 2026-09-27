@@ -247,7 +247,7 @@ export async function deleteCategory(id: string): Promise<void> {
     auth: true,
   });
 }
-import type { Tag, Attribute, AdminTag, AdminAttribute, AdminAttributeInput, AdminTagInput, AdminAttributeTermInput } from "./types";
+import type { Tag, Attribute, AdminTag, AdminAttribute, AdminAttributeInput, AdminTagInput, AdminAttributeTermInput, InventoryItem, StockMovement, AdjustmentInput } from "./types";
 
 export async function getTags(): Promise<Tag[]> {
   const data = await request<{ data: Tag[] }>("/tags");
@@ -313,4 +313,41 @@ export async function updateAttributeTerm(attrId: string, termId: string, payloa
 export async function deleteAttributeTerm(attrId: string, termId: string): Promise<{ id: string }> {
   const data = await request<{ data: { id: string } }>(`/admin/attributes/${attrId}/terms/${termId}`, { method: "DELETE" });
   return data.data;
+}
+
+export interface AdminInventoryQuery {
+  q?: string;
+  low_stock?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export async function getAdminInventory(
+  query: AdminInventoryQuery = {}
+): Promise<ListEnvelope<InventoryItem>> {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined) params.set(k, String(v));
+  }
+  const qs = params.toString();
+  return request<ListEnvelope<InventoryItem>>(`/api/v1/admin/inventory${qs ? "?" + qs : ""}`, {
+    auth: true,
+  });
+}
+
+export async function getAdminMovements(variantId?: string, page = 1, limit = 20): Promise<ListEnvelope<StockMovement>> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (variantId) params.set("variant_id", variantId);
+  return request<ListEnvelope<StockMovement>>(`/api/v1/admin/inventory/movements?${params.toString()}`, {
+    auth: true,
+  });
+}
+
+export async function adjustStock(payload: AdjustmentInput): Promise<{ variant_id: string }> {
+  const { data } = await request<Envelope<{ variant_id: string }>>("/api/v1/admin/inventory/adjustments", {
+    method: "POST",
+    body: payload,
+    auth: true,
+  });
+  return data;
 }

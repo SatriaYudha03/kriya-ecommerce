@@ -49,6 +49,39 @@ func (r *AdminRepository) UpdateVariant(id string, updates map[string]interface{
 	return r.db.Model(&ProductVariant{}).Where("id = ?", id).Updates(updates).Error
 }
 
+func (r *AdminRepository) UpdateVariantWithLedger(id string, updates map[string]interface{}, newStock int, actorID string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var oldVariant ProductVariant
+		if err := tx.Clauses(gorm.Expr("FOR UPDATE")).Where("id = ?", id).First(&oldVariant).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&ProductVariant{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+			return err
+		}
+
+		if oldVariant.Stock != newStock {
+			delta := newStock - oldVariant.Stock
+			var actorPtr *string
+			if actorID != "" {
+				actorPtr = &actorID
+			}
+			movement := StockMovement{
+				VariantID:  id,
+				Delta:      delta,
+				StockAfter: newStock,
+				Reason:     "adjustment",
+				ActorID:    actorPtr,
+			}
+			if err := tx.Create(&movement).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
 // DeleteVariant menghapus varian dari DB.
 func (r *AdminRepository) DeleteVariant(id string) error {
 	var count int64
@@ -274,4 +307,89 @@ func (r *AdminRepository) UpdateAttributeTerm(id string, updates map[string]inte
 
 func (r *AdminRepository) DeleteAttributeTerm(id string) error {
 	return r.db.Where("id = ?", id).Delete(&AttributeTerm{}).Error
+}
+
+func (r *AdminRepository) GetInventory(q string, lowStock bool, page, limit int) ([]AdminInventoryItemResponse, int64, error) {
+	var items []AdminInventoryItemResponse
+	var total int64
+
+	query := r.db.Table("product_variants pv").
+		Select(`
+			pv.id as variant_id,
+			p.id as product_id,
+			p.name as product_name,
+			p.slug as product_slug,
+			pv.sku,
+			pv.color,
+			pv.size,
+			pv.stock,
+			pv.stock <= COALESCE(pv.low_stock_threshold, 5) as low_stock
+		`).
+		Joins("JOIN products p ON p.id = pv.product_id")
+
+	if q != "" {
+		query = query.Where("p.name ILIKE ? OR pv.sku ILIKE ?", "%"+q+"%", "%"+q+"%")
+	}
+	if lowStock {
+		query = query.Where("pv.stock <= COALESCE(pv.low_stock_threshold, 5)")
+	}
+
+	query.Count(&total)
+	offset := (page - 1) * limit
+	query = query.Order("p.name ASC, pv.sku ASC").Offset(offset).Limit(limit)
+	err := query.Scan(&items).Error
+	return items, total, err
+}
+
+func (r *AdminRepository) GetStockMovements(variantID string, page, limit int) ([]StockMovement, int64, error) {
+	var movements []StockMovement
+	var total int64
+
+	query := r.db.Model(&StockMovement{})
+	if variantID != "" {
+		query = query.Where("variant_id = ?", variantID)
+	}
+	query.Count(&total)
+
+	offset := (page - 1) * limit
+	query = query.Order("created_at DESC").Offset(offset).Limit(limit)
+	err := query.Find(&movements).Error
+	return movements, total, err
+}
+
+func (r *AdminRepository) AdjustStock(variantID string, qty int, note string, actorID string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var pv ProductVariant
+		if err := tx.Clauses(gorm.Expr("FOR UPDATE")).Where("id = ?", variantID).First(&pv).Error; err != nil {
+			return err
+		}
+
+		delta := qty - pv.Stock
+		if delta == 0 {
+			return nil
+		}
+
+		if err := tx.Model(&ProductVariant{}).Where("id = ?", variantID).Update("stock", qty).Error; err != nil {
+			return err
+		}
+
+		var notePtr *string
+		if note != "" {
+			notePtr = &note
+		}
+		var actorPtr *string
+		if actorID != "" {
+			actorPtr = &actorID
+		}
+
+		movement := StockMovement{
+			VariantID:  variantID,
+			Delta:      delta,
+			StockAfter: qty,
+			Reason:     "adjustment",
+			ActorID:    actorPtr,
+			Note:       notePtr,
+		}
+		return tx.Create(&movement).Error
+	})
 }

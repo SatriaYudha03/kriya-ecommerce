@@ -419,3 +419,21 @@ type AdminAttributeTermResponse struct {
 	NameI18n json.RawMessage `json:"name_i18n"`
 	Position int             `json:"position"`
 }
+
+type AdminInventoryItemResponse struct {
+	VariantID   string  `json:"variant_id"`
+	ProductID   string  `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	ProductSlug string  `json:"product_slug"`
+	SKU         string  `json:"sku"`
+	Color       string  `json:"color"`
+	Size        *string `json:"size"`
+	Stock       int     `json:"stock"`
+	LowStock    bool    `json:"low_stock"`
+}
+
+type AdminStockAdjustmentRequest struct {
+	VariantID string `json:"variant_id" binding:"required,uuid"`
+	Qty       int    `json:"qty" binding:"required,min=0"`
+	Note      string `json:"note"`
+}
