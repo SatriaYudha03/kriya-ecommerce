@@ -49,7 +49,7 @@ func (q *shippingQuoter) Options(ctx context.Context, db *gorm.DB, dest checkout
 		return nil, err
 	}
 	if zone.ID == "" {
-		return nil, errors.New("no active shipping zone found for province")
+		return []checkout.ShippingOption{}, nil
 	}
 
 	var methods []method

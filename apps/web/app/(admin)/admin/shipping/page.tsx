@@ -50,7 +50,7 @@ export default function AdminShippingPage() {
     const fetchIt = async () => {
       setLoading(true);
       try {
-        const res = await request<Envelope<ShippingZone[]>>("/admin/shipping/zones", { auth: true });
+        const res = await request<Envelope<ShippingZone[]>>("/api/v1/admin/shipping/zones", { auth: true });
         if (mounted) setZones(res.data || []);
       } catch (e) {
         console.error(e);
@@ -64,7 +64,7 @@ export default function AdminShippingPage() {
   const fetchZones = async () => {
     setLoading(true);
     try {
-      const res = await request<Envelope<ShippingZone[]>>("/admin/shipping/zones", { auth: true });
+      const res = await request<Envelope<ShippingZone[]>>("/api/v1/admin/shipping/zones", { auth: true });
       setZones(res.data || []);
     } catch (e) {
       console.error(e);
@@ -83,7 +83,7 @@ export default function AdminShippingPage() {
     if (!editMethod) return;
     setFormSaveLoading(true);
     try {
-      await request(`/admin/shipping/methods/${editMethod.id}`, {
+      await request(`/api/v1/admin/shipping/methods/${editMethod.id}`, {
         method: "PUT",
         auth: true,
         body: {

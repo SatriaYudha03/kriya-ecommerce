@@ -131,7 +131,7 @@ export async function continuePayment(orderId: string): Promise<ContinuePaymentR
 }
 
 import type { 
-  AdminCustomerListItem, AdminCustomerListResponse, AdminCustomerDetailItem, 
+  AdminCustomerListItem, AdminCustomerDetailItem, 
   AdminSettings, PublicStoreSettings
 } from "./types";
 

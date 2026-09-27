@@ -26,21 +26,20 @@ func NewWishlistRepository(db *gorm.DB) *WishlistRepository {
 func (r *WishlistRepository) GetWishlist(userID string) ([]ProductListResponse, error) {
 	var items []ProductListResponse
 
-	// Join with products, categories, variants, and product_images
+	// Join with products, variants, and product_images
 	err := r.db.Table("wishlist_items w").
 		Select(`
 			p.id, 
 			p.slug, 
 			p.name, 
-			c.slug as category_slug, 
+			p.category_slug, 
 			COALESCE(MIN(v.price), 0) as price_min,
 			COALESCE((SELECT storage_path FROM product_images pi WHERE pi.product_id = p.id AND pi.is_primary = true LIMIT 1), '') as thumbnail_url
 		`).
 		Joins("JOIN products p ON w.product_id = p.id").
-		Joins("JOIN categories c ON p.category_id = c.id").
 		Joins("LEFT JOIN product_variants v ON p.id = v.product_id").
 		Where("w.user_id = ?", userID).
-		Group("p.id, p.slug, p.name, c.slug, w.created_at").
+		Group("p.id, p.slug, p.name, p.category_slug, w.created_at").
 		Order("w.created_at DESC").
 		Scan(&items).Error
 

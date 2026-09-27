@@ -2,11 +2,14 @@ package customer
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kriya-commerce/api/internal/httpx"
 )
+
+var phoneRegex = regexp.MustCompile(`^(\+62|0)8[0-9]{7,12}$`)
 
 type AddressHandler struct {
 	repo *AddressRepository
@@ -124,6 +127,13 @@ func (h *AddressHandler) CreateAddress(c *gin.Context) {
 		return
 	}
 
+	if !phoneRegex.MatchString(strings.TrimSpace(req.Phone)) {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: "Format nomor telepon tidak valid"},
+		})
+		return
+	}
+
 	isDefault := req.IsDefault
 	if count == 0 {
 		isDefault = true
@@ -185,6 +195,13 @@ func (h *AddressHandler) UpdateAddress(c *gin.Context) {
 	if existing == nil {
 		c.JSON(http.StatusNotFound, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "not_found", Message: "Alamat tidak ditemukan"},
+		})
+		return
+	}
+
+	if !phoneRegex.MatchString(strings.TrimSpace(req.Phone)) {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: "Format nomor telepon tidak valid"},
 		})
 		return
 	}

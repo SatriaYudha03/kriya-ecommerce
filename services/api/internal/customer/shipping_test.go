@@ -180,3 +180,115 @@ func TestCalculateShippingOptions(t *testing.T) {
 		})
 	}
 }
+
+func TestShippingQuoter_Validation(t *testing.T) {
+	quoter := NewShippingQuoter()
+	_, err := quoter.Options(nil, nil, checkout.Destination{ProvinceCode: ""}, nil, 0, "id")
+	if err == nil {
+		t.Fatal("expected error for empty province code, got nil")
+	}
+	if err.Error() != "province code is required" {
+		t.Fatalf("expected 'province code is required', got '%s'", err.Error())
+	}
+}
+
+func TestCalculateShippingOptions_ProvinceScenarios(t *testing.T) {
+	jawaMethods := []method{
+		{
+			ID:          "m-jawa-reg",
+			Code:        "reguler",
+			NameI18n:    []byte(`{"id":"Reguler Jawa","en":"Java Regular"}`),
+			RateType:    "flat",
+			BaseCost:    150000,
+			EtaMinDays:  2,
+			EtaMaxDays:  4,
+		},
+		{
+			ID:                      "m-jawa-exp",
+			Code:                    "express",
+			NameI18n:                []byte(`{"id":"Kilat Jawa","en":"Java Express"}`),
+			RateType:                "flat",
+			BaseCost:                250000,
+			MaxWeightKg:             floatPtr(10.0),
+			FreeShippingMinSubtotal: intPtr(1000000),
+			EtaMinDays:              1,
+			EtaMaxDays:              2,
+		},
+	}
+
+	luarJawaMethods := []method{
+		{
+			ID:          "m-luar-kargo",
+			Code:        "kargo",
+			NameI18n:    []byte(`{"id":"Kargo Luar Jawa","en":"Outer Island Cargo"}`),
+			RateType:    "per_kg",
+			BaseCost:    100000,
+			PerKgCost:   25000,
+			EtaMinDays:  5,
+			EtaMaxDays:  10,
+		},
+	}
+
+	t.Run("jawa_bali_dki_jakarta_en_locale", func(t *testing.T) {
+		lines := []checkout.PricedLine{{WeightKg: 2.5, Qty: 2}} // 5.0kg
+		opts := calculateShippingOptions(jawaMethods, "jawa_bali", lines, 500000, "en")
+		if len(opts) != 2 {
+			t.Fatalf("expected 2 options, got %d", len(opts))
+		}
+		// Sorted by cost: reguler (150000) < express (250000)
+		if opts[0].Code != "reguler" || opts[0].Name != "Java Regular" || opts[0].Cost != 150000 {
+			t.Errorf("unexpected option 0: %+v", opts[0])
+		}
+		if opts[1].Code != "express" || opts[1].Name != "Java Express" || opts[1].Cost != 250000 {
+			t.Errorf("unexpected option 1: %+v", opts[1])
+		}
+	})
+
+	t.Run("jawa_bali_free_shipping_threshold", func(t *testing.T) {
+		lines := []checkout.PricedLine{{WeightKg: 1.0, Qty: 1}}
+		opts := calculateShippingOptions(jawaMethods, "jawa_bali", lines, 1500000, "id")
+		if len(opts) != 2 {
+			t.Fatalf("expected 2 options, got %d", len(opts))
+		}
+		// express has free shipping min 1.000.000 -> Cost 0, isFree true -> sorted first!
+		if opts[0].Code != "express" || opts[0].Cost != 0 || !opts[0].IsFree {
+			t.Errorf("expected express free shipping first, got %+v", opts[0])
+		}
+		if opts[1].Code != "reguler" || opts[1].Cost != 150000 {
+			t.Errorf("expected reguler second, got %+v", opts[1])
+		}
+	})
+
+	t.Run("jawa_bali_weight_exceeds_express", func(t *testing.T) {
+		lines := []checkout.PricedLine{{WeightKg: 12.0, Qty: 1}} // 12kg > max 10kg
+		opts := calculateShippingOptions(jawaMethods, "jawa_bali", lines, 500000, "id")
+		if len(opts) != 1 {
+			t.Fatalf("expected 1 option (express dropped due to weight limit), got %d", len(opts))
+		}
+		if opts[0].Code != "reguler" {
+			t.Errorf("expected reguler, got %s", opts[0].Code)
+		}
+	})
+
+	t.Run("luar_jawa_papua_per_kg_calc", func(t *testing.T) {
+		lines := []checkout.PricedLine{{WeightKg: 1.2, Qty: 2}} // 2.4kg -> ceil 3kg
+		opts := calculateShippingOptions(luarJawaMethods, "luar_jawa", lines, 200000, "id")
+		if len(opts) != 1 {
+			t.Fatalf("expected 1 option, got %d", len(opts))
+		}
+		expectedCost := 100000 + (25000 * 3) // 175000
+		if opts[0].Cost != expectedCost {
+			t.Errorf("expected cost %d, got %d", expectedCost, opts[0].Cost)
+		}
+		if opts[0].Name != "Kargo Luar Jawa" {
+			t.Errorf("expected name 'Kargo Luar Jawa', got '%s'", opts[0].Name)
+		}
+	})
+
+	t.Run("province_with_no_active_methods", func(t *testing.T) {
+		opts := calculateShippingOptions([]method{}, "no_methods_zone", nil, 100000, "id")
+		if len(opts) != 0 {
+			t.Fatalf("expected empty options, got %d", len(opts))
+		}
+	})
+}
