@@ -37,7 +37,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | Gerbang | Status | Tanggal | Catatan |
 |---|---|---|---|
 | G0 (fondasi → domain) | ✅ | 2026-09-26 | Migrasi selesai, tag ec-v2-g0 |
-| G1 (domain → integrasi) | ⬜ | | |
+| G1 (domain → integrasi) | ✅ | 2026-09-27 | Sweep pra-gerbang (Claude, R19/§11.1): A7/B7/D7 sempat ditandai ✅ di STATUS.md dengan report lengkap tapi **kode belum pernah di-merge ke main** (gap sama seperti 0A/0B) — ditemukan lewat `git merge-base --is-ancestor` = NO untuk ketiganya + `e2e/` di main tidak punya `ec-catalog.spec.ts`/`ec-customer.spec.ts`/`ec-aftersales.spec.ts`. Direview ulang penuh (§11: ownership, build/vet/test, tsc/eslint/next build, any-check) lalu di-merge `d3aa100`. Semua A1–A7/B1–B7/C1–C6/D1–D7 kini genuinely ter-merge & build hijau di main. Ditemukan juga branch lokal `ec/I-BE-checkout-v2` yang belum pernah di-push (bukan kerja nyata, cuma 3 commit status) — dibiarkan, tidak memblokir. |
 | G2 (integrasi → pengerasan) | ⬜ | | |
 | G3 (rilis) | ⬜ | | |
 
@@ -61,14 +61,14 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | A4 | Tag, atribut & facet | ✅ | A | 2026-09-27 | `ec/A4-tag-atribut-facet` | `ca8fda4` | `docs/report/A4.md` | `map[string]interface{}` baru di UpdateTag/UpdateAttribute/UpdateAttributeTerm mengikuti pola pre-existing — technical debt repo-wide, bukan pelanggaran A4 saja |
 | A5 | Ledger stok | ✅ | A | 2026-09-27 | `ec/A5-ledger-stok` | `7e6af62` | `docs/report/A5.md` | |
 | A6 | Produk terkait & rating | ✅ | A | 2026-09-27 | `ec/A6-produk-terkait-rating` | `7ff9f49` | `docs/report/A6.md` | Di-merge 2026-09-27. Diperbaiki: hapus komentar eslint-disable di product-form |
-| A7 | Seed & E2E katalog | ✅ | A | 2026-09-27 | `ec/A7-seed-e2e-katalog` | `e449084` | `docs/report/A7.md` | |
+| A7 | Seed & E2E katalog | ✅ | A | 2026-09-27 | `ec/A7-seed-e2e-katalog` | `e449084` | `docs/report/A7.md` | Di-merge 2026-09-27 (Claude, sweep pra-G1: STATUS.md sudah ✅ tapi kode belum ter-merge). Verified: go build/vet/test 59 lulus, tsc 0 error, eslint 0 error (7 warning), next build hijau. `map[string]interface{}` di admin_handler/admin_repo pre-existing dari A4, A7 tidak menyentuhnya. |
 | B1 | Buku alamat | ✅ | B | 2026-09-26 | `ec/B1-buku-alamat` (direwrite, lihat `9b51245`) | `9b51245` | `docs/report/B1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): tidak ada pelanggaran kepemilikan, tapi 2 penyimpangan kontrak diperbaiki saat merge — `api.ts` diarahkan ke `request()` dari `lib/http.ts` (sebelumnya custom fetch+supabase), dan `AddressPicker` dikembalikan ke signature beku §5.3 (`value`/`onChange`, sebelumnya diubah jadi `selectedId`/`onSelect`). Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
 | B2 | Keranjang relasional | ✅ | B | 2026-09-26 | `ec/B2-keranjang-relasional` | `0ddaaa5` | `docs/report/B2.md` | **Diperbaiki & di-merge 2026-09-26** (Claude): Memperbaiki pelanggaran kepemilikan core pada halaman auth dan `product-detail-view.tsx`. Penyesuaian `cart-store.ts` agar pemanggilan `syncFromServer` otomatis melakukan `mergeWithServer` tanpa perlu merubah logika halaman auth inti. |
 | B3 | Wishlist | ✅ | B | 2026-09-26 | `ec/B3-wishlist` | `d01c5d2` | `docs/report/B3.md` | |
 | B4 | Ongkir tabel | ✅ | B | 2026-09-27 | `ec/B4-ongkir-tabel` | `0a0a500` | `docs/report/B4.md` | Selesai |
 | B5 | Lanjut bayar | ✅ | B | 2026-09-27 | `ec/B5-lanjut-bayar` | `28bd589` | `docs/report/B5.md` | Diperbaiki saat merge: response dibungkus httpx.Response, math/rand diganti crypto/rand |
 | B6 | Admin pelanggan & pengaturan | ✅ | B | 2026-09-27 | `ec/B6-admin-pelanggan-pengaturan` | `f3bb10c` | `docs/report/B6.md` | Di-merge 2026-09-27. Diperbaiki: map[string]interface{} di UpdateSettings diganti typed struct |
-| B7 | E2E customer | ✅ | B | 2026-09-27 | `ec/B7-e2e-customer` | `9cf3b9a` | `docs/report/B7.md` | |
+| B7 | E2E customer | ✅ | B | 2026-09-27 | `ec/B7-e2e-customer` | `9cf3b9a` | `docs/report/B7.md` | Di-merge 2026-09-27 (Claude, sweep pra-G1: STATUS.md sudah ✅ tapi kode belum ter-merge — report sempat ditulis langsung ke main tanpa branch-nya). Verified: go build/vet/test 66 lulus, tsc 0 error, eslint 0 error (5 warning), next build hijau. |
 | C1 | Kupon admin | ✅ | C | 2026-09-26 | `ec/C1-kupon-admin` (direwrite, lihat `efc06d3`) | `efc06d3` | `docs/report/C1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): kode asli C1 (`d1c4079`) menaruh fungsi/tipe kupon di barrel core (`lib/api.ts`/`types.ts`/`admin-queries.ts`) karena worktree-nya predates 0C's real merge ke main. Dipindah ke `lib/promo/{api,types,queries}.ts`, endpoint Go (`internal/promo/**`) tidak berubah (sudah benar dari awal). Dua perubahan lain di commit asli (anotasi tipe di `search/page.tsx`/`product-detail-view.tsx`, di luar domain C) tidak diikutsertakan — tsc sudah bersih tanpanya. Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
 | C2 | Mesin diskon | ✅ | C | 2026-09-26 | `ec/C2-mesin-diskon` | `141ec35` | `docs/report/C2.md` | |
 | C3 | Validasi kupon & promo publik | ✅ | C | 2026-09-27 | `ec/C3-validasi-kupon-publik` | `424087c` | `docs/report/C3.md` | |
@@ -81,7 +81,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | D4 | Ulasan | ✅ | D | 2026-09-27 | `ec/D4-ulasan` | `7124123` | `docs/report/D4.md` | |
 | D5 | Retur & refund | ✅ | D | 2026-09-27 | `ec/D5-retur-refund` | `a896fea` | `docs/report/D5.md` | Diperbaiki saat merge: map[string]interface{} diganti typed struct, map[string]string response diganti named type |
 | D6 | Notifikasi & invoice | ✅ | D | 2026-09-27 | `ec/D6-notifikasi-invoice` | `3a219fe` | `docs/report/D6.md` | Di-merge 2026-09-27. Diperbaiki: map[string]interface{} di UpdateOrderStatus diganti typed struct |
-| D7 | E2E aftersales | ✅ | D | 2026-09-27 | `ec/D7-e2e-aftersales` | `a115645` | `docs/report/D7.md` | |
+| D7 | E2E aftersales | ✅ | D | 2026-09-27 | `ec/D7-e2e-aftersales` | `a115645` | `docs/report/D7.md` | Di-merge 2026-09-27 (Claude, sweep pra-G1: STATUS.md sudah ✅ tapi kode belum ter-merge). Verified: go build/vet/test 66 lulus, tsc 0 error, eslint 0 error (6 warning), next build hijau. |
 
 ## F2 — Integrasi checkout (menunggu G1)
 
