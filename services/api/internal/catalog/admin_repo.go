@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type AdminRepository struct {
@@ -52,7 +53,7 @@ func (r *AdminRepository) UpdateVariant(id string, updates map[string]interface{
 func (r *AdminRepository) UpdateVariantWithLedger(id string, updates map[string]interface{}, newStock int, actorID string) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var oldVariant ProductVariant
-		if err := tx.Clauses(gorm.Expr("FOR UPDATE")).Where("id = ?", id).First(&oldVariant).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", id).First(&oldVariant).Error; err != nil {
 			return err
 		}
 
@@ -360,7 +361,7 @@ func (r *AdminRepository) GetStockMovements(variantID string, page, limit int) (
 func (r *AdminRepository) AdjustStock(variantID string, qty int, note string, actorID string) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var pv ProductVariant
-		if err := tx.Clauses(gorm.Expr("FOR UPDATE")).Where("id = ?", variantID).First(&pv).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", variantID).First(&pv).Error; err != nil {
 			return err
 		}
 

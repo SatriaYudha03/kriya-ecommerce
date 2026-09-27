@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"github.com/kriya-commerce/api/internal/checkout"
 )
 
@@ -46,7 +47,7 @@ func (l *dbLedger) Reserve(ctx context.Context, tx *gorm.DB, orderID string, lin
 	if err := tx.WithContext(ctx).Table("product_variants").
 		Where("id IN ?", variantIDs).
 		Order("id ASC").
-		Clauses(gorm.Expr("FOR UPDATE")).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Select("id, stock").
 		Scan(&variants).Error; err != nil {
 		return err
@@ -134,7 +135,7 @@ func (l *dbLedger) Release(ctx context.Context, tx *gorm.DB, orderID string, act
 	if err := tx.WithContext(ctx).Table("product_variants").
 		Where("id IN ?", variantIDs).
 		Order("id ASC").
-		Clauses(gorm.Expr("FOR UPDATE")).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Select("id, stock").
 		Scan(&variants).Error; err != nil {
 		return err
@@ -184,7 +185,7 @@ func (l *dbLedger) Restock(ctx context.Context, tx *gorm.DB, orderID string, ite
 	if err := tx.WithContext(ctx).Table("product_variants").
 		Where("id IN ?", variantIDs).
 		Order("id ASC").
-		Clauses(gorm.Expr("FOR UPDATE")).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Select("id, stock").
 		Scan(&variants).Error; err != nil {
 		return err
