@@ -351,3 +351,8 @@ export async function adjustStock(payload: AdjustmentInput): Promise<{ variant_i
   });
   return data;
 }
+
+export async function getRelatedProducts(slug: string, type: "upsell" | "cross_sell", limit = 8): Promise<ListEnvelope<ProductListItem>> {
+  if (USE_FIXTURES) return { data: [], meta: { page: 1, limit, total: 0 } };
+  return request<ListEnvelope<ProductListItem>>(`/api/v1/products/${slug}/related?type=${type}&limit=${limit}`);
+}

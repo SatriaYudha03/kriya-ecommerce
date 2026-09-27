@@ -79,3 +79,60 @@ export function useWishlistMutations() {
   return { add, remove };
 }
 
+import { 
+  getAdminCustomers, getAdminCustomerDetail, getAdminSettings, 
+  updateAdminSettings, getPublicStoreSettings 
+} from "./api";
+import type { AdminSettings } from "./types";
+
+export const adminCustomerKeys = {
+  all: ["admin", "customer"] as const,
+  lists: () => [...adminCustomerKeys.all, "list"] as const,
+  list: (q: string, sort: string, page: number, limit: number) => [...adminCustomerKeys.lists(), { q, sort, page, limit }] as const,
+  details: () => [...adminCustomerKeys.all, "detail"] as const,
+  detail: (id: string) => [...adminCustomerKeys.details(), id] as const,
+  settings: () => ["admin", "settings"] as const,
+  publicStore: () => ["public", "store"] as const,
+};
+
+export function useAdminCustomers(q: string, sort: string, page: number, limit: number) {
+  return useQuery({
+    queryKey: adminCustomerKeys.list(q, sort, page, limit),
+    queryFn: () => getAdminCustomers(q, sort, page, limit),
+  });
+}
+
+export function useAdminCustomerDetail(id: string) {
+  return useQuery({
+    queryKey: adminCustomerKeys.detail(id),
+    queryFn: () => getAdminCustomerDetail(id),
+    enabled: !!id,
+  });
+}
+
+export function useAdminSettings() {
+  return useQuery({
+    queryKey: adminCustomerKeys.settings(),
+    queryFn: getAdminSettings,
+  });
+}
+
+export function useUpdateAdminSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: AdminSettings) => updateAdminSettings(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminCustomerKeys.settings() });
+      qc.invalidateQueries({ queryKey: adminCustomerKeys.publicStore() });
+    },
+  });
+}
+
+export function usePublicStoreSettings() {
+  return useQuery({
+    queryKey: adminCustomerKeys.publicStore(),
+    queryFn: getPublicStoreSettings,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+

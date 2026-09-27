@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, getTags, getAttributes, getAdminTags, getAdminAttributes, getAdminInventory, getAdminMovements, adjustStock, type ProductsQuery, type AdminProductsQuery, type AdminInventoryQuery } from "./api";
+import { getCategories, getProduct, getProducts, getRelatedProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, getTags, getAttributes, getAdminTags, getAdminAttributes, getAdminInventory, getAdminMovements, adjustStock, type ProductsQuery, type AdminProductsQuery, type AdminInventoryQuery } from "./api";
 import { ApiError } from "../http";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { promoKeys } from "../promo/queries";
@@ -198,5 +198,13 @@ export function useAdjustment() {
       qc.invalidateQueries({ queryKey: [...catalogKeys.all, "inventory"] });
       qc.invalidateQueries({ queryKey: [...catalogKeys.all, "movements"] });
     },
+  });
+}
+
+export function useRelatedProducts(slug: string, type: "upsell" | "cross_sell", limit = 8) {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "related", slug, type, limit],
+    queryFn: () => getRelatedProducts(slug, type, limit),
+    enabled: !!slug,
   });
 }

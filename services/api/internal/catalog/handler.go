@@ -406,3 +406,89 @@ func (h *CatalogHandler) GetAttributes(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }
+
+func (h *CatalogHandler) GetRelatedProducts(c *gin.Context) {
+	lang := httpx.ResolveLocale(c)
+	slug := c.Param("slug")
+	relType := c.Query("type")
+	if relType != "upsell" && relType != "cross_sell" {
+		relType = "upsell"
+	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	if limit == 0 {
+		limit = 8
+	}
+	if limit > 20 {
+		limit = 20
+	}
+
+	products, err := h.repo.GetRelatedProducts(slug, relType, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Failed to fetch related products"},
+		})
+		return
+	}
+
+	var res []ProductListResponse
+	for _, p := range products {
+		var minP int = -1
+		var minRegP int = -1
+		var onSale bool
+		var totalStock int
+
+		for _, v := range p.Variants {
+			if !v.IsActive {
+				continue
+			}
+			effPrice := v.Price
+			if v.SalePrice != nil && v.SaleStartsAt != nil && v.SaleEndsAt != nil {
+				now := time.Now()
+				if now.After(*v.SaleStartsAt) && now.Before(*v.SaleEndsAt) {
+					effPrice = *v.SalePrice
+					onSale = true
+				}
+			}
+
+			if minP == -1 || effPrice < minP {
+				minP = effPrice
+				if onSale && effPrice == *v.SalePrice {
+					minRegP = v.Price
+				} else {
+					minRegP = -1
+				}
+			}
+			totalStock += v.Stock
+		}
+
+		var thumb string
+		if len(p.Images) > 0 {
+			thumb = storage.PublicImageURL(h.supabaseURL, p.Images[0].StoragePath)
+		}
+
+		item := ProductListResponse{
+			ID:           p.ID,
+			Slug:         p.Slug,
+			Name:         getI18nString(p.NameI18n, lang, p.Name),
+			CategorySlug: p.CategorySlug,
+			PriceMin:     minP,
+			InStock:      totalStock > 0,
+			OnSale:       onSale,
+			IsFeatured:   p.IsFeatured,
+			RatingAvg:    p.RatingAvg,
+			RatingCount:  p.RatingCount,
+			ThumbnailURL: thumb,
+			Status:       p.Status,
+		}
+		if onSale {
+			item.RegularPriceMin = minRegP
+		}
+
+		res = append(res, item)
+	}
+
+	if res == nil {
+		res = []ProductListResponse{}
+	}
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
+}

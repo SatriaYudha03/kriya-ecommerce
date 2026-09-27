@@ -179,3 +179,37 @@ export async function createAdminRefund(orderId: string, req: CreateRefundReques
   });
   return data;
 }
+
+import type { Notification, StoreInfo } from "./types";
+
+export async function getNotifications(page: number = 1, unreadOnly: boolean = false): Promise<ListEnvelope<Notification>> {
+  const query = new URLSearchParams({ page: page.toString(), unread_only: unreadOnly ? "true" : "false" });
+  return request<ListEnvelope<Notification>>(`/api/v1/notifications?${query.toString()}`, { auth: true });
+}
+
+export async function getUnreadNotificationCount(): Promise<number> {
+  const { data } = await request<Envelope<{ count: number }>>(`/api/v1/notifications/unread-count`, { auth: true });
+  return data.count;
+}
+
+export async function markNotificationsAsRead(ids?: string[], all?: boolean): Promise<number> {
+  const { data } = await request<Envelope<{ updated: number }>>(`/api/v1/notifications/read`, {
+    method: "POST",
+    body: { ids, all: !!all },
+    auth: true,
+  });
+  return data.updated;
+}
+
+export async function getStoreInfo(): Promise<StoreInfo> {
+  // Placeholder/Dummy for B's GET /store
+  if (USE_FIXTURES) {
+    return fixtures.storeInfo;
+  }
+  return {
+    name: "Kriya Furniture",
+    address: "Jl. Kayu Jati No. 12, Jepara, Jawa Tengah",
+    phone: "+62 812-3456-7890",
+    email: "hello@kriya.com"
+  };
+}

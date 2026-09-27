@@ -25,16 +25,6 @@ type OrderEventRow struct {
 
 func (OrderEventRow) TableName() string { return "order_events" }
 
-type NotificationRow struct {
-	UserID    string `gorm:"column:user_id"`
-	Type      string `gorm:"column:type"`
-	TitleI18n []byte `gorm:"column:title_i18n;type:jsonb"`
-	BodyI18n  []byte `gorm:"column:body_i18n;type:jsonb"`
-	Link      string `gorm:"column:link"`
-}
-
-func (NotificationRow) TableName() string { return "notifications" }
-
 func (r *OrderEventRecorderImpl) Record(ctx context.Context, tx *gorm.DB, e checkout.OrderEvent) error {
 	row := OrderEventRow{
 		OrderID:    e.OrderID,
@@ -57,17 +47,52 @@ func (r *OrderEventRecorderImpl) Record(ctx context.Context, tx *gorm.DB, e chec
 			return err
 		}
 
-		titleI18n, _ := json.Marshal(map[string]string{
-			"id": "Status pesanan diperbarui",
-			"en": "Order status updated",
-		})
+		titleID := "Status pesanan diperbarui"
+		titleEN := "Order status updated"
+		bodyID := "Pesanan Anda sekarang: " + e.ToStatus
+		bodyEN := "Your order is now: " + e.ToStatus
 
-		bodyI18n, _ := json.Marshal(map[string]string{
-			"id": "Pesanan Anda sekarang: " + e.ToStatus,
-			"en": "Your order is now: " + e.ToStatus,
-		})
+		switch e.ToStatus {
+		case "paid":
+			titleID = "Pembayaran diterima"
+			titleEN = "Payment received"
+			bodyID = "Pembayaran untuk pesanan Anda telah diterima."
+			bodyEN = "Payment for your order has been received."
+		case "processing":
+			titleID = "Pesanan diproses"
+			titleEN = "Order is being processed"
+			bodyID = "Pesanan Anda sedang diproses oleh penjual."
+			bodyEN = "Your order is being processed by the seller."
+		case "shipped":
+			titleID = "Pesanan dikirim"
+			titleEN = "Order shipped"
+			bodyID = "Pesanan Anda telah dikirim."
+			bodyEN = "Your order has been shipped."
+			if e.Note != "" {
+				bodyID += " Resi: " + e.Note
+				bodyEN += " Tracking: " + e.Note
+			}
+		case "completed":
+			titleID = "Pesanan selesai"
+			titleEN = "Order completed"
+			bodyID = "Pesanan Anda telah selesai."
+			bodyEN = "Your order has been completed."
+		case "cancelled":
+			titleID = "Pesanan dibatalkan"
+			titleEN = "Order cancelled"
+			bodyID = "Pesanan Anda telah dibatalkan."
+			bodyEN = "Your order has been cancelled."
+		case "refunded":
+			titleID = "Pengembalian dana"
+			titleEN = "Refund processed"
+			bodyID = "Pengembalian dana untuk pesanan Anda telah diproses."
+			bodyEN = "Refund for your order has been processed."
+		}
 
-		notif := NotificationRow{
+		titleI18n, _ := json.Marshal(map[string]string{"id": titleID, "en": titleEN})
+		bodyI18n, _ := json.Marshal(map[string]string{"id": bodyID, "en": bodyEN})
+
+		notif := Notification{
 			UserID:    order.UserID,
 			Type:      "order_status",
 			TitleI18n: titleI18n,

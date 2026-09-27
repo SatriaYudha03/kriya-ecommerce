@@ -464,6 +464,8 @@ const details = seeds.map((seed, idx): ProductDetail => {
     variants,
     has_assembly_guide: seed.has_assembly_guide,
     price_min: Math.min(...variants.map(v => v.price)),
+    rating_avg: 4.5,
+    rating_count: 12,
   };
 });
 
@@ -474,6 +476,12 @@ export const productList: ProductListItem[] = details.map((d) => ({
   category_slug: d.category.slug,
   price_min: Math.min(...d.variants.map((v) => v.price)),
   thumbnail_url: d.images[0].url,
+  in_stock: true,
+  on_sale: false,
+  is_featured: false,
+  status: "published",
+  rating_avg: d.rating_avg,
+  rating_count: d.rating_count,
 }));
 
 export const productDetails: Record<string, ProductDetail> = Object.fromEntries(

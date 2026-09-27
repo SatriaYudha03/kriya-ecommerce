@@ -18,8 +18,12 @@
 - 2026-09-27 - D3 (Batal oleh customer) selesai dikerjakan di `ec/D3-batal-oleh-customer`. Endpoint `POST /orders/:id/cancel` ditambah, fallback DB pembatalan, dan FE `CancelOrderDialog` pada detail order.
 - 2026-09-27 - D4 (Ulasan) selesai dikerjakan di `ec/D4-ulasan` (`7124123`). Endpoint review publik/saya/admin (8 endpoint sesuai RENCANA §7.1), aturan D6 (completed, 1 per produk per user, moderasi pending), can_review/review_id di order item. FE: ProductReviews, MyReviews, AdminReviews, i18n EN+ID.
 
+- 2026-09-27 - D6 (Notifikasi & invoice) selesai dikerjakan di `ec/D6-notifikasi-invoice`. Implementasi BE notifikasi + mark as read + paginasi, trigger dari `events.go`, admin notes & return updates. FE NotificationBell, halaman notifikasi, dan halaman print invoice.
+
 ## Permintaan lintas-domain
 *Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*
+
+- 2026-09-27 | D6 | BUTUH: Endpoint `GET /store` | ALASAN: Endpoint data toko dari B untuk invoice page belum ada atau belum terekspos dengan tipe TS di FE. | MEMBLOKIR: tidak (digunakan dummy `getStoreInfo` API call fallback). | USULAN: Agent B perlu mengimplementasikan `/store` dan mengekspos API typenya (StoreInfo).
 
 - 2026-09-26 | D2 | BUTUH: Wiring `aftersales.NewOrderEventRecorder()` ke dalam `checkout.Ports` di F2 | ALASAN: Saat F0, 0B menaruh file `ports_legacy.go` di `checkout/` (dan tidak pernah dipakai) alih-alih di tiap package domain, jadi file tersebut masuk kepemilikan I-BE. Saya tidak bisa mendaftarkan `events.go` secara langsung ke checkout. | MEMBLOKIR: tidak (untuk D2, tapi akan memblokir fitur F2) | USULAN: Integrator F2 harus memodifikasi `cmd/api/main.go` atau `checkout.RegisterRoutes` untuk menginjeksi `aftersales.NewOrderEventRecorder()` ke dalam `checkout.OrderHandler`.
 - 2026-09-26 | D2 | BUTUH: Implementasi `orderflow.Transition` | ALASAN: Endpoint `PUT /admin/orders/:id/status` memanggil `orderflow.Transition` seperti di RENCANA, namun fungsi ini saat ini berisi `return StatusPendingPayment, errors.New("not implemented")` yang mana ini merupakan hak milik F2 (I-BE). Saya menambahkan dummy implementation di repo sementara sebagai fallback. | MEMBLOKIR: tidak (saya membungkusnya dengan fallback sementara di F1) | USULAN: I-BE di F2 perlu melengkapi `orderflow.Transition`.

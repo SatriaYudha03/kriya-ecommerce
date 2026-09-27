@@ -1,5 +1,5 @@
 import { request, USE_FIXTURES } from "../http";
-import type { Envelope } from "../http";
+import type { Envelope, ListEnvelope } from "../http";
 import type { Profile, UpdateProfilePayload, Cart, Address, AddressInput, Province, Wishlist, ContinuePaymentResponse } from "./types";
 import { fixtures } from "./fixtures";
 
@@ -127,5 +127,54 @@ export async function continuePayment(orderId: string): Promise<ContinuePaymentR
     method: "POST",
     auth: true,
   });
+  return data;
+}
+
+import type { 
+  AdminCustomerListItem, AdminCustomerListResponse, AdminCustomerDetailItem, 
+  AdminSettings, PublicStoreSettings
+} from "./types";
+
+export async function getAdminCustomers(
+  query = "",
+  sort = "newest",
+  page = 1,
+  limit = 10
+): Promise<{ data: AdminCustomerListItem[]; meta: { page: number, limit: number, total: number } }> {
+  if (USE_FIXTURES) return fixtures.adminCustomers(page, limit);
+  const searchParams = new URLSearchParams({
+    q: query,
+    sort,
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  const res = await request<ListEnvelope<AdminCustomerListItem>>(`/api/v1/admin/customers?${searchParams.toString()}`, { auth: true });
+  return { data: res.data, meta: res.meta };
+}
+
+export async function getAdminCustomerDetail(id: string): Promise<AdminCustomerDetailItem> {
+  if (USE_FIXTURES) return fixtures.adminCustomerDetail;
+  const { data } = await request<Envelope<AdminCustomerDetailItem>>(`/api/v1/admin/customers/${id}`, { auth: true });
+  return data;
+}
+
+export async function getAdminSettings(): Promise<AdminSettings> {
+  if (USE_FIXTURES) return fixtures.adminSettings;
+  const { data } = await request<Envelope<AdminSettings>>("/api/v1/admin/settings", { auth: true });
+  return data;
+}
+
+export async function updateAdminSettings(payload: AdminSettings): Promise<void> {
+  if (USE_FIXTURES) return;
+  await request("/api/v1/admin/settings", {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
+}
+
+export async function getPublicStoreSettings(): Promise<PublicStoreSettings> {
+  if (USE_FIXTURES) return fixtures.publicStoreSettings;
+  const { data } = await request<Envelope<PublicStoreSettings>>("/api/v1/store");
   return data;
 }

@@ -44,4 +44,15 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	paymentHandler := NewPaymentHandler(paymentRepo, deps.Midtrans, deps.Cfg.MidtransClientKey)
 
 	r.Authed.POST("/orders/:id/pay", paymentHandler.PayOrder)
+
+	settingsRepo := NewSettingsRepository(deps.DB)
+	settingsHandler := NewSettingsHandler(settingsRepo)
+	r.Admin.GET("/settings", settingsHandler.GetSettings)
+	r.Admin.PUT("/settings", settingsHandler.UpdateSettings)
+	r.Public.GET("/store", settingsHandler.GetPublicStore)
+
+	adminCustomerRepo := NewAdminCustomerRepository(deps.DB)
+	adminCustomerHandler := NewAdminCustomerHandler(adminCustomerRepo)
+	r.Admin.GET("/customers", adminCustomerHandler.GetCustomers)
+	r.Admin.GET("/customers/:id", adminCustomerHandler.GetCustomerDetail)
 }
