@@ -52,7 +52,6 @@ function AdjustmentDialog({ item }: { item: InventoryItem }) {
   const [qty, setQty] = useState(item.stock.toString());
   const [note, setNote] = useState("");
   const adjust = useAdjustment();
-  const { t } = useLanguage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +64,7 @@ function AdjustmentDialog({ item }: { item: InventoryItem }) {
           toast.success("Stock updated");
           setOpen(false);
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.error(err.message || "Failed to update stock");
         },
       }
@@ -74,7 +73,7 @@ function AdjustmentDialog({ item }: { item: InventoryItem }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>Adjust</DialogTrigger>
+      <DialogTrigger asChild><Button variant="outline" size="sm">Adjust</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adjust Stock</DialogTitle>
@@ -170,7 +169,7 @@ export default function AdminInventoryPage() {
                     <div className="flex items-center gap-2">
                       <AdjustmentDialog item={item} />
                       <Dialog>
-                        <DialogTrigger render={<Button variant="ghost" size="sm" />}>History</DialogTrigger>
+                        <DialogTrigger asChild><Button variant="ghost" size="sm">History</Button></DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
                             <DialogTitle>Stock History - {item.sku}</DialogTitle>

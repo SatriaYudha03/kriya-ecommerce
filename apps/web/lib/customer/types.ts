@@ -74,3 +74,8 @@ export interface Wishlist {
 }
 
 
+export interface ContinuePaymentResponse {
+  snap_token: string;
+  midtrans_client_key: string;
+  expires_at: string;
+}
