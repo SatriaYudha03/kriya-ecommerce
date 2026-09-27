@@ -283,3 +283,19 @@ func (r *CatalogRepository) GetProductCountsForTerms(categorySlug string) (map[s
 	}
 	return counts, nil
 }
+
+func (r *CatalogRepository) GetRelatedProducts(slug string, relType string, limit int) ([]Product, error) {
+	var products []Product
+
+	err := r.db.Model(&Product{}).
+		Joins("JOIN product_relations ON products.id = product_relations.related_product_id").
+		Joins("JOIN products p2 ON p2.id = product_relations.product_id").
+		Preload("Variants", "is_active = ?", true).
+		Preload("Images", "is_primary = ?", true).
+		Where("p2.slug = ? AND product_relations.relation_type = ? AND products.status = ?", slug, relType, "published").
+		Order("product_relations.position ASC").
+		Limit(limit).
+		Find(&products).Error
+
+	return products, err
+}
