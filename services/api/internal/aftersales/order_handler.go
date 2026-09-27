@@ -270,6 +270,12 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 		})
 		return
 	}
+	if order.Status != "pending_payment" {
+		c.JSON(http.StatusConflict, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "invalid_status", Message: "Hanya pesanan menunggu pembayaran yang dapat dibatalkan"},
+		})
+		return
+	}
 
 	// Permintaan lintas-domain (I-BE):
 	// Mohon tambahkan checkout.Ports ke Deps agar kita bisa memanggil Transition.

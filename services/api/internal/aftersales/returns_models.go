@@ -109,6 +109,7 @@ type CreateRefundRequest struct {
 	Items    []CreateRefundRequestItem `json:"items" binding:"required,min=1"`
 	Restock  bool                      `json:"restock"`
 	ReturnID *string                   `json:"return_id"`
+	Reason   *string                   `json:"reason"`
 	Note     *string                   `json:"note"`
 }
 

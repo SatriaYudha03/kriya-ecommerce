@@ -1,10 +1,12 @@
 package aftersales
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/kriya-commerce/api/internal/checkout"
 	"gorm.io/gorm"
 )
 
@@ -260,7 +262,7 @@ func (r *OrderRepository) GetByIDForUser(id, userID string) (*Order, error) {
 
 	// Notes
 	err = r.db.Model(&OrderNote{}).
-		Select("order_notes.*, p.name as author_name").
+		Select("order_notes.*, p.full_name as author_name").
 		Joins("LEFT JOIN profiles p ON p.id = order_notes.author_id").
 		Where("order_notes.order_id = ? AND order_notes.is_customer_visible = true", id).
 		Order("order_notes.created_at ASC").
@@ -295,13 +297,33 @@ func (r *OrderRepository) GetForInternalStatus(orderID, email string) (*Order, e
 	return &order, nil
 }
 
+type cancelOrderUpdates struct {
+	Status       string    `gorm:"column:status"`
+	CancelReason string    `gorm:"column:cancel_reason"`
+	CancelledAt  time.Time `gorm:"column:cancelled_at"`
+	UpdatedAt    time.Time `gorm:"column:updated_at"`
+}
+
 func (r *OrderRepository) cancelOrderManual(tx *gorm.DB, id, reason string) error {
 	now := time.Now()
-	updates := map[string]interface{}{
-		"status":        "cancelled",
-		"cancel_reason": reason,
-		"cancelled_at":  now,
-		"updated_at":    now,
+	updates := cancelOrderUpdates{
+		Status:       "cancelled",
+		CancelReason: reason,
+		CancelledAt:  now,
+		UpdatedAt:    now,
 	}
-	return tx.Table("orders").Where("id = ?", id).Updates(updates).Error
+	if err := tx.Table("orders").Where("id = ?", id).Updates(updates).Error; err != nil {
+		return err
+	}
+
+	fromStatus := "pending_payment"
+	recorder := NewOrderEventRecorder()
+	return recorder.Record(context.Background(), tx, checkout.OrderEvent{
+		OrderID:        id,
+		FromStatus:     &fromStatus,
+		ToStatus:       "cancelled",
+		ActorType:      checkout.ActorCustomer,
+		Note:           reason,
+		NotifyCustomer: true,
+	})
 }

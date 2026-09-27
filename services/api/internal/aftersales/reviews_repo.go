@@ -19,7 +19,7 @@ func (r *ReviewRepository) GetReviewsByProductSlug(ctx context.Context, slug str
 	var total int64
 
 	query := r.db.WithContext(ctx).Model(&ProductReview{}).
-		Select("product_reviews.*, prof.name as user_name").
+		Select("product_reviews.*, prof.full_name as user_name").
 		Joins("JOIN products p ON p.id = product_reviews.product_id").
 		Joins("JOIN profiles prof ON prof.id = product_reviews.user_id").
 		Where("p.slug = ?", slug)
@@ -164,8 +164,8 @@ func (r *ReviewRepository) GetAdminReviews(ctx context.Context, status string, p
 	var total int64
 
 	query := r.db.WithContext(ctx).Model(&ProductReview{}).
-		Select("product_reviews.*, prof.name as user_name, p.name as product_name, p.slug as product_slug").
-		Joins("JOIN products p ON p.id = product_reviews.product_id").
+		Select("product_reviews.*, prof.full_name as user_name, p.name as product_name, p.slug as product_slug").
+		Joins("LEFT JOIN products p ON p.id = product_reviews.product_id").
 		Joins("JOIN profiles prof ON prof.id = product_reviews.user_id")
 
 	if status != "" {
