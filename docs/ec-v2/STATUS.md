@@ -99,7 +99,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | F3-B | Audit customer | ✅ | B | 2026-09-27 | `ec/F3-B-audit-customer` | `5f24e4d` | `docs/report/F3-B.md` | Seed 3 alamat demo + audit i18n (~120 key) + a11y dialog/inputs + usulan 3 index di LOG-B.md. E2E regex locale-agnostic. Di-merge 2026-09-27. |
 | F3-C | Seed/audit promo | ✅ | C | 2026-09-27 | `ec/F3-C-seed-audit-promo` | `560a456` | `docs/report/F3-C.md` | Bugfix nyata: `lib/promo/api.ts` `getPublicCoupons`/`validateCoupon` memanggil path salah `/api/v1/public/coupons/{public,validate}` (prefix ganda tidak ada di routes.go) — banner promo publik & validasi kupon checkout selalu gagal silent. Diperbaiki. 3 usulan index dicatat di LOG-C.md (permintaan, bukan migrasi). Di-merge 2026-09-27. |
 | F3-D | Seed/audit after-sales | ✅ | D | 2026-09-27 | `ec/F3-D-seed-audit-aftersales` | `fcf0eba` | `docs/report/F3-D.md` | Seed 10 ulasan + audit i18n kritis (60+ teks diperbaiki, 40+ keys ditambahkan). EXPLAIN ANALYZE optimal. Di-merge 2026-09-27. |
-| F3-Z | Migrasi 013 + update dokumen (Claude/Satria) | ⬜ | | | | | | |
+| F3-Z | Migrasi 013 + update dokumen (Claude/Satria) | 🟦 | Claude | 2026-09-27 | `main` | | | |
 
 ---
 
