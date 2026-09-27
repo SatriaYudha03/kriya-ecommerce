@@ -1,9 +1,9 @@
 # Log Agent - [Agent Name / Task ID]
 
 ## Status Terkini
-- **Task Terakhir:** 
-- **Status:** 
-- **Commit Terakhir:** 
+- **Task Terakhir:** D7
+- **Status:** Selesai
+- **Commit Terakhir:** 6fd1fe8
 
 ## Log
 *Catat langkah-langkah yang sudah diambil, keputusan penting, dan masalah (beserta solusinya) di sini. Satu baris atau paragraf per sesi.*
@@ -17,8 +17,8 @@
 - 2026-09-26 - D2 (Event, catatan, resi) diimplementasikan, branch `ec/D2-event-catatan-resi`. Menerapkan `OrderEventRecorder` di `aftersales/events.go`. Admin order detail (FE & BE) dan timeline+notes pada customer detail.
 - 2026-09-27 - D3 (Batal oleh customer) selesai dikerjakan di `ec/D3-batal-oleh-customer`. Endpoint `POST /orders/:id/cancel` ditambah, fallback DB pembatalan, dan FE `CancelOrderDialog` pada detail order.
 - 2026-09-27 - D4 (Ulasan) selesai dikerjakan di `ec/D4-ulasan` (`7124123`). Endpoint review publik/saya/admin (8 endpoint sesuai RENCANA §7.1), aturan D6 (completed, 1 per produk per user, moderasi pending), can_review/review_id di order item. FE: ProductReviews, MyReviews, AdminReviews, i18n EN+ID.
-
 - 2026-09-27 - D6 (Notifikasi & invoice) selesai dikerjakan di `ec/D6-notifikasi-invoice`. Implementasi BE notifikasi + mark as read + paginasi, trigger dari `events.go`, admin notes & return updates. FE NotificationBell, halaman notifikasi, dan halaman print invoice.
+- 2026-09-27 - D7 (E2E aftersales) selesai dikerjakan di `ec/D7-e2e-aftersales` (`6fd1fe8`). Menulis Playwright E2E spec `e2e/ec-aftersales.spec.ts` dengan 7 skenario pengujian penuh: guard login riwayat, pagination & filter, pembatalan pesanan customer (pending_payment -> cancelled dan 409 bila completed), alur admin (processing -> shipped + resi -> completed + customer notes & timeline), ulasan produk (create, edit, admin approval & reply, public review list & summary), retur -> refund -> stok kembali (+1 ke product_variants), dan notifikasi in-app (list, unread-count, mark as read). Memperbaiki query repo aftersales (kolom profile `full_name`), guard status batal pesanan, dan penyesuaian fallback restock refund. Seluruh 7 tes Playwright hijau.
 
 ## Permintaan lintas-domain
 *Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*

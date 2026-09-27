@@ -1,8 +1,10 @@
 package aftersales
 
 import (
+	"context"
 	"encoding/json"
 
+	"github.com/kriya-commerce/api/internal/checkout"
 	"gorm.io/gorm"
 )
 
@@ -132,7 +134,27 @@ func (r *AdminRepository) UpdateOrderStatus(id string, status string, courier, t
 			cols = append(cols, "customer_note")
 		}
 
-		return tx.Model(&Order{}).Where("id = ?", id).Select(cols).Updates(&upd).Error
+		if err := tx.Model(&Order{}).Where("id = ?", id).Select(cols).Updates(&upd).Error; err != nil {
+			return err
+		}
+
+		note := ""
+		if courier != nil && tracking != nil {
+			note = *courier + ": " + *tracking
+		} else if tracking != nil {
+			note = *tracking
+		} else if cancelReason != nil {
+			note = *cancelReason
+		}
+		recorder := NewOrderEventRecorder()
+		return recorder.Record(context.Background(), tx, checkout.OrderEvent{
+			OrderID:        id,
+			FromStatus:     &oldStatus,
+			ToStatus:       status,
+			ActorType:      checkout.ActorAdmin,
+			Note:           note,
+			NotifyCustomer: true,
+		})
 	})
 }
 
@@ -172,7 +194,7 @@ func (r *AdminRepository) GetOrder(id string) (*Order, error) {
 
 	var notes []OrderNote
 	err = r.DB.Model(&OrderNote{}).
-		Select("order_notes.*, p.name as author_name").
+		Select("order_notes.*, p.full_name as author_name").
 		Joins("LEFT JOIN profiles p ON p.id = order_notes.author_id").
 		Where("order_notes.order_id = ?", id).
 		Order("order_notes.created_at ASC").

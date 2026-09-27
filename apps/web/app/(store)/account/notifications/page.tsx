@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useNotifications, useMarkNotificationsAsRead } from "@/lib/aftersales/queries";
 import { useLanguage } from "@/components/kriya/language-provider";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";

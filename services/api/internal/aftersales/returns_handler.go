@@ -320,13 +320,18 @@ func (h *ReturnsHandler) AdminCreateRefund(c *gin.Context) {
 		return
 	}
 
+	reason := req.Reason
+	if reason == nil {
+		reason = req.Note
+	}
+
 	refund := &Refund{
 		OrderID:        orderID,
 		ReturnID:       req.ReturnID,
 		Amount:         totalRefundAmount,
 		ShippingAmount: shippingAmount,
 		Restock:        req.Restock,
-		Reason:         req.Note,
+		Reason:         reason,
 		CreatedBy:      &adminID,
 		Method:         "manual",
 		CreatedAt:      time.Now(),
