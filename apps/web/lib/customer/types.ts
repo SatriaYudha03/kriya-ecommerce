@@ -79,3 +79,62 @@ export interface ContinuePaymentResponse {
   midtrans_client_key: string;
   expires_at: string;
 }
+
+export interface AdminCustomerListItem {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  role: string;
+  orders_count: number;
+  total_spent: number;
+  last_order_at: string | null;
+  created_at: string;
+}
+
+export interface AdminCustomerListResponse {
+  customers: AdminCustomerListItem[];
+  total: number;
+}
+
+export interface AdminRecentOrder {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+}
+
+export interface AdminCustomerDetailItem {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  role: string;
+  orders_count: number;
+  total_spent: number;
+  last_order_at: string | null;
+  created_at: string;
+  addresses: Address[];
+  recent_orders: AdminRecentOrder[];
+}
+
+export interface AdminSettings {
+  store_name: string;
+  support_email: string | null;
+  support_phone: string | null;
+  tax_rate_bp: number;
+  prices_include_tax: boolean;
+  pending_payment_ttl_minutes: number;
+  return_window_days: number;
+  low_stock_threshold_default: number;
+}
+
+export interface PublicStoreSettings {
+  store_name: string;
+  support_email: string | null;
+  support_phone: string | null;
+  tax_rate_bp: number;
+  prices_include_tax: boolean;
+  return_window_days: number;
+}
