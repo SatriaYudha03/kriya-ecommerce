@@ -27,20 +27,21 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 		Select(`
 			pv.id as variant_id,
 			pv.product_id,
-			p.category_id,
+			COALESCE(c.id::text, '') as category_id,
 			p.slug as product_slug,
 			pv.sku,
 			p.name,
 			pv.color,
 			pv.size,
-			(SELECT url FROM product_images pi WHERE pi.product_id = p.id ORDER BY is_primary DESC, created_at ASC LIMIT 1) as thumbnail_url,
+			COALESCE((SELECT storage_path FROM product_images pi WHERE pi.product_id = p.id ORDER BY is_primary DESC, created_at ASC LIMIT 1), '') as thumbnail_url,
 			pv.price as regular_price,
-			COALESCE(p.sale_price, pv.price) as unit_price,
-			CASE WHEN p.sale_price IS NOT NULL THEN true ELSE false END as on_sale,
-			p.weight_kg,
-			pv.stock as available
+			kriya_effective_price(pv.price, pv.sale_price, pv.sale_starts_at, pv.sale_ends_at) as unit_price,
+			CASE WHEN pv.sale_price IS NOT NULL AND (pv.sale_starts_at IS NULL OR pv.sale_starts_at <= now()) AND (pv.sale_ends_at IS NULL OR pv.sale_ends_at > now()) THEN true ELSE false END as on_sale,
+			COALESCE(pv.weight_kg, p.weight_kg, 0) as weight_kg,
+			COALESCE(pv.stock, 0) as available
 		`).
 		Joins("JOIN products p ON p.id = pv.product_id").
+		Joins("LEFT JOIN categories c ON c.slug = p.category_slug").
 		Where("pv.id IN ?", variantIDs)
 
 	if lock {
@@ -60,7 +61,7 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 		RegularPrice int
 		UnitPrice    int
 		OnSale       bool
-		WeightKg     float64
+		WeightKg     *float64
 		Available    int
 	}
 
@@ -96,6 +97,11 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 			// In a real app we'd fetch translations. Keep simple for now.
 		}
 
+		var weight float64
+		if r.WeightKg != nil {
+			weight = *r.WeightKg
+		}
+
 		pricedLines = append(pricedLines, PricedLine{
 			VariantID:    r.VariantID,
 			ProductID:    r.ProductID,
@@ -110,7 +116,7 @@ func PriceLines(ctx context.Context, tx *gorm.DB, lines []LineInput, locale stri
 			UnitPrice:    r.UnitPrice,
 			RegularPrice: r.RegularPrice,
 			OnSale:       r.OnSale,
-			WeightKg:     r.WeightKg,
+			WeightKg:     weight,
 			Subtotal:     r.UnitPrice * l.Qty,
 		})
 	}
