@@ -71,9 +71,9 @@ export function ProductDetailView({ slug }: { slug: string }) {
           size: selected.size,
         },
       });
-      toast.success("Berhasil ditambahkan ke keranjang");
+      toast.success(t("catalog.pdp.addedToCart"));
     } catch {
-      toast.error("Gagal menambahkan ke keranjang");
+      toast.error(t("catalog.pdp.addToCartFailed"));
     }
   };
 
@@ -83,14 +83,14 @@ export function ProductDetailView({ slug }: { slug: string }) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16">
         <EmptyState
-          title="Produk tidak ditemukan"
-          hint="Produk yang kamu cari mungkin sudah tidak tersedia."
+          title={t("catalog.pdp.notFound")}
+          hint={t("catalog.pdp.notFoundHint")}
           action={
             <Link
               href="/"
               className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
             >
-              Kembali ke beranda
+              {t("catalog.pdp.backHome")}
             </Link>
           }
         />
@@ -100,14 +100,14 @@ export function ProductDetailView({ slug }: { slug: string }) {
 
   const stock = selected.stock;
   const stockLabel =
-    stock > 0 ? (stock <= 5 ? `Sisa ${stock} unit` : "Stok tersedia") : "Stok habis";
+    stock > 0 ? (stock <= 5 ? t("catalog.pdp.stockLow", { count: stock }) : t("catalog.pdp.stockAvailable")) : t("catalog.pdp.stockEmpty");
   const d = product.dimensions;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <Breadcrumbs
         items={[
-          { label: "Beranda", href: "/" },
+          { label: t("catalog.pdp.breadcrumbHome"), href: "/" },
           { label: categoryLabel(product.category.slug, product.category.name, locale), href: `/categories/${product.category.slug}` },
           { label: product.name },
         ]}
@@ -147,7 +147,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
             </div>
             {selected.sale_ends_at && (
               <p className="text-xs text-red-600 font-medium">
-                Promo berakhir {new Date(selected.sale_ends_at).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+                {t("catalog.pdp.saleEnds", { date: new Date(selected.sale_ends_at).toLocaleDateString(locale === "en" ? "en-US" : "id-ID", { day: 'numeric', month: 'long', year: 'numeric' }) })}
               </p>
             )}
           </div>
@@ -221,7 +221,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
               className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingBag className="h-4 w-4" />
-              {stock > 0 ? (loading ? "Memproses..." : "Tambah ke keranjang") : "Stok habis"}
+              {stock > 0 ? (loading ? t("catalog.pdp.processing") : t("catalog.pdp.addToCart")) : t("catalog.pdp.stockEmpty")}
             </button>
             <WishlistButton productId={product.id} variant="full" />
           </div>
@@ -233,12 +233,12 @@ export function ProductDetailView({ slug }: { slug: string }) {
             </li>
             <li className="flex items-center gap-2">
               <Package className="h-4 w-4 text-neutral-400" />
-              Berat {product.weight_kg} kg{" "}
-              {product.has_assembly_guide ? "· perlu perakitan" : "· tanpa perakitan"}
+              {t("catalog.pdp.weight", { weight: product.weight_kg })}{" "}
+              {product.has_assembly_guide ? t("catalog.pdp.withAssembly") : t("catalog.pdp.noAssembly")}
             </li>
             <li className="flex items-center gap-2">
               <Truck className="h-4 w-4 text-neutral-400" />
-              Pengiriman ke seluruh Indonesia
+              {t("catalog.pdp.shipping")}
             </li>
           </ul>
         </div>

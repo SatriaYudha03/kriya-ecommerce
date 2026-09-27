@@ -7,10 +7,12 @@ import { formatRupiah } from "@/lib/format";
 import { ProductForm } from "@/components/kriya/admin/product-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/components/kriya/language-provider";
 
 const LIMIT = 20;
 
 export default function AdminProductsPage() {
+  const { t } = useLanguage();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string>("");
   const [q, setQ] = useState("");
@@ -30,7 +32,7 @@ export default function AdminProductsPage() {
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   function handleDelete(id: string, name: string) {
-    if (confirm(`Hapus produk "${name}"? Tindakan ini tidak bisa dibatalkan.`)) {
+    if (confirm(t("adminCatalog.products.deleteConfirm", { name }))) {
       del.mutate(id);
     }
   }
@@ -39,35 +41,36 @@ export default function AdminProductsPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Manajemen Produk</h1>
-          <p className="mt-1 text-sm text-neutral-500">{total} produk</p>
+          <h1 className="text-2xl font-bold text-neutral-900">{t("adminCatalog.products.title")}</h1>
+          <p className="mt-1 text-sm text-neutral-500">{t("adminCatalog.products.count", { total })}</p>
         </div>
         <button
           onClick={() => setForm({ open: true, productId: undefined })}
           className="flex items-center gap-2 rounded-lg bg-brand-strong px-4 py-2 text-sm font-medium text-white hover:bg-brand"
         >
-          <Plus className="h-4 w-4" /> Tambah Produk
+          <Plus className="h-4 w-4" /> {t("adminCatalog.products.add")}
         </button>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-4">
         <div className="w-full max-w-sm">
           <Input 
-            placeholder="Cari produk..." 
+            placeholder={t("adminCatalog.products.search")} 
             value={q} 
             onChange={(e) => { setQ(e.target.value); setPage(1); }} 
+            aria-label={t("adminCatalog.products.search")}
           />
         </div>
         <div className="w-full max-w-xs">
           <Select value={status} onValueChange={(val) => { setStatus(val === "all" ? "" : String(val)); setPage(1); }}>
             <SelectTrigger>
-              <SelectValue placeholder="Semua Status" />
+              <SelectValue placeholder={t("adminCatalog.products.allStatus")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value="all">{t("adminCatalog.products.allStatus")}</SelectItem>
+              <SelectItem value="draft">{t("adminCatalog.products.draft")}</SelectItem>
+              <SelectItem value="published">{t("adminCatalog.products.published")}</SelectItem>
+              <SelectItem value="archived">{t("adminCatalog.products.archived")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -76,25 +79,25 @@ export default function AdminProductsPage() {
       <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-20 text-neutral-500">
-            <Loader2 className="h-5 w-5 animate-spin" /> Memuat produk…
+            <Loader2 className="h-5 w-5 animate-spin" /> {t("adminCatalog.products.loading")}
           </div>
         ) : isError ? (
-          <div className="py-20 text-center text-sm text-red-600">Gagal memuat produk.</div>
+          <div className="py-20 text-center text-sm text-red-600">{t("adminCatalog.products.error")}</div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-20 text-neutral-500">
             <Package className="h-8 w-8" />
-            <p className="text-sm">Belum ada produk.</p>
+            <p className="text-sm">{t("adminCatalog.products.empty")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-200">
                 <thead className="bg-neutral-50">
                   <tr>
-                    <Th>Produk</Th>
-                    <Th>Kategori</Th>
-                    <Th>Status</Th>
-                    <Th>Harga (min)</Th>
-                    <Th className="text-right">Aksi</Th>
+                    <Th>{t("adminCatalog.products.thProduct")}</Th>
+                    <Th>{t("adminCatalog.products.thCategory")}</Th>
+                    <Th>{t("adminCatalog.products.thStatus")}</Th>
+                    <Th>{t("adminCatalog.products.thPrice")}</Th>
+                    <Th className="text-right">{t("adminCatalog.products.thActions")}</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-200 bg-white">
@@ -112,14 +115,14 @@ export default function AdminProductsPage() {
                           onClick={() => setForm({ open: true, productId: p.id })}
                           className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong"
                         >
-                          <Pencil className="h-4 w-4" /> Edit
+                          <Pencil className="h-4 w-4" /> {t("adminCatalog.products.edit")}
                         </button>
                         <button
                           onClick={() => handleDelete(p.id, p.name)}
                           disabled={del.isPending && del.variables === p.id}
                           className="inline-flex items-center gap-1 text-sm font-medium text-neutral-500 hover:text-red-600 disabled:opacity-50"
                         >
-                          <Trash2 className="h-4 w-4" /> Hapus
+                          <Trash2 className="h-4 w-4" /> {t("adminCatalog.products.delete")}
                         </button>
                       </div>
                     </td>
@@ -138,17 +141,17 @@ export default function AdminProductsPage() {
             disabled={page <= 1}
             className="rounded-lg border border-neutral-300 px-4 py-2 disabled:opacity-40"
           >
-            Sebelumnya
+            {t("adminCatalog.products.prev")}
           </button>
           <span className="text-neutral-500">
-            Halaman {page} dari {totalPages}
+            {t("adminCatalog.products.pageInfo", { page, totalPages })}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="rounded-lg border border-neutral-300 px-4 py-2 disabled:opacity-40"
           >
-            Berikutnya
+            {t("adminCatalog.products.next")}
           </button>
         </div>
       )}

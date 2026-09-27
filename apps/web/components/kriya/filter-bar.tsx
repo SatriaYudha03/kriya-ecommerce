@@ -119,7 +119,7 @@ export function FilterBar({
                 : "border-neutral-200 bg-transparent text-red-600 hover:border-red-600"
             )}
           >
-            SALE
+            {t("catalog.sale.badge")}
           </button>
         )}
         {onInStockChange && (
@@ -133,7 +133,7 @@ export function FilterBar({
                 : "border-neutral-200 bg-transparent text-neutral-600 hover:border-neutral-300"
             )}
           >
-            In Stock
+            {t("catalog.inStock")}
           </button>
         )}
       </div>
@@ -159,7 +159,7 @@ export function FilterBar({
     <div className="flex flex-wrap gap-x-6 gap-y-4 pt-2">
       {tags.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-neutral-700">Tags:</span>
+          <span className="text-sm font-medium text-neutral-700">{t("catalog.tags")}</span>
           {tags.map((t) => (
             <button
               key={t.slug}

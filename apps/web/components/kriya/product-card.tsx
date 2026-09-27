@@ -17,7 +17,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-sand">
         {product.on_sale && (
           <div className="absolute left-2 top-2 z-10 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white">
-            SALE
+            {t("catalog.sale.badge")}
           </div>
         )}
         <div className="absolute right-2 top-2 z-10">
