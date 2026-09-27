@@ -98,7 +98,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | F3-A | Seed/audit katalog | ⬜ | | | | | | |
 | F3-B | Audit customer | 🟦 | B | 2026-09-27 | | | | |
 | F3-C | Seed/audit promo | ⬜ | | | | | | |
-| F3-D | Seed/audit after-sales | ⬜ | | | | | | |
+| F3-D | Seed/audit after-sales | 🟦 | D | 2026-09-27 | | | | |
 | F3-Z | Migrasi 013 + update dokumen (Claude/Satria) | ⬜ | | | | | | |
 
 ---
