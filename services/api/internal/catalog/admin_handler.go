@@ -36,7 +36,7 @@ func (h *AdminHandler) ListProducts(c *gin.Context) {
 		return
 	}
 
-	var data []ProductListResponse
+	data := make([]ProductListResponse, 0)
 	for _, p := range products {
 		priceMin := 0
 		if len(p.Variants) > 0 {

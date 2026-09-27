@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -62,18 +64,58 @@ type Category struct {
 }
 
 type Product struct {
-	ID               string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Slug             string `gorm:"uniqueIndex"`
+	ID               string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Slug             string     `gorm:"uniqueIndex"`
 	Name             string
-	NameI18n         []byte `gorm:"column:name_i18n;type:jsonb"`
+	NameI18n         []byte     `gorm:"column:name_i18n;type:jsonb"`
 	CategorySlug     string
 	Description      string
-	DescriptionI18n  []byte `gorm:"column:description_i18n;type:jsonb"`
-	Materials        []byte `gorm:"type:jsonb"` // Store as JSONB []string
-	MaterialsI18n    []byte `gorm:"column:materials_i18n;type:jsonb"`
-	Dimensions       []byte `gorm:"type:jsonb"` // Store as JSONB Dimensions
+	DescriptionI18n  []byte     `gorm:"column:description_i18n;type:jsonb"`
+	Materials        []byte     `gorm:"type:jsonb"` // Store as JSONB []string
+	MaterialsI18n    []byte     `gorm:"column:materials_i18n;type:jsonb"`
+	Dimensions       []byte     `gorm:"type:jsonb"` // Store as JSONB Dimensions
 	WeightKg         float64
 	HasAssemblyGuide bool
+	Status           string     `gorm:"column:status;default:'published'"`
+	PublishedAt      *time.Time `gorm:"column:published_at"`
+}
+
+type Attribute struct {
+	ID           string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Slug         string `gorm:"uniqueIndex"`
+	NameI18n     []byte `gorm:"column:name_i18n;type:jsonb"`
+	IsFilterable bool   `gorm:"column:is_filterable;default:true"`
+	Position     int    `gorm:"column:position;default:0"`
+}
+
+type AttributeTerm struct {
+	ID          string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	AttributeID string `gorm:"type:uuid"`
+	Slug        string
+	NameI18n    []byte `gorm:"column:name_i18n;type:jsonb"`
+	Position    int    `gorm:"column:position;default:0"`
+}
+
+type ProductAttributeTerm struct {
+	ProductID string `gorm:"type:uuid;primaryKey"`
+	TermID    string `gorm:"type:uuid;primaryKey"`
+}
+
+func slugify(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		} else {
+			b.WriteRune('-')
+		}
+	}
+	res := b.String()
+	for strings.Contains(res, "--") {
+		res = strings.ReplaceAll(res, "--", "-")
+	}
+	return strings.Trim(res, "-")
 }
 
 type ProductVariant struct {
@@ -164,24 +206,92 @@ func main() {
 	}
 
 	// Insert Categories
+	var categories []Category
 	for _, catSeed := range seed.Categories {
 		nameI18n := i18nJSON(catSeed.Name, trOr(tr.Categories, catSeed.Slug))
-		cat := Category{
+		categories = append(categories, Category{
 			Slug:     catSeed.Slug,
 			Name:     catSeed.Name,
 			NameI18n: nameI18n,
-		}
-		// Upsert based on slug
+		})
+	}
+	if len(categories) > 0 {
 		err := db.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "slug"}},
 			DoUpdates: clause.AssignmentColumns([]string{"name", "name_i18n"}),
-		}).Create(&cat).Error
+		}).Create(&categories).Error
 		if err != nil {
-			log.Printf("Error seeding category %s: %v", cat.Slug, err)
+			log.Printf("Error seeding categories: %v", err)
 		}
 	}
 
-	// Insert Products
+	// Insert Material Attribute
+	materialAttr := Attribute{
+		Slug:         "material",
+		NameI18n:     i18nJSON("Material", "Material"),
+		IsFilterable: true,
+		Position:     0,
+	}
+	if err := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "slug"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name_i18n", "is_filterable", "position"}),
+	}).Create(&materialAttr).Error; err != nil {
+		log.Printf("Error seeding attribute material: %v", err)
+	}
+
+	var dbMaterialAttr Attribute
+	if err := db.Where("slug = ?", "material").First(&dbMaterialAttr).Error; err != nil {
+		log.Fatalf("Failed to fetch material attribute: %v", err)
+	}
+
+	// Insert Material Attribute Terms
+	termMap := make(map[string]string) // materialEN -> termID
+	termIdx := 0
+	var terms []AttributeTerm
+	var termENs []string
+	for _, prodSeed := range seed.Products {
+		for _, m := range prodSeed.Materials {
+			if _, exists := termMap[m]; exists {
+				continue
+			}
+			termMap[m] = ""
+			termSlug := slugify(m)
+			termNameI18n := i18nJSON(m, trOr(tr.Materials, m))
+			terms = append(terms, AttributeTerm{
+				AttributeID: dbMaterialAttr.ID,
+				Slug:        termSlug,
+				NameI18n:    termNameI18n,
+				Position:    termIdx,
+			})
+			termENs = append(termENs, m)
+			termIdx++
+		}
+	}
+	if len(terms) > 0 {
+		if err := db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "attribute_id"}, {Name: "slug"}},
+			DoUpdates: clause.AssignmentColumns([]string{"name_i18n", "position"}),
+		}).Create(&terms).Error; err != nil {
+			log.Printf("Error seeding attribute terms: %v", err)
+		}
+	}
+
+	// Fetch all terms to ensure we have their IDs
+	var dbTerms []AttributeTerm
+	if err := db.Where("attribute_id = ?", dbMaterialAttr.ID).Find(&dbTerms).Error; err != nil {
+		log.Fatalf("Failed to fetch attribute terms: %v", err)
+	}
+	termSlugToID := make(map[string]string)
+	for _, t := range dbTerms {
+		termSlugToID[t.Slug] = t.ID
+	}
+	for _, m := range termENs {
+		termMap[m] = termSlugToID[slugify(m)]
+	}
+
+	// Prepare Products
+	now := time.Now().UTC()
+	var products []Product
 	for _, prodSeed := range seed.Products {
 		materialsJSON, _ := json.Marshal(prodSeed.Materials)
 		dimensionsJSON, _ := json.Marshal(prodSeed.Dimensions)
@@ -204,7 +314,7 @@ func main() {
 		}
 		materialsI18nJSON, _ := json.Marshal(materialsI18nMap)
 
-		prod := Product{
+		products = append(products, Product{
 			Slug:             prodSeed.Slug,
 			Name:             prodSeed.Name,
 			NameI18n:         nameI18n,
@@ -216,33 +326,65 @@ func main() {
 			Dimensions:       dimensionsJSON,
 			WeightKg:         prodSeed.WeightKg,
 			HasAssemblyGuide: prodSeed.HasAssemblyGuide,
-		}
+			Status:           "published",
+			PublishedAt:      &now,
+		})
+	}
 
-		err := db.Clauses(clause.OnConflict{
-			Columns: []clause.Column{{Name: "slug"}},
-			DoUpdates: clause.AssignmentColumns([]string{
-				"name", "name_i18n", "category_slug", "description", "description_i18n", "materials", "materials_i18n",
-				"dimensions", "weight_kg", "has_assembly_guide",
-			}),
-		}).Create(&prod).Error
-		if err != nil {
-			log.Printf("Error seeding product %s: %v", prod.Slug, err)
+	// Upsert Products
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "slug"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"name", "name_i18n", "category_slug", "description", "description_i18n", "materials", "materials_i18n",
+			"dimensions", "weight_kg", "has_assembly_guide", "status", "published_at",
+		}),
+	}).Create(&products).Error; err != nil {
+		log.Fatalf("Error seeding products: %v", err)
+	}
+
+	// Fetch product IDs by slug
+	var dbProducts []Product
+	if err := db.Select("id", "slug").Find(&dbProducts).Error; err != nil {
+		log.Fatalf("Failed to fetch products: %v", err)
+	}
+	prodSlugToID := make(map[string]string)
+	var productIDs []string
+	for _, p := range dbProducts {
+		prodSlugToID[p.Slug] = p.ID
+		productIDs = append(productIDs, p.ID)
+	}
+
+	// Prepare PATs, Variants, Images
+	var allPats []ProductAttributeTerm
+	var allVariants []ProductVariant
+	var allImages []ProductImage
+
+	for _, prodSeed := range seed.Products {
+		prodID := prodSlugToID[prodSeed.Slug]
+		if prodID == "" {
 			continue
 		}
+		pt := tr.Products[prodSeed.Slug]
 
-		// Fetch the inserted/updated product to get its ID
-		var dbProd Product
-		db.Where("slug = ?", prod.Slug).First(&dbProd)
+		// PATs
+		for _, m := range prodSeed.Materials {
+			if termID, ok := termMap[m]; ok && termID != "" {
+				allPats = append(allPats, ProductAttributeTerm{
+					ProductID: prodID,
+					TermID:    termID,
+				})
+			}
+		}
 
-		// Insert Variants
+		// Variants
 		for _, varSeed := range prodSeed.Variants {
 			colorI18n := i18nJSON(varSeed.Color, trOr(tr.Colors, varSeed.Color))
 			var sizeI18n []byte
 			if varSeed.Size != nil {
-				sizeI18n = i18nJSON(*varSeed.Size, "") // tak ada glosarium size; fallback ke EN
+				sizeI18n = i18nJSON(*varSeed.Size, "")
 			}
-			variant := ProductVariant{
-				ProductID: dbProd.ID,
+			allVariants = append(allVariants, ProductVariant{
+				ProductID: prodID,
 				Sku:       varSeed.Sku,
 				Color:     varSeed.Color,
 				ColorI18n: colorI18n,
@@ -250,20 +392,10 @@ func main() {
 				SizeI18n:  sizeI18n,
 				Price:     varSeed.Price,
 				Stock:     varSeed.Stock,
-			}
-			err := db.Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "sku"}},
-				DoUpdates: clause.AssignmentColumns([]string{"color", "color_i18n", "size", "size_i18n", "price", "stock"}),
-			}).Create(&variant).Error
-			if err != nil {
-				log.Printf("Error seeding variant %s: %v", variant.Sku, err)
-			}
+			})
 		}
 
-		// Delete existing images for product and re-insert to keep simple
-		db.Where("product_id = ?", dbProd.ID).Delete(&ProductImage{})
-
-		// Insert Images
+		// Images
 		for i, imgSeed := range prodSeed.Images {
 			var altI18n []byte
 			if imgSeed.Alt != "" {
@@ -273,14 +405,43 @@ func main() {
 				}
 				altI18n = i18nJSON(imgSeed.Alt, altID)
 			}
-			img := ProductImage{
-				ProductID:   dbProd.ID,
+			allImages = append(allImages, ProductImage{
+				ProductID:   prodID,
 				StoragePath: imgSeed.StoragePath,
 				Alt:         imgSeed.Alt,
 				AltI18n:     altI18n,
 				IsPrimary:   i == 0,
-			}
-			db.Create(&img)
+			})
+		}
+	}
+
+	// Insert PATs
+	if len(allPats) > 0 {
+		if err := db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "product_id"}, {Name: "term_id"}},
+			DoNothing: true,
+		}).Create(&allPats).Error; err != nil {
+			log.Printf("Error linking product attribute terms: %v", err)
+		}
+	}
+
+	// Upsert Variants
+	if len(allVariants) > 0 {
+		if err := db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "sku"}},
+			DoUpdates: clause.AssignmentColumns([]string{"color", "color_i18n", "size", "size_i18n", "price", "stock"}),
+		}).Create(&allVariants).Error; err != nil {
+			log.Printf("Error seeding variants: %v", err)
+		}
+	}
+
+	// Delete and Re-insert Images
+	if len(productIDs) > 0 {
+		db.Where("product_id IN ?", productIDs).Delete(&ProductImage{})
+	}
+	if len(allImages) > 0 {
+		if err := db.CreateInBatches(&allImages, 100).Error; err != nil {
+			log.Printf("Error seeding images: %v", err)
 		}
 	}
 

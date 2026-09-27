@@ -127,7 +127,7 @@ func (r *AdminRepository) GetAdminProducts(q string, status string, page, limit 
 	query := r.db.Model(&Product{}).Preload("Variants").Preload("Images", "is_primary = ?", true)
 
 	if q != "" {
-		query = query.Where("name ILIKE ?", "%"+q+"%")
+		query = query.Where("name ILIKE ? OR slug ILIKE ?", "%"+q+"%", "%"+q+"%")
 	}
 	if status != "" {
 		query = query.Where("status = ?", status)
