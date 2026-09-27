@@ -19,6 +19,25 @@ const DUMMY_ORDER_2 = '00000000-0000-0000-0000-000000000002';
 const DUMMY_ORDER_3 = '00000000-0000-0000-0000-000000000003';
 const PAID_ORDER = '00000000-0000-0000-0000-000000000004';
 
+// Kode kupon milik TEST INI SAJA (bukan seed demo `ECC-DISKON10`/`ECC-HEMAT50K`/
+// `ECC-GRATISONGKIR`/`ECC-VIPMEMBER`/`ECC-PRIVAT100K` di supabase/seed/ec-v2/promo.sql).
+// R12: hanya boleh membersihkan data yang dibuat sendiri -- wildcard `code=like.ECC-*`
+// pernah ikut menghapus seed demo, membuat test 7 (banner) flaky. Daftar eksplisit di sini.
+const TEST_COUPON_CODES = [
+  'ECC-CRUD',
+  'ECC-USED',
+  'ECC-VALID',
+  'ECC-EXPIRED',
+  'ECC-FUTURE',
+  'ECC-MIN',
+  'ECC-LIMIT',
+  'ECC-PUB-ACTIVE',
+  'ECC-PRIV',
+  'ECC-PUB-EXP',
+  'ECC-STOREFRONT',
+];
+const TEST_COUPON_FILTER = `code=in.(${TEST_COUPON_CODES.join(',')})`;
+
 interface RestRow {
   id: string;
   code?: string;
@@ -111,14 +130,14 @@ test.beforeAll(async ({ request }) => {
     }, 'id');
   }
 
-  // Clean up any leftover test data.
+  // Clean up any leftover test data (hanya kode milik test ini, lihat TEST_COUPON_CODES).
   await restDelete(request, 'coupon_redemptions', `order_id=in.(${DUMMY_ORDER_1},${DUMMY_ORDER_2},${DUMMY_ORDER_3})`);
-  await restDelete(request, 'coupons', 'code=like.ECC-*');
+  await restDelete(request, 'coupons', TEST_COUPON_FILTER);
 });
 
 test.afterAll(async ({ request }) => {
   await restDelete(request, 'coupon_redemptions', `order_id=in.(${DUMMY_ORDER_1},${DUMMY_ORDER_2},${DUMMY_ORDER_3})`);
-  await restDelete(request, 'coupons', 'code=like.ECC-*');
+  await restDelete(request, 'coupons', TEST_COUPON_FILTER);
 });
 
 async function loginAsAdmin(page: Page) {
@@ -315,6 +334,40 @@ test.describe('C6 - E2E Promo & Laporan', () => {
 
     for (const m of metrics) {
       await expect(page.locator('text=' + m).first()).toBeVisible({ timeout: 15000 });
+    }
+  });
+
+  test('6. Manajemen Kupon (UI Admin)', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/admin/coupons');
+
+    await expect(page.locator('h1').first()).toBeVisible({ timeout: 15000 });
+    const addBtn = page.getByRole('button', { name: /Tambah Kupon|Add Coupon/i });
+    await expect(addBtn).toBeVisible();
+    await addBtn.click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel(/Kode Kupon|Coupon Code/i)).toBeVisible();
+
+    const cancelBtn = dialog.getByRole('button', { name: /Batal|Cancel/i });
+    await cancelBtn.click();
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('7. Banner Promo & Salin Kode (Storefront)', async ({ page, request }) => {
+    const headers = { Authorization: `Bearer ${adminJwt}` };
+    const baseData = { applies_to: 'all', description_i18n: { id: 'Promo Spesial UI', en: 'Special UI Promo' } };
+    await request.post(`${API_URL}/api/v1/admin/coupons`, {
+      headers,
+      data: { ...baseData, code: 'ECC-STOREFRONT', is_public: true, is_active: true, discount_type: 'percent', amount: 15 },
+    });
+
+    await page.goto('/');
+    await expect(page.locator('text=ECC-STOREFRONT').first()).toBeVisible({ timeout: 15000 });
+    const copyBtn = page.locator('button[aria-label*="ECC-STOREFRONT"], button[title*="Salin"], button[title*="Copy"]').first();
+    if (await copyBtn.isVisible()) {
+      await copyBtn.click();
     }
   });
 });

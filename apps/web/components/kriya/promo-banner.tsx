@@ -90,6 +90,7 @@ export function PromoBanner() {
                       onClick={() => handleCopy(c.code)}
                       className="text-muted-foreground hover:text-foreground transition-colors p-1"
                       title={t("promo.copy_code")}
+                      aria-label={copiedCode === c.code ? t("promo.copied") : t("promo.copy_code")}
                     >
                       {copiedCode === c.code ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
                     </button>

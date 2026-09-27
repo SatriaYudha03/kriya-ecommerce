@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/components/kriya/language-provider";
+import { Loader2 } from "lucide-react";
 
 export default function ReportsView() {
+  const { t, locale } = useLanguage();
   const [from, setFrom] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -18,22 +21,23 @@ export default function ReportsView() {
   const [to, setTo] = useState(() => new Date().toISOString().split("T")[0]);
   const [interval, setInterval] = useState("day");
 
-  const { data: summary, isLoading: loadingSummary } = useQuery({
+  const { data: summary, isLoading: loadingSummary, isError: errorSummary } = useQuery({
     queryKey: ["reportSummary", from, to],
     queryFn: () => getReportSummary(from, to),
   });
 
-  const { data: sales = [], isLoading: loadingSales } = useQuery({
+  const { data: sales = [], isLoading: loadingSales, isError: errorSales } = useQuery({
     queryKey: ["reportSales", from, to, interval],
     queryFn: () => getReportSales(from, to, interval),
   });
 
-  const { data: topProducts = [], isLoading: loadingTop } = useQuery({
+  const { data: topProducts = [], isLoading: loadingTop, isError: errorTop } = useQuery({
     queryKey: ["reportTopProducts", from, to],
     queryFn: () => getReportTopProducts(from, to, 10),
   });
 
   const loading = loadingSummary || loadingSales || loadingTop;
+  const isError = errorSummary || errorSales || errorTop;
 
   const downloadCsv = async () => {
     try {
@@ -65,13 +69,16 @@ export default function ReportsView() {
     return Math.max(...sales.map((s) => s.net_sales));
   }, [sales]);
 
+  const dateLocale = locale === "en" ? "en-US" : "id-ID";
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold">Laporan</h1>
+        <h1 className="text-2xl font-semibold">{t("adminPromo.reports.title")}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Input 
             type="date" 
+            aria-label={t("adminPromo.reports.from")}
             value={from} 
             onChange={(e) => setFrom(e.target.value)} 
             className="w-40" 
@@ -79,65 +86,74 @@ export default function ReportsView() {
           <span className="text-muted-foreground">-</span>
           <Input 
             type="date" 
+            aria-label={t("adminPromo.reports.to")}
             value={to} 
             onChange={(e) => setTo(e.target.value)} 
             className="w-40" 
           />
           <Select value={interval} onValueChange={(val) => val && setInterval(val)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32" aria-label="Interval">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="day">Harian</SelectItem>
-              <SelectItem value="week">Mingguan</SelectItem>
-              <SelectItem value="month">Bulanan</SelectItem>
+              <SelectItem value="day">{t("adminPromo.reports.intervalDay")}</SelectItem>
+              <SelectItem value="week">{t("adminPromo.reports.intervalWeek")}</SelectItem>
+              <SelectItem value="month">{t("adminPromo.reports.intervalMonth")}</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={downloadCsv} disabled={loading || !sales.length}>Unduh CSV</Button>
+          <Button variant="outline" onClick={downloadCsv} disabled={loading || !sales.length}>
+            {t("adminPromo.reports.downloadCsv")}
+          </Button>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Memuat data...</div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-12">
+          <Loader2 className="h-4 w-4 animate-spin" /> {t("adminPromo.reports.loading")}
+        </div>
+      ) : isError ? (
+        <div role="alert" className="text-sm text-destructive py-12 text-center">
+          {t("adminPromo.reports.error")}
+        </div>
       ) : summary ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Penjualan Kotor</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.grossSales")}</div>
               <div className="text-xl font-semibold">{formatRupiah(summary.gross_sales)}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Diskon</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.discountTotal")}</div>
               <div className="text-xl font-semibold">{formatRupiah(summary.discount_total)}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Refund</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.refundTotal")}</div>
               <div className="text-xl font-semibold">{formatRupiah(summary.refunded_total)}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Penjualan Bersih</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.netSales")}</div>
               <div className="text-xl font-semibold">{formatRupiah(summary.net_sales)}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Pesanan</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.ordersCount")}</div>
               <div className="text-xl font-semibold">{summary.orders_count}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Barang Terjual</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.itemsSold")}</div>
               <div className="text-xl font-semibold">{summary.items_sold}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Rata-rata Pesanan</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.avgOrderValue")}</div>
               <div className="text-xl font-semibold">{formatRupiah(summary.avg_order_value)}</div>
             </div>
             <div className="border rounded-lg p-4">
-              <div className="text-sm text-muted-foreground">Pelanggan Baru</div>
+              <div className="text-sm text-muted-foreground">{t("adminPromo.reports.newCustomers")}</div>
               <div className="text-xl font-semibold">{summary.new_customers}</div>
             </div>
           </div>
 
           <div className="border rounded-lg p-4 overflow-x-auto">
-            <h2 className="text-lg font-medium mb-4">Grafik Penjualan Bersih</h2>
+            <h2 className="text-lg font-medium mb-4">{t("adminPromo.reports.netSalesChart")}</h2>
             {sales.length > 0 ? (
               <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full min-w-[600px] h-64 border-b border-l text-xs">
                 {sales.map((s, i) => {
@@ -165,8 +181,8 @@ export default function ReportsView() {
                           className="text-muted-foreground"
                         >
                           {interval === "month"
-                            ? new Intl.DateTimeFormat("id-ID", { month: "short", year: "2-digit" }).format(new Date(s.period))
-                            : new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "2-digit" }).format(new Date(s.period))}
+                            ? new Intl.DateTimeFormat(dateLocale, { month: "short", year: "2-digit" }).format(new Date(s.period))
+                            : new Intl.DateTimeFormat(dateLocale, { day: "2-digit", month: "2-digit" }).format(new Date(s.period))}
                         </text>
                       ) : null}
                     </g>
@@ -174,19 +190,19 @@ export default function ReportsView() {
                 })}
               </svg>
             ) : (
-              <div className="text-muted-foreground text-sm py-10 text-center">Tidak ada data penjualan di periode ini.</div>
+              <div className="text-muted-foreground text-sm py-10 text-center">{t("adminPromo.reports.chartEmpty")}</div>
             )}
           </div>
 
           <div className="border rounded-lg p-4">
-            <h2 className="text-lg font-medium mb-4">Produk Terlaris</h2>
+            <h2 className="text-lg font-medium mb-4">{t("adminPromo.reports.topProducts")}</h2>
             {topProducts.length > 0 ? (
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 border-b">
                   <tr>
-                    <th className="py-2 px-3 font-medium">Produk</th>
-                    <th className="py-2 px-3 font-medium text-right">Terjual</th>
-                    <th className="py-2 px-3 font-medium text-right">Pendapatan</th>
+                    <th className="py-2 px-3 font-medium">{t("adminPromo.reports.thProduct")}</th>
+                    <th className="py-2 px-3 font-medium text-right">{t("adminPromo.reports.thSold")}</th>
+                    <th className="py-2 px-3 font-medium text-right">{t("adminPromo.reports.thRevenue")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -200,7 +216,7 @@ export default function ReportsView() {
                 </tbody>
               </table>
             ) : (
-              <div className="text-muted-foreground text-sm py-4">Tidak ada data.</div>
+              <div className="text-muted-foreground text-sm py-4">{t("adminPromo.reports.topEmpty")}</div>
             )}
           </div>
         </>
