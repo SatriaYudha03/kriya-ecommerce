@@ -204,3 +204,20 @@ export interface CreateRefundRequest {
   return_id?: string;
   note?: string;
 }
+
+export type Notification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  link: string;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type StoreInfo = {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+};

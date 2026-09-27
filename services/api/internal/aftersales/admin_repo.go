@@ -1,6 +1,8 @@
 package aftersales
 
 import (
+	"encoding/json"
+
 	"gorm.io/gorm"
 )
 
@@ -183,12 +185,35 @@ func (r *AdminRepository) GetOrder(id string) (*Order, error) {
 
 // AddOrderNote menambahkan catatan pada pesanan.
 func (r *AdminRepository) AddOrderNote(orderID, adminID, body string, isCustomerVisible bool) error {
-	note := OrderNote{
-		OrderID:           orderID,
-		AuthorID:          &adminID,
-		Body:              body,
-		IsCustomerVisible: isCustomerVisible,
-	}
-	return r.DB.Create(&note).Error
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		note := OrderNote{
+			OrderID:           orderID,
+			AuthorID:          &adminID,
+			Body:              body,
+			IsCustomerVisible: isCustomerVisible,
+		}
+		if err := tx.Create(&note).Error; err != nil {
+			return err
+		}
+
+		if isCustomerVisible {
+			var order struct {
+				UserID string
+			}
+			if err := tx.Table("orders").Select("user_id").Where("id = ?", orderID).First(&order).Error; err == nil {
+				titleI18n, _ := json.Marshal(map[string]string{"id": "Catatan pesanan baru", "en": "New order note"})
+				bodyI18n, _ := json.Marshal(map[string]string{"id": body, "en": body})
+				notif := Notification{
+					UserID:    order.UserID,
+					Type:      "order_note",
+					TitleI18n: titleI18n,
+					BodyI18n:  bodyI18n,
+					Link:      "/orders/" + orderID,
+				}
+				tx.Create(&notif)
+			}
+		}
+		return nil
+	})
 }
 
