@@ -688,7 +688,6 @@ export function ProductForm({
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                   {images.map((img) => (
                     <div key={img.key} className="group relative overflow-hidden rounded-lg border border-neutral-200">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={img.previewUrl} alt={img.alt} className="aspect-square w-full object-cover" />
                       <div className="absolute inset-x-0 top-0 flex justify-between p-1">
                         <button
