@@ -91,5 +91,11 @@ export const reviewSummary: ReviewSummary = {
 export const fixtures = {
   orders,
   reviews,
-  reviewSummary
+  reviewSummary,
+  storeInfo: {
+    name: "Kriya Furniture",
+    address: "Jl. Kayu Jati No. 12, Jepara, Jawa Tengah",
+    phone: "+62 812-3456-7890",
+    email: "hello@kriya.com"
+  }
 };

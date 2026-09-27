@@ -2,6 +2,7 @@ package aftersales
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -191,7 +192,32 @@ func (r *ReturnsRepository) UpdateReturnStatus(id, newStatus string, adminNote *
 		upd.ResolvedAt = &now
 	}
 
-	return r.db.Model(&ReturnRequest{}).Where("id = ?", id).Updates(upd).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&ReturnRequest{}).Where("id = ?", id).Updates(upd).Error; err != nil {
+			return err
+		}
+
+		var retReq ReturnRequest
+		if err := tx.First(&retReq, "id = ?", id).Error; err == nil {
+			titleID := "Status retur diperbarui"
+			titleEN := "Return status updated"
+			bodyID := "Status retur Anda sekarang: " + newStatus
+			bodyEN := "Your return status is now: " + newStatus
+			
+			titleI18n, _ := json.Marshal(map[string]string{"id": titleID, "en": titleEN})
+			bodyI18n, _ := json.Marshal(map[string]string{"id": bodyID, "en": bodyEN})
+			
+			notif := Notification{
+				UserID:    retReq.UserID,
+				Type:      "return_update",
+				TitleI18n: titleI18n,
+				BodyI18n:  bodyI18n,
+				Link:      "/orders/" + retReq.OrderID,
+			}
+			tx.Create(&notif)
+		}
+		return nil
+	})
 }
 
 func (r *ReturnsRepository) CreateRefund(ctx context.Context, refund *Refund, items []RefundItem, order *Order, adminID string, ports checkout.Ports) error {

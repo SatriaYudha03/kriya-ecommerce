@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOrders, getOrder, getAdminOrders, updateAdminOrderStatus, cancelOrder, getProductReviews, getProductReviewSummary, getMyReviewables, getMyReviews, createReview, updateReview, getAdminReviews, updateAdminReview, getReturns, getReturn, getAdminReturns, createReturn, updateAdminReturnStatus, createAdminRefund } from "./api";
+import { getOrders, getOrder, getAdminOrders, updateAdminOrderStatus, cancelOrder, getProductReviews, getProductReviewSummary, getMyReviewables, getMyReviews, createReview, updateReview, getAdminReviews, updateAdminReview, getReturns, getReturn, getAdminReturns, createReturn, updateAdminReturnStatus, createAdminRefund, getNotifications, getUnreadNotificationCount, markNotificationsAsRead, getStoreInfo } from "./api";
 import { useLanguage } from "@/components/kriya/language-provider";
 import type { AdminOrdersQuery, OrderStatus, CreateReviewRequest, UpdateReviewRequest, AdminUpdateReviewRequest, ReviewStatus, CreateReturnRequest, AdminUpdateReturnStatusRequest, CreateRefundRequest } from "./types";
 import { toast } from "sonner";
@@ -21,6 +21,10 @@ export const afterKeys = {
   returns: (page: number) => [...afterKeys.all, "returns", page] as const,
   return: (id: string) => [...afterKeys.all, "return", id] as const,
   adminReturns: (status?: string, page: number = 1) => [...afterKeys.all, "admin-returns", status, page] as const,
+
+  notifications: (page: number, unreadOnly: boolean) => [...afterKeys.all, "notifications", page, unreadOnly] as const,
+  unreadNotificationCount: () => [...afterKeys.all, "unread-notification-count"] as const,
+  storeInfo: () => [...afterKeys.all, "store-info"] as const,
 };
 
 export function useOrders(page: number = 1, limit: number = 10, status?: string) {
@@ -222,5 +226,37 @@ export function useCreateAdminRefund() {
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : "Gagal memproses refund");
     },
+  });
+}
+
+export function useNotifications(page: number = 1, unreadOnly: boolean = false) {
+  return useQuery({
+    queryKey: afterKeys.notifications(page, unreadOnly),
+    queryFn: () => getNotifications(page, unreadOnly),
+  });
+}
+
+export function useUnreadNotificationCount() {
+  return useQuery({
+    queryKey: afterKeys.unreadNotificationCount(),
+    queryFn: () => getUnreadNotificationCount(),
+    refetchInterval: 60000,
+  });
+}
+
+export function useMarkNotificationsAsRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, all }: { ids?: string[]; all?: boolean }) => markNotificationsAsRead(ids, all),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: afterKeys.all });
+    },
+  });
+}
+
+export function useStoreInfo() {
+  return useQuery({
+    queryKey: afterKeys.storeInfo(),
+    queryFn: () => getStoreInfo(),
   });
 }

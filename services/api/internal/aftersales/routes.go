@@ -15,6 +15,9 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	reviewRepo := NewReviewRepository(deps.DB)
 	reviewHandler := NewReviewHandler(reviewRepo)
 
+	notifRepo := NewNotificationsRepository(deps.DB)
+	notifHandler := NewNotificationsHandler(notifRepo)
+
 	// PERMINTAAN LINTAS-DOMAIN (I-BE):
 	// Mohon tambahkan checkout.Ports ke platform.Deps.
 	dummyPorts := checkout.Ports{}
@@ -45,6 +48,11 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Authed.GET("/me/reviews", reviewHandler.GetMyReviews)
 	r.Authed.POST("/reviews", reviewHandler.CreateReview)
 	r.Authed.PUT("/reviews/:id", reviewHandler.UpdateReview)
+
+	// Notifications
+	r.Authed.GET("/notifications", notifHandler.ListNotifications)
+	r.Authed.GET("/notifications/unread-count", notifHandler.GetUnreadCount)
+	r.Authed.POST("/notifications/read", notifHandler.MarkAsRead)
 
 	// Admin Orders
 	r.Admin.GET("/orders", adminHandler.ListOrders)
