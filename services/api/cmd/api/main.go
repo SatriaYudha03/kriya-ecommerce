@@ -59,16 +59,24 @@ func main() {
 		Internal: internal,
 	}
 
+	ports := checkout.Ports{
+		Shipping:  customer.NewShippingQuoter(),
+		Discounts: promo.NewDiscountApplier(),
+		Inventory: catalog.NewInventoryLedger(),
+		Events:    aftersales.NewOrderEventRecorder(),
+	}
+
 	deps := &platform.Deps{
 		DB:          database,
 		Cfg:         *cfg,
 		Midtrans:    service.NewMidtransService(cfg.MidtransServerKey, cfg.MidtransClientKey),
+		Ports:       ports,
 		SupabaseURL: cfg.SupabaseURL,
 	}
 
 	catalog.RegisterRoutes(deps, routers)
 	customer.RegisterRoutes(deps, routers)
-	checkout.RegisterRoutes(deps, routers)
+	checkout.RegisterRoutes(deps.DB, deps.Midtrans, deps.Ports, routers.Public, routers.Authed)
 	aftersales.RegisterRoutes(deps, routers)
 	promo.RegisterRoutes(deps, routers)
 

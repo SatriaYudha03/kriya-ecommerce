@@ -2,31 +2,19 @@ package orderflow
 
 import (
 	"context"
-	"errors"
+
 	"github.com/kriya-commerce/api/internal/checkout"
 	"gorm.io/gorm"
 )
 
-type TransitionInput struct {
-	OrderID        string
-	To             Status
-	Actor          checkout.ActorType
-	ActorID        *string
-	Note           string
-	Courier        *string
-	TrackingNumber *string
-	CancelReason   *string
-}
+type TransitionInput = checkout.TransitionInput
+type InvalidTransitionError = checkout.InvalidTransitionError
+type MissingShipmentInfoError = checkout.MissingShipmentInfoError
 
-type InvalidTransitionError struct{ From, To Status }
-
-func (e *InvalidTransitionError) Error() string { return "invalid transition" }
-
-type MissingShipmentInfoError struct{}
-
-func (e *MissingShipmentInfoError) Error() string { return "missing shipment info" }
-
+// Transition — lihat internal/checkout/transition.go untuk implementasi & dokumentasi
+// sebenarnya. Alias ini ada supaya D2 (PUT /admin/orders/:id/status), D3 (batal
+// customer), dan D5 (refund penuh) yang sudah memanggil orderflow.Transition tidak
+// perlu diubah.
 func Transition(ctx context.Context, tx *gorm.DB, p checkout.Ports, in TransitionInput) (Status, error) {
-	// Akan diimplementasikan
-	return StatusPendingPayment, errors.New("not implemented")
+	return checkout.Transition(ctx, tx, p, in)
 }

@@ -87,7 +87,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 
 | ID | Task | Status | Agent | Tgl klaim | Branch | Commit | Report | Catatan |
 |---|---|---|---|---|---|---|---|---|
-| I-BE | Checkout v2 backend | ⬜ | | | | | | |
+| I-BE | Checkout v2 backend | ✅ | I-BE | 2026-09-27 | `ec/I-BE-checkout-v2` | `5cf6808` | `docs/report/I-BE.md` | Quote & webhook v2 diverifikasi penuh lewat curl ke DB dev (settlement, idempotensi, transisi tidak valid diserap aman, 404, signature salah — semua benar). `POST /orders` diverifikasi sampai tepat sebelum `Inventory.Reserve`: **diblokir bug pra-ada di `internal/catalog/ledger.go`+`admin_repo.go`** (5 titik `.Clauses(gorm.Expr("FOR UPDATE"))` — bukan clause GORM valid, selalu `SQLSTATE 42601`; fix sama seperti yang diterapkan I-BE di `pricing.go`). **Diperbaiki 2026-09-27 di `main` sebelum merge ini (Claude)**: 5 titik di `catalog/ledger.go`+`admin_repo.go` diganti `clause.Locking{Strength: "UPDATE"}` (lihat baris A5 & `docs/state/2026-09-27-claude-fix-forupdate-catalog.md`); `checkout/pricing.go:48` (join, perlu `Table: clause.Table{Name: "pv"}`) sudah diperbaiki I-BE sendiri di branch ini. Ditemukan & diperbaiki I-BE juga: `orderflow.CanTransition` tidak cocok tabel §6.1, `orderflow.Transition` (stub sejak 0B) diimplementasikan, import cycle checkout↔orderflow diselesaikan (orderflow jadi alias), `platform.Deps.Ports` ditambah (diminta D2/D3/D5). |
 | I-FE | Checkout v2 frontend | 🟦 | I-FE | 2026-09-27 | | | | |
 | I-QA | E2E flow penuh | ⬜ | | | | | | |
 
