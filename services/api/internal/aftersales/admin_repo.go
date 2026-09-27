@@ -115,20 +115,24 @@ func (r *AdminRepository) UpdateOrderStatus(id string, status string, courier, t
 			}
 		}
 
-		updates := map[string]interface{}{
-			"status": status,
+		upd := Order{
+			Status: status,
 		}
+		cols := []string{"status"}
 		if courier != nil {
-			updates["courier"] = *courier
+			upd.Courier = courier
+			cols = append(cols, "courier")
 		}
 		if tracking != nil {
-			updates["tracking_number"] = *tracking
+			upd.TrackingNumber = tracking
+			cols = append(cols, "tracking_number")
 		}
 		if cancelReason != nil {
-			updates["customer_note"] = *cancelReason // or somewhere else
+			upd.CustomerNote = cancelReason
+			cols = append(cols, "customer_note")
 		}
 
-		return tx.Model(&Order{}).Where("id = ?", id).Updates(updates).Error
+		return tx.Model(&Order{}).Where("id = ?", id).Select(cols).Updates(&upd).Error
 	})
 }
 
