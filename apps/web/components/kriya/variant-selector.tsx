@@ -2,8 +2,8 @@
 
 import type { ProductVariant } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "./language-provider";
 
-// Perkiraan warna swatch dari nama warna Indonesia (kosmetik saja).
 const colorHex: Record<string, string> = {
   natural: "#c9a97e",
   walnut: "#5b4636",
@@ -26,9 +26,10 @@ export function VariantSelector({
   selectedId: string;
   onSelect: (id: string) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div>
-      <p className="text-sm font-medium text-neutral-900">Pilihan</p>
+      <p className="text-sm font-medium text-neutral-900">{t("catalog.variant.label")}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {variants.map((v) => {
           const selected = v.id === selectedId;
@@ -55,7 +56,7 @@ export function VariantSelector({
                 style={{ backgroundColor: colorHex[v.color] ?? "#d1d5db" }}
               />
               <span className="capitalize text-neutral-800">{label}</span>
-              {soldOut && <span className="text-xs text-neutral-500">(habis)</span>}
+              {soldOut && <span className="text-xs text-neutral-500">{t("catalog.variant.soldOut")}</span>}
             </button>
           );
         })}

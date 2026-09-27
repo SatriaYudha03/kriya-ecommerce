@@ -79,15 +79,16 @@ export function useAdminProduct(id: string, enabled = true) {
 
 export function useDeleteProduct() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: (id: string) => deleteProduct(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: catalogKeys.all });
       qc.invalidateQueries({ queryKey: promoKeys.stats() });
-      toast.success("Produk dihapus");
+      toast.success(t("catalog.queries.deleted"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Gagal menghapus produk");
+      toast.error(err instanceof ApiError ? err.message : t("catalog.queries.deleteFailed"));
     },
   });
 }
@@ -109,42 +110,45 @@ export function useAdminCategory(id: string, enabled = true) {
 
 export function useCreateCategory() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: createCategory,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: catalogKeys.all });
-      toast.success('Kategori berhasil dibuat');
+      toast.success(t("catalog.queries.catCreated"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : 'Gagal membuat kategori');
+      toast.error(err instanceof ApiError ? err.message : t("catalog.queries.catCreateFailed"));
     },
   });
 }
 
 export function useUpdateCategory(id: string) {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: (payload: import('./types').AdminCategoryInput) => updateCategory(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: catalogKeys.all });
-      toast.success('Kategori berhasil diperbarui');
+      toast.success(t("catalog.queries.catUpdated"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : 'Gagal memperbarui kategori');
+      toast.error(err instanceof ApiError ? err.message : t("catalog.queries.catUpdateFailed"));
     },
   });
 }
 
 export function useDeleteCategory() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: deleteCategory,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: catalogKeys.all });
-      toast.success('Kategori dihapus');
+      toast.success(t("catalog.queries.catDeleted"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : 'Gagal menghapus kategori');
+      toast.error(err instanceof ApiError ? err.message : t("catalog.queries.catDeleteFailed"));
     },
   });
 }
