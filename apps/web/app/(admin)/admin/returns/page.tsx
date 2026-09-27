@@ -24,7 +24,7 @@ function getStatusColor(status: string) {
 }
 
 export default function AdminReturnsPage() {
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data, isLoading, isError } = useAdminReturns(statusFilter === "all" ? undefined : statusFilter, page, 20);
   

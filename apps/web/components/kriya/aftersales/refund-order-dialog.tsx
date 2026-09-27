@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import type { Order, OrderItem, CreateRefundRequestItem } from "@/lib/aftersales/types";
+import type { Order, CreateRefundRequestItem } from "@/lib/aftersales/types";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatRupiah } from "@/lib/format";

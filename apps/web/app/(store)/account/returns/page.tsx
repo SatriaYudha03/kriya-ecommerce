@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { useReturns } from "@/lib/aftersales/queries";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useLanguage } from "@/components/kriya/language-provider";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 
@@ -22,8 +20,7 @@ function getStatusColor(status: string) {
 }
 
 export default function CustomerReturnsPage() {
-  const { t } = useLanguage();
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const { data, isLoading, isError } = useReturns(page, 10);
 
   if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;

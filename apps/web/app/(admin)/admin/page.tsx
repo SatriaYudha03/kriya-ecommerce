@@ -15,7 +15,6 @@ import { formatRupiah } from "@/lib/format";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
 import type { OrderStatus } from "@/lib/aftersales/types";
-import type { MessageKey } from "@/lib/i18n";
 
 function StatCard({
   label,

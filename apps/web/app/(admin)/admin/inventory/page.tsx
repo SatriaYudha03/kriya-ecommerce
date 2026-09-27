@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useLanguage } from "@/components/kriya/language-provider";
 import { toast } from "sonner";
 
 function MovementHistory({ variantId }: { variantId: string }) {
@@ -73,7 +72,7 @@ function AdjustmentDialog({ item }: { item: InventoryItem }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button variant="outline" size="sm">Adjust</Button></DialogTrigger>
+      <DialogTrigger render={<Button variant="outline" size="sm" />}>Adjust</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adjust Stock</DialogTitle>
@@ -104,8 +103,6 @@ function AdjustmentDialog({ item }: { item: InventoryItem }) {
 export default function AdminInventoryPage() {
   const [q, setQ] = useState("");
   const [lowStock, setLowStock] = useState(false);
-  const { t } = useLanguage();
-
   const { data, isLoading } = useInventory({ q, low_stock: lowStock });
 
   return (
@@ -169,7 +166,7 @@ export default function AdminInventoryPage() {
                     <div className="flex items-center gap-2">
                       <AdjustmentDialog item={item} />
                       <Dialog>
-                        <DialogTrigger asChild><Button variant="ghost" size="sm">History</Button></DialogTrigger>
+                        <DialogTrigger render={<Button variant="ghost" size="sm" />}>History</DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
                             <DialogTitle>Stock History - {item.sku}</DialogTitle>
