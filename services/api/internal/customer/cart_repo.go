@@ -11,7 +11,6 @@ import (
 type Cart struct {
 	ID           string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID       string `gorm:"column:user_id;type:uuid;uniqueIndex"`
-	Items        []byte `gorm:"column:items;type:jsonb"`
 	FollowedUpAt *time.Time
 	UpdatedAt    time.Time
 }
@@ -58,7 +57,7 @@ func (r *CartRepository) getOrCreateCart(tx *gorm.DB, userID string) (*Cart, err
 	err := tx.Where("user_id = ?", userID).First(&cart).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			cart = Cart{UserID: userID, Items: []byte("[]")}
+			cart = Cart{UserID: userID}
 			if err := tx.Create(&cart).Error; err != nil {
 				return nil, err
 			}

@@ -102,73 +102,129 @@ Secret hanya hidup di `.env` (tidak pernah di-commit) dan di kredensial n8n. `IN
 
   Data yang bentuknya sungguh-sungguh tidak diketahui (respons pihak ketiga, `catch`/`except`) masuk sebagai `unknown` / `error` / `Exception` lalu **dipersempit sebelum dipakai** — bukan `any`. Kalau sebuah tipe terasa mustahil dibuat, itu gejala kontrak atau desainnya yang perlu diperbaiki: **berhenti dan ajukan lewat "Permintaan lintas-teritori"**, jangan ditambal `any`. Cast `as any` untuk membungkam compiler adalah pelanggaran, bukan solusi sementara.
 
-## 6. Kontrak API (M1–M4 — DIKUNCI; admin M6 difinalkan di gerbang M6)
+## 6. Kontrak API (v2 — Modular Per Domain)
 
-### Gin — publik
-- `GET /api/v1/categories?lang=en|id` → `{"data": [{"id", "slug", "name"}]}`
-  `lang` opsional (default `id`), juga bisa via header `Accept-Language`. Server memilih locale untuk field `name`. Bentuk respons tetap (`name` = string).
-- `GET /api/v1/products?category=&q=&min_price=&max_price=&sort=&page=&limit=&lang=en|id`
-  `sort`: `newest` (default) | `price_asc` | `price_desc`. `q` = keyword ILIKE sederhana (pencarian pintar ada di FastAPI).
-  `lang` opsional (default `id`). Server memilih locale untuk field `name`.
-  → item list: `{"id", "slug", "name", "category_slug", "price_min", "thumbnail_url"}`
-- `GET /api/v1/products/{slug}?lang=en|id` →
-  `lang` opsional (default `id`). Server memilih locale untuk field `name`, `description`, `materials`, `variants[].color`, `variants[].size`, `images[].alt`. Bentuk respons tetap (semua field tetap `string`).
-  `{"data": {"id", "slug", "name", "description", "category": {"slug", "name"}, "materials": ["kayu jati"], "dimensions": {"width_cm", "depth_cm", "height_cm"}, "weight_kg", "images": [{"url", "alt"}], "variants": [{"id", "sku", "color", "size", "price", "stock"}], "has_assembly_guide": true}`
+Seluruh payload mengikuti konvensi Bagian 5 (envelope `{"data": ...}`, snake_case, tipe data eksplisit).
 
-### Gin — butuh auth
-- `GET /api/v1/cart` dan `PUT /api/v1/cart` body `{"items": [{"variant_id", "qty"}]}` (upsert penuh; server yang menghitung harga) →
-  `{"data": {"items": [{"variant_id", "qty", "price", "subtotal", "product": {"slug", "name", "thumbnail_url", "color", "size"}}], "total"}}`
-- `POST /api/v1/orders` body `{"items": [{"variant_id", "qty"}], "shipping_zone": "jawa_bali" | "luar", "shipping_address": {"recipient", "phone", "address_line", "city", "province", "postal_code"}}` →
-  `{"data": {"order": <order>, "snap_token", "midtrans_client_key"}}`
-  Ongkir flat (konstanta server): `jawa_bali` = 150000, `luar` = 300000.
-- `GET /api/v1/orders?lang=en|id` (milik user) dan `GET /api/v1/orders/{id}?lang=en|id` →
-  `<order>` = `{"id", "status", "items": [{"name", "color", "size", "qty", "price", "subtotal"}], "subtotal", "shipping_cost", "total", "shipping_address": {...}, "created_at"}`
+### 6.1 Domain A: Katalog & Inventori (`/api/v1`)
+**Publik:**
+- `GET /api/v1/categories?lang=en|id` → daftar kategori pohon/hirarkis (dengan `parent_id`, `children`).
+- `GET /api/v1/categories/:slug?lang=en|id` → detail kategori dengan sub-kategori.
+- `GET /api/v1/products?category=&category_slug=&attrs=&tag=&min_price=&max_price=&on_sale=&sort=&page=&limit=&lang=en|id` → daftar produk dengan filter facet atribut, sale price, dan rating.
+- `GET /api/v1/products/:slug?lang=en|id` → detail produk dengan varian lengkap, harga sale terhitung (`kriya_effective_price`), atribut, tags, dan status ketersediaan.
+- `GET /api/v1/products/:slug/related?type=upsell|cross_sell&limit=6&lang=en|id` → rekomendasi produk terkait.
+- `GET /api/v1/tags` → daftar tag produk aktif.
+- `GET /api/v1/attributes` → daftar atribut produk beserta term/nilainya untuk facet filter.
 
-### Gin — webhook & internal
-- `POST /api/v1/payments/midtrans/notification` — tanpa auth; WAJIB verifikasi signature SHA-512; idempoten; → 200.
-- `GET /api/v1/internal/orders/status?order_id=&email=` — header `X-Internal-Key: <INTERNAL_API_KEY>`; dipakai chatbot n8n → `{"data": {"order_id", "status", "total", "created_at"}}` atau 404.
+**Admin (`/api/v1/admin` — Role `admin`):**
+- `GET/POST /api/v1/admin/categories`, `GET/PUT/DELETE /api/v1/admin/categories/:id`
+- `GET/POST /api/v1/admin/products`, `GET/PUT/DELETE /api/v1/admin/products/:id`
+- `POST/PUT/DELETE /api/v1/admin/products/:id/images[/:image_id]`
+- `POST/PUT/DELETE /api/v1/admin/products/:id/variants[/:variant_id]`
+- `GET/POST /api/v1/admin/tags`, `PUT/DELETE /api/v1/admin/tags/:id`
+- `GET/POST /api/v1/admin/attributes`, `PUT/DELETE /api/v1/admin/attributes/:id`
+- `POST /api/v1/admin/attributes/:id/terms`, `PUT/DELETE /api/v1/admin/attributes/:id/terms/:term_id`
+- `GET /api/v1/admin/inventory` → stok varian dengan filter low stock alert.
+- `GET /api/v1/admin/inventory/movements` → audit log mutasi stok ledger.
+- `POST /api/v1/admin/inventory/adjustments` → penyesuaian stok manual oleh admin via ledger.
 
-Status order: `pending_payment → paid → processing → shipped → completed`, terminal lain: `cancelled`, `expired`. Stok: dicek dan **direservasi (dikurangi) saat order dibuat**, dikembalikan saat `expired`/`cancelled`.
+### 6.2 Domain B: Customer & Pengaturan Toko (`/api/v1`)
+**Authed (Customer):**
+- `GET/PUT /api/v1/profile` → profil pelanggan.
+- `GET/POST /api/v1/addresses`, `PUT/DELETE /api/v1/addresses/:id`, `POST /api/v1/addresses/:id/default` → buku alamat multi-alamat.
+- `GET/PUT /api/v1/cart` → keranjang belanja relasional (`cart_items`), kalkulasi harga server-side.
+- `POST /api/v1/cart/merge` → sinkronisasi keranjang lokal (guest) dengan server saat login.
+- `GET/PUT /api/v1/wishlist`, `DELETE /api/v1/wishlist/:variant_id` → manajemen produk favorit/wishlist.
+- `POST /api/v1/orders/:id/pay` → lanjut bayar transaksi tertunda, regenerasi Snap token.
 
-### FastAPI
+**Publik:**
+- `GET /api/v1/shipping/provinces` → referensi data provinsi & zona ongkir.
+- `GET /api/v1/store` → informasi profil toko & pengaturan publik.
+
+**Admin (`/api/v1/admin`):**
+- `GET /api/v1/admin/customers`, `GET /api/v1/admin/customers/:id` → daftar & histori customer.
+- `GET /api/v1/admin/shipping/zones` → daftar zona pengiriman & tarif.
+- `PUT /api/v1/admin/shipping/methods/:id` → konfigurasi tarif dan status metode kirim.
+- `GET/PUT /api/v1/admin/settings` → pengaturan toko (threshold gratis ongkir, low-stock threshold, kontak).
+
+### 6.3 Domain C: Promosi, Kupon & Laporan (`/api/v1`)
+**Publik:**
+- `GET /api/v1/coupons/public` → daftar kupon promosi publik aktif.
+- `POST /api/v1/coupons/validate` body `{"code": "...", "items": [...]}` → validasi syarat & simulasi diskon kupon.
+
+**Admin (`/api/v1/admin`):**
+- `GET/POST /api/v1/admin/coupons`, `GET/PUT/DELETE /api/v1/admin/coupons/:id` → CRUD kupon diskon.
+- `GET /api/v1/admin/coupons/:id/redemptions` → audit riwayat pemakaian kupon per order/customer.
+- `GET /api/v1/admin/reports/summary` → ringkasan omzet, pesanan, dan diskon periode tertentu.
+- `GET /api/v1/admin/reports/sales` → grafik deret waktu penjualan harian/bulanan.
+- `GET /api/v1/admin/reports/top-products` → pemeringkatan produk terlaris berdasarkan kuantitas & nilai.
+- `GET /api/v1/admin/stats` → metrik ringkas kartu dashboard admin.
+
+### 6.4 Domain D: Purna Jual / After-sales (`/api/v1`)
+**Authed (Customer):**
+- `GET /api/v1/orders`, `GET /api/v1/orders/:id` → riwayat & detail transaksi customer v2.
+- `POST /api/v1/orders/:id/cancel` body `{"reason": "..."}` → pembatalan pesanan mandiri sebelum diproses.
+- `GET /api/v1/me/reviewables` → item pesanan selesai yang dapat diulas.
+- `GET/POST /api/v1/reviews/me`, `PUT /api/v1/reviews/:id` → ulasan produk oleh pembeli.
+- `GET/POST /api/v1/returns`, `GET /api/v1/returns/:id` → pengajuan dan pelacakan retur barang.
+- `GET /api/v1/notifications`, `GET /api/v1/notifications/unread-count`, `POST /api/v1/notifications/read` → notifikasi in-app customer.
+
+**Publik:**
+- `GET /api/v1/products/:slug/reviews` → daftar ulasan terverifikasi produk.
+- `GET /api/v1/products/:slug/reviews/summary` → agregasi skor rating dan distribusi bintang.
+
+**Admin (`/api/v1/admin`):**
+- `GET /api/v1/admin/orders`, `GET /api/v1/admin/orders/:id` → manajemen pemrosesan pesanan.
+- `PUT /api/v1/admin/orders/:id/status` body `{"status": "..."}` → transisi status pesanan via `orderflow`.
+- `POST /api/v1/admin/orders/:id/notes` → catatan internal admin pada pesanan.
+- `GET /api/v1/admin/reviews`, `PUT /api/v1/admin/reviews/:id/status`, `POST /api/v1/admin/reviews/:id/reply` → moderasi & balasan ulasan.
+- `GET /api/v1/admin/returns`, `GET /api/v1/admin/returns/:id`, `PUT /api/v1/admin/returns/:id/status` → verifikasi retur pelanggan.
+- `POST /api/v1/admin/orders/:id/refunds` → eksekusi pengembalian dana & restock ledger.
+
+**Internal:**
+- `GET /api/v1/internal/orders/status?order_id=&email=` → header `X-Internal-Key`; integrasi webhook n8n chatbot.
+
+### 6.5 Integrasi Checkout v2 (`/api/v1`)
+**Authed:**
+- `POST /api/v1/checkout/quote` body `{"items": [...], "address_id": "...", "shipping_method_id": "...", "coupon_code": "..."}` → kalkulasi deterministik subtotal, ongkir berbobot, dan diskon kupon.
+- `POST /api/v1/orders` v2 body `{"items": [...], "address_id": "...", "shipping_method_id": "...", "coupon_code": "...", "notes": "..."}` → membuat order v2, reservasi stok via `InventoryLedger`, kunci kupon via `DiscountApplier`, buat payment attempt & token Snap Midtrans.
+
+**Webhook Midtrans:**
+- `POST /api/v1/payments/midtrans/notification` → verifikasi signature SHA-512, transisi state order via `orderflow.Transition`, rollback stok/kupon otomatis saat order dibatalkan/kadaluarsa, commit kupon saat transaksi `settlement`/`capture`.
+
+### 6.6 FastAPI AI (`/ai/v1`)
 - `GET /ai/v1/search?q=&limit=12` → `{"data": [{"product_id", "slug", "name", "price_min", "thumbnail_url", "score"}], "meta": {"mode": "semantic" | "keyword_fallback"}}`
-  Jika skor tertinggi < ambang (default 0.35) atau hasil kosong → fallback ILIKE ke tabel products, `mode = "keyword_fallback"`.
-- `GET /ai/v1/products/{id}/similar?limit=6` → bentuk sama tanpa `meta.mode`, tidak menyertakan produk itu sendiri.
-- `POST /ai/v1/embed` body `{"texts": ["..."]}` → `{"data": {"embeddings": [[768 float]]}}` — internal, header `X-Internal-Key`.
+- `GET /ai/v1/products/{id}/similar?limit=6` → produk serupa tanpa produk query.
+- `POST /ai/v1/embed` body `{"texts": ["..."]}` → `{"data": {"embeddings": [[768 float]]}}` — header `X-Internal-Key`.
 
-### Chat (M4 — n8n webhook)
-- `POST {NEXT_PUBLIC_CHAT_WEBHOOK_URL}` body `{"session_id", "message", "user": {"email": "..." | null}}` →
-  `{"reply", "sources": [{"type": "product" | "guide" | "faq" | "policy", "ref": "<slug/judul>"}]}`
+### 6.7 Chatbot n8n
+- `POST {NEXT_PUBLIC_CHAT_WEBHOOK_URL}` body `{"session_id", "message", "user": {"email": "..." | null}}` → `{"reply", "sources": [...]}`
 
-### Kontrak file seed (AGENT-AI memproduksi → AGENT-BE mengonsumsi)
-`data/seed/products.json`:
-```json
-{
-  "categories": [{"slug": "living-room", "name": "Living room"}],
-  "products": [{
-    "slug": "taru-work-desk", "name": "TARU work desk",
-    "category_slug": "workspace", "description": "...",
-    "materials": ["pine wood", "steel"],
-    "dimensions": {"width_cm": 120, "depth_cm": 60, "height_cm": 75},
-    "weight_kg": 18.5, "has_assembly_guide": true,
-    "images": [{"storage_path": "products/taru-work-desk-1.jpg", "alt": "..."}],
-    "variants": [{"sku": "TARU-WD-NAT", "color": "natural", "size": null, "price": 1250000, "stock": 12}]
-  }]
-}
-```
-Kategori final (6): `living-room`, `bedroom`, `workspace`, `dining-room`, `storage`, `lighting`.
+## 7. Skema Database & Kepemilikan Migrasi
 
-**Fixtures FE wajib mengikuti kontrak di atas byte-per-byte** (nama field, bentuk envelope).
+Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan (001 s.d. 013).
 
-## 7. Skema database & kepemilikan migrasi
+### 7.1 Ringkasan Migrasi (001 s.d. 013)
+- `001_commerce_core.sql`: Fondasi profil, kategori, produk, varian, gambar, panduan perakitan.
+- `002_orders.sql`: Keranjang (`carts`), pesanan (`orders`), item pesanan (`order_items`), pembayaran (`payments`).
+- `003_automation_indexes.sql`: Index n8n-writable (`carts.followed_up_at`, `orders.reminded_at`).
+- `004_vector.sql`: Tabel `documents`, pgvector HNSW index, RPC `match_documents`.
+- `005_profile_fields.sql`: Kolom data diri & alamat default di tabel `profiles`.
+- `006_admin_storage.sql`: Kebijakan RLS storage Supabase bucket `products` untuk admin.
+- `007_i18n_content.sql`: Kolom lokalisasi dwibahasa JSONB `*_i18n` pada produk, kategori, varian, gambar.
+- `008_core_v2.sql`: State machine pesanan v2, tabel `payment_attempts`, RLS & index tracking.
+- `009_catalog_inventory.sql`: Kategori hirarkis (`parent_id`, ltree `path`), tag (`tags`, `product_tags`), atribut facet (`attributes`, `attribute_terms`, `product_attribute_terms`), relasi produk (`product_relations`), ledger mutasi stok (`stock_movements`), audit rating & sales trigger, constraint harga sale terjadwal.
+- `010_customer_checkout.sql`: Buku alamat (`addresses`), keranjang relasional (`cart_items`), wishlist (`wishlist_items`), referensi wilayah (`provinces`), tabel ongkir berbobot (`shipping_zones`, `shipping_rates`, `shipping_methods`), pengaturan toko (`store_settings`).
+- `011_promotions.sql`: Mesin promosi (`coupons`, `coupon_redemptions`), audit batas pakai per kupon/user.
+- `012_aftersales.sql`: Audit event pesanan (`order_events`), catatan pesanan (`order_notes`), ulasan produk (`product_reviews`), pengajuan retur (`return_requests`), pengembalian dana (`refunds`), notifikasi pengguna (`notifications`), sinkronisasi rating produk otomatis.
+- `013_v2_indexes.sql`: 13 index optimasi performa komposit & partial hasil EXPLAIN ANALYZE (Domain A, B, C) serta pembersihan skema (drop kolom usang `carts.items`).
 
-Folder tunggal `supabase/migrations`, penamaan `NNN_deskripsi.sql` berurutan. Sebelum membuat file: `git pull`, pakai nomor `max + 1`. **Dilarang mengubah tabel milik agent lain** — ajukan lewat Satria.
-
-**Milik AGENT-BE (commerce):**
-`profiles` (id = auth.users.id, role text default 'customer', dibuat via trigger on signup) · `categories` · `products` · `product_variants` (sku unik, color, size null-able, price int, stock int) · `product_images` · `assembly_guides` (product_id, content_md) · `carts` (user_id unik, items jsonb, updated_at, **followed_up_at [n8n-writable]**) · `orders` (**reminded_at [n8n-writable]**) · `order_items` · `payments` (order_id, midtrans_order_id, transaction_status, raw jsonb)
-
-**Milik AGENT-AI (vector):**
-`documents` (id bigserial, content text, metadata jsonb, embedding vector(768)) · index HNSW cosine · fungsi `match_documents(query_embedding vector(768), match_count int, filter_type text default null)` · metadata: `{"type": "product" | "guide" | "faq" | "policy", "product_id": "<uuid|null>", "ref": "<slug/judul>"}`
+### 7.2 Kepemilikan Tabel per Domain
+- **Core / Platform:** `profiles`, `payments`, `payment_attempts`, `documents` (AI).
+- **Domain A (Katalog):** `categories`, `products`, `product_variants`, `product_images`, `assembly_guides`, `tags`, `product_tags`, `attributes`, `attribute_terms`, `product_attribute_terms`, `product_relations`, `stock_movements`.
+- **Domain B (Customer & Checkout):** `addresses`, `carts`, `cart_items`, `wishlist_items`, `provinces`, `shipping_zones`, `shipping_rates`, `shipping_methods`, `store_settings`.
+- **Domain C (Promo & Laporan):** `coupons`, `coupon_redemptions`.
+- **Domain D (Aftersales):** `orders`, `order_items`, `order_events`, `order_notes`, `product_reviews`, `return_requests`, `refunds`, `notifications`.
 
 ## 8. Cara kerja (trunk-based + teritori)
 

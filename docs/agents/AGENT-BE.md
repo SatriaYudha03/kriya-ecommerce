@@ -5,18 +5,28 @@ Kamu adalah agent backend commerce. Baca `docs/agents/KRIYA-MASTER.md` dulu (kon
 ## Stack & aturan teknis
 
 - Go terbaru stabil, Gin, GORM **hanya sebagai model/ORM runtime** — skema TIDAK dibuat GORM. `AutoMigrate` DILARANG; semua perubahan skema lewat file `supabase/migrations/NNN_deskripsi.sql` (pull dulu, nomor = max + 1).
-- Struktur standar:
+- Struktur modular v2:
   ```
   services/api/
-    cmd/api/main.go
-    internal/config      # env
-    internal/middleware  # auth JWT, CORS, internal-key
-    internal/handler     # HTTP layer, validasi input
-    internal/service     # logika bisnis
-    internal/repository  # akses DB (GORM)
-    internal/model       # struct + json tag snake_case
+    cmd/
+      api/main.go        # Komposisi router, inisialisasi deps, dan wiring ports
+      seed/main.go       # Loader seed data katalog idempoten
+    internal/
+      platform/          # Kontrak router (Public, Authed, Admin, Internal) & Deps bersama
+      httpx/             # Envelope respons HTTP tunggal (Response, Meta, ErrorResponse)
+      catalog/           # Domain A: produk, varian, kategori pohon, tag, atribut facet, ledger stok
+      customer/          # Domain B: data diri, buku alamat, keranjang relasional, wishlist, ongkir tabel, pengaturan toko
+      promo/             # Domain C: kupon promosi, validasi diskon, audit redemption, laporan penjualan, dashboard stats
+      aftersales/        # Domain D: riwayat pesanan, pembatalan, timeline event, catatan, ulasan, retur, refund, notifikasi
+      checkout/          # Domain F2: kalkulasi quote, pembuatan order v2, payment attempts, webhook Midtrans, kontrak Ports
+      orderflow/         # State machine transisi status pesanan v2 (CanTransition, Transition)
+      service/           # Layanan eksternal (Midtrans Snap & cancel API)
+      middleware/        # CORS, Auth Supabase JWT/JWKS, AdminGuard, InternalKey
+      config/            # Konfigurasi environment runtime
+      db/                # Inisialisasi pool koneksi Postgres via GORM
+      storage/           # Helper resolusi URL publik Supabase Storage
   ```
-- Semua respons memakai envelope & kode error dari master Bagian 5. JSON tag **snake_case** di semua struct.
+- Semua respons memakai envelope & kode error dari `internal/httpx` dan master Bagian 5. JSON tag **snake_case** di semua struct.
 - Auth middleware: verifikasi JWT Supabase (HS256, `SUPABASE_JWT_SECRET`), ambil `sub` sebagai user_id. Middleware `X-Internal-Key` untuk endpoint internal.
 - **Harga dan total SELALU dihitung server** dari tabel varian — jangan pernah percaya harga dari client.
 - Stok: cek + reservasi (kurangi) dalam **satu transaksi DB** saat order dibuat; kembalikan saat webhook `expire`/`cancel`.
@@ -79,3 +89,4 @@ Jangan sentuh `apps/web/`, `services/ai/`, `data/`, `automation/`. Jangan membua
 2026-07-12 · [be] fitur Profil (data diri + alamat default) · Migrasi `005_profile_fields.sql` (kolom full_name/phone/address_line/city/province/postal_code di `profiles`, nullable, idempoten `IF NOT EXISTS`) + endpoint GET/PUT `/api/v1/profile` (auth) via repository/handler/model baru. Envelope `{data}` & snake_case sesuai kontrak; PUT replace penuh 6 kolom lewat map Updates — `role`/`id` tidak pernah tersentuh. Diverifikasi end-to-end (curl + JWT HS256 legacy): 401 tanpa token, GET kosong, PUT simpan+echo, GET persist, full-replace. `go build`/`vet`/`test` hijau. Data uji dibersihkan. Sesi lintas-teritori (FE+BE+QA) atas arahan Satria. Catatan: endpoint `/profile` belum ada di kontrak master Bagian 6 — perlu diformalkan Satria.
 2026-07-12 · [be] M6 admin (selesai penuh) · Endpoint stats, list produk admin (detail + gambar), list & update status pesanan admin, CRUD produk/varian/gambar lengkap; migrasi `006_admin_storage.sql` (fungsi `is_admin()` SECURITY DEFINER + policy insert/select/update/delete `storage.objects` bucket `products` khusus admin, agar FE bisa upload gambar langsung ke Storage — pengecualian yang diizinkan di M6). Perbaikan: izinkan stok varian 0 saat create, `CreateProduct` kembalikan `{id}` saja (bukan objek produk penuh). Diverifikasi end-to-end via curl: JWT admin asli dari Supabase Auth (ES256 via JWKS) → `/admin/stats`+`/admin/orders` 200; JWT customer → 403; tanpa token → 401; roundtrip create (varian stok 0) → detail → tambah gambar → hapus gambar → hapus produk, semua sesuai kontrak. `go build`/`vet` hijau. Data uji dibersihkan. Sesi lintas-teritori atas arahan Satria.
 2026-07-12 � [be] Fase 3 Rencana Multi-bahasa � selesai � tambahkan migration 007 untuk kolom _i18n, update read endpoints (catalog, cart, order) untuk mem-parse field berdasarkan ?lang atau Accept-Language fallback.
+2026-09-27 · [be] task F3-Z · Migrasi 013 (13 index optimasi komposit/partial terverifikasi EXPLAIN ANALYZE + drop carts.items) dan dokumentasi struktur modular domain v2 selesai.
