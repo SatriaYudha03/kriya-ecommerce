@@ -5,10 +5,27 @@ import (
 	"time"
 )
 
+type RecentOrder struct {
+	ID            string    `json:"id"`
+	OrderNumber   string    `json:"order_number"`
+	Status        string    `json:"status"`
+	Total         int64     `json:"total"`
+	CreatedAt     time.Time `json:"created_at"`
+	CustomerEmail string    `json:"customer_email"`
+}
+
 type AdminStatsResponse struct {
-	TotalOrders    int64 `json:"total_orders"`
-	Revenue        int64 `json:"revenue"`
-	ActiveProducts int64 `json:"active_products"`
+	TotalOrders         int64         `json:"total_orders"`
+	Revenue             int64         `json:"revenue"`
+	ActiveProducts      int64         `json:"active_products"`
+	TodayRevenue        int64         `json:"today_revenue"`
+	TodayOrders         int64         `json:"today_orders"`
+	PendingPaymentCount int64         `json:"pending_payment_count"`
+	ToShipCount         int64         `json:"to_ship_count"`
+	LowStockCount       int64         `json:"low_stock_count"`
+	PendingReviewsCount int64         `json:"pending_reviews_count"`
+	OpenReturnsCount    int64         `json:"open_returns_count"`
+	RecentOrders        []RecentOrder `json:"recent_orders"`
 }
 
 type Coupon struct {
