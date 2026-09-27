@@ -1,7 +1,24 @@
+export interface RecentOrder {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+  customer_email: string;
+}
+
 export interface AdminStats {
   total_orders: number;
   revenue: number;
   active_products: number;
+  today_revenue: number;
+  today_orders: number;
+  pending_payment_count: number;
+  to_ship_count: number;
+  low_stock_count: number;
+  pending_reviews_count: number;
+  open_returns_count: number;
+  recent_orders: RecentOrder[];
 }
 
 export interface Coupon {

@@ -21,18 +21,14 @@ func NewAdminHandler(repo *AdminRepository) *AdminHandler {
 
 // Stats mengembalikan metrik ringkas untuk dashboard admin.
 func (h *AdminHandler) Stats(c *gin.Context) {
-	totalOrders, revenue, activeProducts, err := h.repo.Stats()
+	stats, err := h.repo.Stats()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil statistik"},
 		})
 		return
 	}
-	c.JSON(http.StatusOK, httpx.Response{Data: AdminStatsResponse{
-		TotalOrders:    totalOrders,
-		Revenue:        revenue,
-		ActiveProducts: activeProducts,
-	}})
+	c.JSON(http.StatusOK, httpx.Response{Data: stats})
 }
 
 func (h *AdminHandler) ReportSummary(c *gin.Context) {

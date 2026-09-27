@@ -12,26 +12,71 @@ func NewAdminRepository(db *gorm.DB) *AdminRepository {
 	return &AdminRepository{db: db}
 }
 
-func (r *AdminRepository) Stats() (int64, int64, int64, error) {
-	var totalOrders int64
-	var revenue int64
-	var activeProducts int64
+func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
+	stats := &AdminStatsResponse{
+		RecentOrders: []RecentOrder{},
+	}
 
-	if err := r.db.Table("orders").Count(&totalOrders).Error; err != nil {
-		return 0, 0, 0, err
+	if err := r.db.Table("orders").Count(&stats.TotalOrders).Error; err != nil {
+		return nil, err
 	}
 
 	if err := r.db.Table("orders").
 		Where("status IN ?", []string{"paid", "processing", "shipped", "completed"}).
-		Select("COALESCE(SUM(total), 0)").Scan(&revenue).Error; err != nil {
-		return 0, 0, 0, err
+		Select("COALESCE(SUM(total), 0)").Scan(&stats.Revenue).Error; err != nil {
+		return nil, err
 	}
 
-	if err := r.db.Table("products").Count(&activeProducts).Error; err != nil {
-		return 0, 0, 0, err
+	if err := r.db.Table("products").Count(&stats.ActiveProducts).Error; err != nil {
+		return nil, err
 	}
 
-	return totalOrders, revenue, activeProducts, nil
+	if err := r.db.Table("orders").
+		Where("status IN ?", []string{"paid", "processing", "shipped", "completed"}).
+		Where("created_at >= CURRENT_DATE").
+		Select("COALESCE(SUM(total), 0)").Scan(&stats.TodayRevenue).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Table("orders").
+		Where("created_at >= CURRENT_DATE").Count(&stats.TodayOrders).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Table("orders").
+		Where("status = ?", "pending_payment").Count(&stats.PendingPaymentCount).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Table("orders").
+		Where("status = ?", "processing").Count(&stats.ToShipCount).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Table("product_variants").
+		Where("stock <= ?", 5).Count(&stats.LowStockCount).Error; err != nil {
+		// Ignore if table not found yet, return 0
+		stats.LowStockCount = 0
+	}
+
+	if err := r.db.Table("product_reviews").
+		Where("status = ?", "pending").Count(&stats.PendingReviewsCount).Error; err != nil {
+		stats.PendingReviewsCount = 0
+	}
+
+	if err := r.db.Table("return_requests").
+		Where("status IN ?", []string{"requested", "approved", "received"}).Count(&stats.OpenReturnsCount).Error; err != nil {
+		stats.OpenReturnsCount = 0
+	}
+
+	if err := r.db.Table("orders").
+		Select("id, order_number, status, total as total, created_at, customer_email").
+		Order("created_at DESC").Limit(5).
+		Scan(&stats.RecentOrders).Error; err != nil {
+		return nil, err
+	}
+
+	return stats, nil
 }
 
 func (r *AdminRepository) ReportSummary(from, to string) (*ReportSummaryResponse, error) {
