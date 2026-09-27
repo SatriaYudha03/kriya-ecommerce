@@ -35,14 +35,21 @@ func (r *SettingsRepository) GetSettings() (*StoreSettings, error) {
 }
 
 func (r *SettingsRepository) UpdateSettings(req *AdminUpdateSettingsRequest) error {
-	return r.db.Model(&StoreSettings{}).Where("id = ?", true).Updates(map[string]interface{}{
-		"store_name":                  req.StoreName,
-		"support_email":               req.SupportEmail,
-		"support_phone":               req.SupportPhone,
-		"tax_rate_bp":                 req.TaxRateBP,
-		"prices_include_tax":          req.PricesIncludeTax,
-		"pending_payment_ttl_minutes": req.PendingPaymentTTLMinutes,
-		"return_window_days":          req.ReturnWindowDays,
-		"low_stock_threshold_default": req.LowStockThresholdDefault,
-	}).Error
+	var pricesIncludeTax bool
+	if req.PricesIncludeTax != nil {
+		pricesIncludeTax = *req.PricesIncludeTax
+	}
+	s := StoreSettings{
+		StoreName:                req.StoreName,
+		SupportEmail:             req.SupportEmail,
+		SupportPhone:             req.SupportPhone,
+		TaxRateBP:                req.TaxRateBP,
+		PricesIncludeTax:         pricesIncludeTax,
+		PendingPaymentTTLMinutes: req.PendingPaymentTTLMinutes,
+		ReturnWindowDays:         req.ReturnWindowDays,
+		LowStockThresholdDefault: req.LowStockThresholdDefault,
+	}
+	return r.db.Model(&StoreSettings{}).Where("id = ?", true).
+		Select("store_name", "support_email", "support_phone", "tax_rate_bp", "prices_include_tax", "pending_payment_ttl_minutes", "return_window_days", "low_stock_threshold_default").
+		Updates(&s).Error
 }
