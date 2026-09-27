@@ -57,7 +57,7 @@ function StatCard({
 
 export default function AdminDashboard() {
   const { data, isLoading } = useAdminStats();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   return (
     <div>
@@ -135,31 +135,31 @@ export default function AdminDashboard() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                 >
-                  Order ID
+                  {t("adminPromo.dashboard.thOrderId")}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                 >
-                  Status
+                  {t("adminPromo.dashboard.thStatus")}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                 >
-                  Total
+                  {t("adminPromo.dashboard.thTotal")}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                 >
-                  Email
+                  {t("adminPromo.dashboard.thEmail")}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-neutral-500"
                 >
-                  Tanggal
+                  {t("adminPromo.dashboard.thDate")}
                 </th>
               </tr>
             </thead>
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
                       {order.customer_email}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-neutral-500">
-                      {new Date(order.created_at).toLocaleDateString("id-ID", {
+                      {new Date(order.created_at).toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
                     colSpan={5}
                     className="px-6 py-8 text-center text-sm text-neutral-500"
                   >
-                    Belum ada pesanan
+                    {t("adminPromo.dashboard.emptyOrders")}
                   </td>
                 </tr>
               )}

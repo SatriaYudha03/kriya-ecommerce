@@ -7,6 +7,7 @@ import { validateCoupon } from "@/lib/promo/api";
 import type { MessageKey } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 export interface CouponInputProps { 
   items: { variant_id: string; qty: number }[]; 
@@ -34,7 +35,6 @@ export function CouponInput({ items, appliedCode, onApplied, onRemoved }: Coupon
       onApplied(res);
     } else {
       const msgKey = `promo.errors.${res.reason}` as MessageKey;
-      // We pass msgKey to t. If it's invalid, t will just return the key, so it's safe.
       let errorMsg = t(msgKey);
       if (errorMsg === msgKey) {
         errorMsg = t("promo.errors.internal");
@@ -49,7 +49,7 @@ export function CouponInput({ items, appliedCode, onApplied, onRemoved }: Coupon
         <div className="flex flex-col">
           <span className="font-medium">{appliedCode}</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={onRemoved}>
+        <Button variant="ghost" size="sm" onClick={onRemoved} aria-label={t("promo.remove")}>
           {t("promo.remove")}
         </Button>
       </div>
@@ -63,6 +63,7 @@ export function CouponInput({ items, appliedCode, onApplied, onRemoved }: Coupon
           value={code} 
           onChange={(e) => setCode(e.target.value)} 
           placeholder={t("promo.placeholder")}
+          aria-label={t("promo.inputAria")}
           disabled={loading}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -72,10 +73,17 @@ export function CouponInput({ items, appliedCode, onApplied, onRemoved }: Coupon
           }}
         />
         <Button onClick={handleApply} disabled={loading || !code.trim()}>
-          {t("promo.apply")}
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t("promo.applying")}
+            </>
+          ) : (
+            t("promo.apply")
+          )}
         </Button>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

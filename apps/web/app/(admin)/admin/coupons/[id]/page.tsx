@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { useAdminCoupon, useAdminCouponRedemptions } from "@/lib/promo/queries";
 import { formatRupiah } from "@/lib/format";
+import { useLanguage } from "@/components/kriya/language-provider";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
 const LIMIT = 20;
 
 export default function AdminCouponRedemptionsPage() {
+  const { t, locale } = useLanguage();
   const params = useParams();
   const id = params.id as string;
   const [page, setPage] = useState(1);
@@ -25,48 +27,48 @@ export default function AdminCouponRedemptionsPage() {
     <div>
       <div className="mb-6">
         <Link href="/admin/coupons" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900">
-          <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar Kupon
+          <ArrowLeft className="h-4 w-4" /> {t("adminPromo.redemptions.back")}
         </Link>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">
-            Riwayat Pemakaian {coupon ? `- ${coupon.code}` : ""}
+            {t("adminPromo.redemptions.title")} {coupon ? `- ${coupon.code}` : ""}
           </h1>
-          <p className="mt-1 text-sm text-neutral-500">{total} kali dipakai</p>
+          <p className="mt-1 text-sm text-neutral-500">{t("adminPromo.redemptions.count", { total })}</p>
         </div>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         {isLoading || loadingCoupon ? (
           <div className="flex items-center justify-center gap-2 py-20 text-neutral-500">
-            <Loader2 className="h-5 w-5 animate-spin" /> Memuat data...
+            <Loader2 className="h-5 w-5 animate-spin" /> {t("adminPromo.redemptions.loading")}
           </div>
         ) : isError ? (
-          <div className="py-20 text-center text-sm text-red-600">Gagal memuat data pemakaian.</div>
+          <div role="alert" className="py-20 text-center text-sm text-red-600">{t("adminPromo.redemptions.error")}</div>
         ) : redemptions.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-20 text-neutral-500">
-            <p className="text-sm">Kupon ini belum pernah dipakai.</p>
+            <p className="text-sm">{t("adminPromo.redemptions.empty")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
                 <tr>
-                  <Th>Tanggal</Th>
-                  <Th>Order ID</Th>
-                  <Th>User ID</Th>
-                  <Th>Diskon Item</Th>
-                  <Th>Diskon Ongkir</Th>
-                  <Th>Status</Th>
+                  <Th>{t("adminPromo.redemptions.thDate")}</Th>
+                  <Th>{t("adminPromo.redemptions.thOrderId")}</Th>
+                  <Th>{t("adminPromo.redemptions.thUserId")}</Th>
+                  <Th>{t("adminPromo.redemptions.thItemsDiscount")}</Th>
+                  <Th>{t("adminPromo.redemptions.thShippingDiscount")}</Th>
+                  <Th>{t("adminPromo.redemptions.thStatus")}</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 bg-white">
                 {redemptions.map((r) => (
                   <tr key={r.id}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900">
-                      {new Date(r.created_at).toLocaleString("id-ID")}
+                      {new Date(r.created_at).toLocaleString(locale === "en" ? "en-US" : "id-ID")}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">{r.order_id}</td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">{r.user_id}</td>
@@ -98,17 +100,17 @@ export default function AdminCouponRedemptionsPage() {
             disabled={page <= 1}
             className="rounded-lg border border-neutral-300 px-4 py-2 disabled:opacity-40"
           >
-            Sebelumnya
+            {t("adminPromo.coupons.prev")}
           </button>
           <span className="text-neutral-500">
-            Halaman {page} dari {totalPages}
+            {t("adminPromo.coupons.page", { page, totalPages })}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="rounded-lg border border-neutral-300 px-4 py-2 disabled:opacity-40"
           >
-            Berikutnya
+            {t("adminPromo.coupons.next")}
           </button>
         </div>
       )}

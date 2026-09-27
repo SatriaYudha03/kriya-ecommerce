@@ -81,13 +81,13 @@ export interface ValidateCouponResponse {
 }
 
 export async function getPublicCoupons(): Promise<PublicCoupon[]> {
-  const { data } = await request<Envelope<PublicCoupon[]>>("/api/v1/public/coupons/public");
+  const { data } = await request<Envelope<PublicCoupon[]>>("/api/v1/coupons/public");
   return data;
 }
 
 export async function validateCoupon(code: string, items: { variant_id: string; qty: number }[]): Promise<QuoteCoupon> {
   try {
-    const { data } = await request<Envelope<ValidateCouponResponse>>("/api/v1/public/coupons/validate", {
+    const { data } = await request<Envelope<ValidateCouponResponse>>("/api/v1/coupons/validate", {
       method: "POST",
       body: { code, lines: items },
       auth: true,
