@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { AdminSettings } from "@/lib/customer/types";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 function SettingsForm({ initialData }: { initialData: AdminSettings }) {
   const { t } = useLanguage();
@@ -65,7 +65,7 @@ function SettingsForm({ initialData }: { initialData: AdminSettings }) {
         <div className="space-y-2">
           <Label htmlFor="tax_rate_bp">{t("adminCustomer.settings.taxRate")}</Label>
           <Input id="tax_rate_bp" name="tax_rate_bp" type="number" min={0} max={5000} required value={formData.tax_rate_bp} onChange={handleChange} />
-          <p className="text-xs text-muted-foreground">Basis points (100 = 1%)</p>
+          <p className="text-xs text-muted-foreground">{t("adminCustomer.settings.taxHelp")}</p>
         </div>
         <div className="flex items-center space-x-2 pt-8">
           <Checkbox 
@@ -73,7 +73,7 @@ function SettingsForm({ initialData }: { initialData: AdminSettings }) {
             checked={formData.prices_include_tax} 
             onCheckedChange={(checked) => setFormData(prev => ({...prev, prices_include_tax: checked === true}))} 
           />
-          <Label htmlFor="prices_include_tax">{t("adminCustomer.settings.pricesIncludeTax")}</Label>
+          <Label htmlFor="prices_include_tax" className="cursor-pointer">{t("adminCustomer.settings.pricesIncludeTax")}</Label>
         </div>
       </div>
 
@@ -103,9 +103,30 @@ function SettingsForm({ initialData }: { initialData: AdminSettings }) {
 
 export default function SettingsPage() {
   const { t } = useLanguage();
-  const { data, isLoading } = useAdminSettings();
+  const { data, isLoading, isError, refetch } = useAdminSettings();
 
-  if (isLoading || !data) return <div className="p-6"><Loader2 className="animate-spin w-6 h-6 text-muted-foreground" /></div>;
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center gap-2 text-muted-foreground" role="status">
+        <Loader2 className="animate-spin w-6 h-6" />
+        <span className="text-sm">Memuat pengaturan toko...</span>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="p-6 max-w-2xl">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
+          <AlertCircle className="mx-auto h-8 w-8 mb-2 text-red-500" />
+          <p className="text-sm font-medium">Gagal memuat pengaturan toko.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-3">
+            Coba lagi
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-2xl">

@@ -81,7 +81,8 @@ export function useWishlistMutations() {
 
 import { 
   getAdminCustomers, getAdminCustomerDetail, getAdminSettings, 
-  updateAdminSettings, getPublicStoreSettings 
+  updateAdminSettings, getPublicStoreSettings,
+  getAdminShippingZones, updateAdminShippingMethod
 } from "./api";
 import type { AdminSettings } from "./types";
 
@@ -135,4 +136,32 @@ export function usePublicStoreSettings() {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+export function useAdminShippingZones() {
+  return useQuery({
+    queryKey: [...adminCustomerKeys.all, "shippingZones"] as const,
+    queryFn: getAdminShippingZones,
+  });
+}
+
+export function useUpdateShippingMethod() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: {
+        base_cost: number;
+        per_kg_cost: number;
+        free_shipping_min_subtotal: number | null;
+      };
+    }) => updateAdminShippingMethod(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...adminCustomerKeys.all, "shippingZones"] });
+    },
+  });
+}
+
 

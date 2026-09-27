@@ -161,7 +161,7 @@ async function loginAsAdmin(page: Page) {
     localStorage.setItem('sb-nmlhpeqpahihfwzbqmzp-auth-token', JSON.stringify(data));
   }, sessionData);
   await page.goto(`${WEB_URL}/admin`);
-  await expect(page.locator('h1').first()).toContainText('Dashboard', { timeout: 15000 });
+  await expect(page.locator('h1').first()).toContainText(/dashboard/i, { timeout: 15000 });
 }
 
 function mintJwt(userId: string, email: string): string {
@@ -506,17 +506,17 @@ test.describe('B7 - E2E Customer & Checkout', () => {
   test('6. UI Halaman Customer', async ({ page }) => {
     // 6.1 Guest view cart page
     await page.goto('/cart');
-    await expect(page.locator('text=Keranjang').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h1, button, a').filter({ hasText: /keranjang|cart/i }).first()).toBeVisible({ timeout: 15000 });
 
     // 6.2 Authenticated customer pages
     await loginAsCustomer(page);
 
     await page.goto('/account/addresses');
-    await expect(page.locator('text=Alamat').first()).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('button:has-text("Tambah"), button:has-text("Tambah Alamat")').first()).toBeVisible();
+    await expect(page.locator('h1').filter({ hasText: /alamat|address/i }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('button').filter({ hasText: /tambah|add/i }).first()).toBeVisible({ timeout: 15000 });
 
     await page.goto('/account/wishlist');
-    await expect(page.locator('text=Wishlist').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h1, div').filter({ hasText: /wishlist/i }).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('7. UI Halaman Admin Pelanggan, Pengiriman, Pengaturan', async ({ page }) => {
@@ -524,12 +524,12 @@ test.describe('B7 - E2E Customer & Checkout', () => {
     await loginAsAdmin(page);
 
     await page.goto('/admin/customers');
-    await expect(page.locator('h1').first()).toContainText('Pelanggan', { timeout: 15000 });
+    await expect(page.locator('h1').filter({ hasText: /pelanggan|customer/i }).first()).toBeVisible({ timeout: 15000 });
 
     await page.goto('/admin/shipping');
-    await expect(page.locator('text=Pengiriman').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h1, h2, div').filter({ hasText: /pengiriman|shipping/i }).first()).toBeVisible({ timeout: 15000 });
 
     await page.goto('/admin/settings');
-    await expect(page.locator('h1').first()).toContainText('Pengaturan', { timeout: 15000 });
+    await expect(page.locator('h1').filter({ hasText: /pengaturan|settings/i }).first()).toBeVisible({ timeout: 15000 });
   });
 });

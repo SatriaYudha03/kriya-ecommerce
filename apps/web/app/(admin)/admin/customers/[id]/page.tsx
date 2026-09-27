@@ -14,13 +14,27 @@ export default function CustomerDetailPage() {
   const { t } = useLanguage();
   const params = useParams();
   const id = params.id as string;
-  const { data, isLoading } = useAdminCustomerDetail(id);
+  const { data, isLoading, isError } = useAdminCustomerDetail(id);
 
   if (isLoading) {
     return <div className="p-6"><Loader2 className="animate-spin w-6 h-6 text-muted-foreground" /></div>;
   }
 
-  if (!data) return null;
+  if (isError || !data) {
+    return (
+      <div className="p-6 max-w-5xl">
+        <Link href="/admin/customers">
+          <Button variant="ghost" className="mb-4 -ml-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t("adminCustomer.customerDetail.back")}
+          </Button>
+        </Link>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
+          <p className="text-sm font-medium">Data pelanggan tidak ditemukan atau gagal dimuat.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-5xl">
@@ -28,7 +42,7 @@ export default function CustomerDetailPage() {
         <Link href="/admin/customers">
           <Button variant="ghost" className="mb-4 -ml-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Kembali
+            {t("adminCustomer.customerDetail.back")}
           </Button>
         </Link>
         <h1 className="text-2xl font-semibold">{t("adminCustomer.customerDetail.title")}</h1>
@@ -38,23 +52,23 @@ export default function CustomerDetailPage() {
         <div className="md:col-span-1 space-y-6">
           <div className="bg-card text-card-foreground shadow rounded-xl border">
             <div className="p-6">
-              <h3 className="font-semibold leading-none tracking-tight">Profil</h3>
+              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.profile")}</h2>
             </div>
             <div className="p-6 pt-0 space-y-4">
               <div>
-                <div className="text-sm text-muted-foreground">Nama</div>
+                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.name")}</div>
                 <div className="font-medium">{data.full_name || "-"}</div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Email</div>
+                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.email")}</div>
                 <div className="font-medium">{data.email}</div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">No. HP</div>
+                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.phone")}</div>
                 <div className="font-medium">{data.phone || "-"}</div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Tgl Daftar</div>
+                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.registered")}</div>
                 <div className="font-medium">{new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(data.created_at))}</div>
               </div>
             </div>
@@ -62,7 +76,7 @@ export default function CustomerDetailPage() {
 
           <div className="bg-card text-card-foreground shadow rounded-xl border">
             <div className="p-6">
-              <h3 className="font-semibold leading-none tracking-tight">Statistik</h3>
+              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.stats")}</h2>
             </div>
             <div className="p-6 pt-0 space-y-4">
               <div>
@@ -71,7 +85,7 @@ export default function CustomerDetailPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.totalSpent")}</div>
-                <div className="font-medium text-2xl text-green-600">{formatRupiah(data.total_spent)}</div>
+                <div className="font-medium text-2xl text-emerald-600 dark:text-emerald-400">{formatRupiah(data.total_spent)}</div>
               </div>
             </div>
           </div>
@@ -80,11 +94,11 @@ export default function CustomerDetailPage() {
         <div className="md:col-span-2 space-y-6">
           <div className="bg-card text-card-foreground shadow rounded-xl border">
             <div className="p-6">
-              <h3 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.recentOrders")}</h3>
+              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.recentOrders")}</h2>
             </div>
             <div className="p-6 pt-0">
               {data.recent_orders.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Belum ada pesanan</div>
+                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.noOrders")}</div>
               ) : (
                 <div className="space-y-4">
                   {data.recent_orders.map(order => (
@@ -96,7 +110,7 @@ export default function CustomerDetailPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">{formatRupiah(order.total)}</div>
+                        <div className="font-medium mb-1">{formatRupiah(order.total)}</div>
                         <OrderStatusBadge status={order.status as OrderStatus} />
                       </div>
                     </div>
@@ -108,25 +122,29 @@ export default function CustomerDetailPage() {
 
           <div className="bg-card text-card-foreground shadow rounded-xl border">
             <div className="p-6">
-              <h3 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.addresses")}</h3>
+              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.addresses")}</h2>
             </div>
             <div className="p-6 pt-0">
               {data.addresses.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Belum ada alamat</div>
+                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.noAddresses")}</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {data.addresses.map(addr => (
                     <div key={addr.id} className="border rounded-md p-4 text-sm relative">
                       {addr.is_default && (
-                        <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">Utama</span>
+                        <span className="absolute top-3 right-3 text-xs bg-brand/10 text-brand font-semibold px-2 py-0.5 rounded-full">
+                          {t("adminCustomer.customerDetail.defaultBadge")}
+                        </span>
                       )}
-                      <div className="font-medium mb-1">{addr.label}</div>
-                      <div className="text-muted-foreground">{addr.recipient} ({addr.phone})</div>
-                      <div className="text-muted-foreground mt-2">
-                        {addr.address_line}<br/>
-                        {addr.district ? `${addr.district}, ` : ""}{addr.city}<br/>
-                        {addr.province} {addr.postal_code}
-                      </div>
+                      <div className="font-semibold text-neutral-900 mb-1">{addr.label}</div>
+                      <div className="font-medium">{addr.recipient} ({addr.phone})</div>
+                      <div className="text-muted-foreground mt-1 line-clamp-2">{addr.address_line}</div>
+                      <div className="text-muted-foreground">{addr.district ? `${addr.district}, ` : ""}{addr.city}, {addr.province} {addr.postal_code}</div>
+                      {addr.notes && (
+                        <div className="text-xs text-muted-foreground italic mt-2">
+                          {t("adminCustomer.customerDetail.notes")}: {addr.notes}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

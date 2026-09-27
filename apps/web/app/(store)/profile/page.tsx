@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Package, Save, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/kriya/auth-provider";
+import { useLanguage } from "@/components/kriya/language-provider";
 import { useProfile } from "@/lib/queries";
 import { updateProfile } from "@/lib/api";
 import type { Profile } from "@/lib/types";
@@ -25,6 +26,7 @@ const inputCls =
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading } = useProfile(Boolean(user));
@@ -50,10 +52,10 @@ export default function ProfilePage() {
     mutationFn: updateProfile,
     onSuccess: (saved) => {
       queryClient.setQueryData(["profile"], saved);
-      toast.success("Profil tersimpan. Alamat ini akan otomatis terisi di checkout.");
+      toast.success(t("customer.profile.saved"));
     },
     onError: (err: unknown) => {
-      toast.error(err instanceof Error ? err.message : "Gagal menyimpan profil");
+      toast.error(err instanceof Error ? err.message : t("customer.profile.saveError"));
     },
   });
 
@@ -67,16 +69,15 @@ export default function ProfilePage() {
   }
 
   if (authLoading || (!user && !authLoading)) {
-    return <div className="p-20 text-center text-neutral-500">Memuat…</div>;
+    return <div className="p-20 text-center text-neutral-500">{t("customer.profile.loading")}</div>;
   }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Profil saya</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t("customer.profile.title")}</h1>
         <p className="mt-2 max-w-xl text-sm text-neutral-500">
-          Simpan data diri dan alamat pengirimanmu di sini. Data ini akan terisi otomatis
-          saat checkout, jadi kamu tidak perlu mengetik ulang setiap kali belanja.
+          {t("customer.profile.subtitle")}
         </p>
       </header>
 
@@ -92,19 +93,19 @@ export default function ProfilePage() {
           <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2 text-neutral-900">
               <UserRound className="h-5 w-5 text-brand" />
-              <h2 className="text-lg font-medium">Data diri</h2>
+              <h2 className="text-lg font-medium">{t("customer.profile.personalInfo")}</h2>
             </div>
 
             {user?.email && (
               <p className="mt-3 text-sm text-neutral-500">
-                Akun: <span className="font-medium text-neutral-700">{user.email}</span>
+                {t("customer.profile.account")}: <span className="font-medium text-neutral-700">{user.email}</span>
               </p>
             )}
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="full_name" className="block text-sm font-medium text-neutral-700">
-                  Nama lengkap
+                  {t("customer.profile.fullName")}
                 </label>
                 <input
                   id="full_name"
@@ -112,13 +113,13 @@ export default function ProfilePage() {
                   autoComplete="name"
                   value={form.full_name}
                   onChange={(e) => set("full_name", e.target.value)}
-                  placeholder="mis. Satria Yudha"
+                  placeholder={t("customer.profile.fullNamePlaceholder")}
                   className={inputCls}
                 />
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="phone" className="block text-sm font-medium text-neutral-700">
-                  Nomor telepon
+                  {t("customer.profile.phone")}
                 </label>
                 <input
                   id="phone"
@@ -126,7 +127,7 @@ export default function ProfilePage() {
                   autoComplete="tel"
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value)}
-                  placeholder="mis. 081234567890"
+                  placeholder={t("customer.profile.phonePlaceholder")}
                   className={inputCls}
                 />
               </div>
@@ -137,12 +138,12 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3 text-neutral-900">
               <MapPin className="h-5 w-5 text-brand" />
               <div>
-                <h2 className="text-lg font-medium">Buku Alamat</h2>
-                <p className="text-sm text-neutral-500">Kelola alamat pengirimanmu.</p>
+                <h2 className="text-lg font-medium">{t("customer.profile.addressBook")}</h2>
+                <p className="text-sm text-neutral-500">{t("customer.profile.addressBookDesc")}</p>
               </div>
             </div>
-            <Link href="/account/addresses" className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-200">
-              Lihat Buku Alamat
+            <Link href="/account/addresses" className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-400">
+              {t("customer.profile.viewAddresses")}
             </Link>
           </section>
 
@@ -152,15 +153,15 @@ export default function ProfilePage() {
               className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-neutral-900"
             >
               <Package className="h-4 w-4" />
-              Lihat pesanan saya
+              {t("customer.profile.myOrders")}
             </Link>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2"
             >
               <Save className="h-4 w-4" />
-              {mutation.isPending ? "Menyimpan…" : "Simpan profil"}
+              {mutation.isPending ? t("customer.profile.saving") : t("customer.profile.save")}
             </button>
           </div>
         </form>

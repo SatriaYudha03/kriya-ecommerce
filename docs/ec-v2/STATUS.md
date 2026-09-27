@@ -96,7 +96,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | ID | Task | Status | Agent | Tgl klaim | Branch | Commit | Report | Catatan |
 |---|---|---|---|---|---|---|---|---|
 | F3-A | Seed/audit katalog | ✅ | A | 2026-09-27 | `ec/F3-A-seed-audit-katalog` | `61737ac` | `docs/report/F3-A.md` | Seed 5 produk demo + audit i18n (~180 key) + a11y (dialog role, aria-label) + usulan 8 index di LOG-A.md. Technical debt: product-form.tsx i18n belum lengkap (~50 string). Di-merge 2026-09-27. |
-| F3-B | Audit customer | 🟦 | B | 2026-09-27 | | | | |
+| F3-B | Audit customer | ✅ | B | 2026-09-27 | `ec/F3-B-audit-customer` | `5f24e4d` | `docs/report/F3-B.md` | Seed 3 alamat demo + audit i18n (~120 key) + a11y dialog/inputs + usulan 3 index di LOG-B.md. E2E regex locale-agnostic. Di-merge 2026-09-27. |
 | F3-C | Seed/audit promo | ⬜ | | | | | | |
 | F3-D | Seed/audit after-sales | ⬜ | | | | | | |
 | F3-Z | Migrasi 013 + update dokumen (Claude/Satria) | ⬜ | | | | | | |

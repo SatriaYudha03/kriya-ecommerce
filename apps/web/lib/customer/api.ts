@@ -132,7 +132,7 @@ export async function continuePayment(orderId: string): Promise<ContinuePaymentR
 
 import type { 
   AdminCustomerListItem, AdminCustomerDetailItem, 
-  AdminSettings, PublicStoreSettings
+  AdminSettings, PublicStoreSettings, ShippingZone
 } from "./types";
 
 export async function getAdminCustomers(
@@ -178,3 +178,24 @@ export async function getPublicStoreSettings(): Promise<PublicStoreSettings> {
   const { data } = await request<Envelope<PublicStoreSettings>>("/api/v1/store");
   return data;
 }
+
+export async function getAdminShippingZones(): Promise<ShippingZone[]> {
+  const res = await request<Envelope<ShippingZone[]>>("/api/v1/admin/shipping/zones", { auth: true });
+  return res.data || [];
+}
+
+export async function updateAdminShippingMethod(
+  id: string,
+  payload: {
+    base_cost: number;
+    per_kg_cost: number;
+    free_shipping_min_subtotal: number | null;
+  }
+): Promise<void> {
+  await request(`/api/v1/admin/shipping/methods/${id}`, {
+    method: "PUT",
+    body: payload,
+    auth: true,
+  });
+}
+

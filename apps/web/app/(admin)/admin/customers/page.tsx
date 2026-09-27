@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAdminCustomers } from "@/lib/customer/queries";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function CustomersPage() {
+  const router = useRouter();
   const { t } = useLanguage();
   const [q, setQ] = useState("");
   const debouncedQ = useDebounce(q, 500);
@@ -42,6 +44,7 @@ export default function CustomersPage() {
       <div className="flex gap-4 mb-6">
         <Input 
           placeholder={t("adminCustomer.customers.search")}
+          aria-label={t("adminCustomer.customers.search")}
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
@@ -56,7 +59,7 @@ export default function CustomersPage() {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-[200px]" aria-label="Urutkan daftar pelanggan">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -70,12 +73,12 @@ export default function CustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Nama</TableHead>
-              <TableHead>No. HP</TableHead>
-              <TableHead className="text-right">Total Pesanan</TableHead>
-              <TableHead className="text-right">Total Belanja</TableHead>
-              <TableHead className="text-right">Tgl Daftar</TableHead>
+              <TableHead>{t("adminCustomer.customers.colEmail")}</TableHead>
+              <TableHead>{t("adminCustomer.customers.colName")}</TableHead>
+              <TableHead>{t("adminCustomer.customers.colPhone")}</TableHead>
+              <TableHead className="text-right">{t("adminCustomer.customers.colOrders")}</TableHead>
+              <TableHead className="text-right">{t("adminCustomer.customers.colSpent")}</TableHead>
+              <TableHead className="text-right">{t("adminCustomer.customers.colRegistered")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,15 +98,24 @@ export default function CustomersPage() {
               data?.data.map((c) => (
                 <TableRow 
                   key={c.id} 
-                  className="cursor-pointer hover:bg-muted/50" 
-                  onClick={() => window.location.href = `/admin/customers/${c.id}`}
+                  tabIndex={0}
+                  className="cursor-pointer hover:bg-muted/50 focus:outline-none focus:bg-muted/50" 
+                  onClick={() => router.push(`/admin/customers/${c.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`/admin/customers/${c.id}`);
+                    }
+                  }}
+                  role="link"
+                  aria-label={`${c.full_name || c.email} detail`}
                 >
-                  <TableCell>{c.email}</TableCell>
+                  <TableCell className="font-medium text-foreground">{c.email}</TableCell>
                   <TableCell>{c.full_name || "-"}</TableCell>
                   <TableCell>{c.phone || "-"}</TableCell>
                   <TableCell className="text-right">{c.orders_count}</TableCell>
-                  <TableCell className="text-right">{formatRupiah(c.total_spent)}</TableCell>
-                  <TableCell className="text-right">{new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(c.created_at))}</TableCell>
+                  <TableCell className="text-right font-medium">{formatRupiah(c.total_spent)}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">{new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(c.created_at))}</TableCell>
                 </TableRow>
               ))
             )}
@@ -118,6 +130,7 @@ export default function CustomersPage() {
             size="sm"
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
+            aria-label={t("adminCustomer.customers.prevPage")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -129,6 +142,7 @@ export default function CustomersPage() {
             size="sm"
             onClick={() => setPage(p => p + 1)}
             disabled={page >= Math.ceil(data.meta.total / limit)}
+            aria-label={t("adminCustomer.customers.nextPage")}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
