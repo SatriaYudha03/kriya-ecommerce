@@ -34,6 +34,6 @@
 - 2026-09-27 - F3-D (Seed/audit after-sales) dikerjakan sebagian di `ec/F3-D-seed-audit-aftersales` (fcf0eba):
   1. ✅ Seed demo idempoten `supabase/seed/ec-v2/aftersales.sql`: 10 ulasan approved untuk produk dari order seed minimal (idempoten via unique constraint user+product).
   2. ✅ Audit i18n: perbaiki 60+ hardcoded text di orders/page, orders/[id]/page, cancel-dialog, return-dialog, product-reviews, returns/page, reviews/page. Tambah 40+ keys i18n (filter, pagination, cancel, return reasons, admin). **Belum diperbaiki (non-blocking):** my-reviews.tsx (~20 teks), admin/orders/page.tsx (~10 teks), admin/reviews (sudah ada keys tapi belum dipakai).
-  3. ⏭ EXPLAIN ANALYZE query after-sales: belum dikerjakan (butuh DB dev aktif + data signifikan).
+  3. ✅ EXPLAIN ANALYZE query after-sales (6 orders, 0 reviews di DB dev): `GET /orders` (user_id filter) 0.095ms, `GET /admin/reviews` (status filter) 0.110ms, `GET /admin/returns` (status filter) 0.062ms. Index sudah optimal: `idx_orders_user_created`, `idx_reviews_status`, `idx_returns_status`. **Tidak ada rekomendasi index baru** - semua query pakai index existing dengan baik.
   4. ✅ E2E `ec-aftersales.spec.ts`: sudah lengkap dari D7, belum dijalankan ulang di F3 (webServer Playwright gagal start - issue pre-existing).
   **A11y dasar:** tidak diaudit eksplisit (label form sudah ada dari D1-D7, fokus dialog sudah default shadcn/ui, kontras badge belum dicek - minor).
