@@ -3,7 +3,7 @@
 **Agent:** I-BE
 **Tanggal:** 2026-09-27
 **Branch:** `ec/I-BE-checkout-v2`
-**Commit SHA terakhir:** (isi setelah push — lihat `git log origin/ec/I-BE-checkout-v2 -1`)
+**Commit SHA terakhir:** `5cf6808` (diverifikasi: `git log origin/ec/I-BE-checkout-v2 -1`)
 **Status:** sebagian — seluruh kode & DoD teknis (build/vet/test/ownership/any-check) hijau dan **quote + webhook diverifikasi penuh lewat curl ke DB dev**, tapi demo `POST /orders` end-to-end **diblokir bug di luar kepemilikan I-BE** (`internal/catalog/ledger.go` — lihat "Permintaan lintas-domain" di `docs/ec-v2/LOG-I.md`). Semua langkah SEBELUM `Inventory.Reserve` sudah diverifikasi benar terhadap DB dev sungguhan.
 
 ## DoD §2.2 — output asli
