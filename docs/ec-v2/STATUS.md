@@ -88,7 +88,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | ID | Task | Status | Agent | Tgl klaim | Branch | Commit | Report | Catatan |
 |---|---|---|---|---|---|---|---|---|
 | I-BE | Checkout v2 backend | ⬜ | | | | | | |
-| I-FE | Checkout v2 frontend | 🟦 | I-FE | 2026-09-27 | | | | |
+| I-FE | Checkout v2 frontend | ✅ | I-FE | 2026-09-27 | `ec/I-FE-checkout-v2` | `919b659` | `docs/report/I-FE.md` | Dikembangkan via fixtures (I-BE belum ada implementasi saat ditutup). tsc/eslint/next build hijau. E2E `transaksi.spec.ts` ditulis ulang tapi tidak bisa diverifikasi hijau di sandbox ini (webServer Playwright gagal start untuk semua spec, termasuk yang tidak diubah — lihat LOG-I.md). |
 | I-QA | E2E flow penuh | ⬜ | | | | | | |
 
 ## F3 — Pengerasan (menunggu G2)
