@@ -1,9 +1,9 @@
 # Log Agent - Agent A
 
 ## Status Terkini
-- **Task Terakhir:** A5 - Ledger stok
+- **Task Terakhir:** A7 - Seed & E2E katalog
 - **Status:** Selesai
-- **Commit Terakhir:** HEAD (belum push)
+- **Commit Terakhir:** 903c5a5
 
 ## Log
 *Catat langkah-langkah yang sudah diambil, keputusan penting, dan masalah (beserta solusinya) di sini. Satu baris atau paragraf per sesi.*
@@ -13,9 +13,5 @@
 - 2026-09-27 - Mengerjakan A3. Menambahkan GET /categories aditif dengan parent_id. Membuat CRUD /admin/categories dan halaman FE /admin/catalog/categories. Menambahkan recursive CTE pada filter kategori produk. Menambahkan deskripsi, gambar, dan navigasi anak pada halaman /categories/[slug].
 - 2026-09-27 - Mengerjakan A4. Menyelesaikan CRUD tag, atribut, term, integrasi form admin, UI facet di FilterBar, dan halaman admin.
 - 2026-09-27 - Mengerjakan A5. Implementasi `ledger.go` (implementasi antarmuka checkout.InventoryLedger) beserta endpoint CRUD inventori admin. FE halaman `/admin/inventory` selesai.
-
-## Permintaan lintas-domain
-*Format: YYYY-MM-DD | TaskID | BUTUH: ... | ALASAN: ... | MEMBLOKIR: (ya/tidak) | USULAN: ...*
-
-- 2026-09-26 | A1 | BUTUH: fix missing FE refactor from main | ALASAN: Task 0C di-report sudah selesai tapi commit code 0186854 tidak ter-merge di branch main | MEMBLOKIR: tidak | USULAN: Saya sudah me-merge commit 0186854 ke dalam branch ec/A1-status-produk-arsip agar kode FE berjalan lancar.
-- 2026-09-27 | A5 | BUTUH: Wiring `checkout.InventoryLedger` ke dalam aliran pesanan (`order_repo.go` atau handler checkout). | ALASAN: Endpoint checkout berada di luar area kekuasaan `Agent A` (bukan bagian dari `internal/catalog/`), sehingga saya hanya menyelesaikan file `ledger.go` (menyediakan konstruktor `NewInventoryLedger`). Pengujian pergerakan stok ketika *checkout* dan *expire* belum otomatis terhubung. | MEMBLOKIR: Ya (pengujian end-to-end stok saat transaksi). | USULAN: Diserahkan kepada Integrator F2 (I-BE) untuk menyisipkan dependency ini di `main.go`/`ports`.- 2026-09-27: A6 Produk terkait & rating selesai (rating_avg, upsell, cross-sell frontend & backend).
+- 2026-09-27 - Mengerjakan A6. Produk terkait & rating selesai (rating_avg, upsell, cross-sell frontend & backend).
+- 2026-09-27 - Mengerjakan A7. Menyesuaikan `cmd/seed` agar menyetel status='published' & published_at serta membuat atribut material dan 12 terms secara idempoten; mendaftarkan rute publik tags & attributes di routes.go; menulis test Playwright `e2e/ec-catalog.spec.ts` (draft tak tampil, filter URL, harga coret, arsip) dan seluruh 4 test lulus. Selesai dan di-push.
