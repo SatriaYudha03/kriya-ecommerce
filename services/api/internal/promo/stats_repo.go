@@ -70,7 +70,7 @@ func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
 	}
 
 	if err := r.db.Table("orders").
-		Select("id, order_number, status, total as total, created_at, customer_email").
+		Select("id, order_number, status, total, created_at, '' AS customer_email").
 		Order("created_at DESC").Limit(5).
 		Scan(&stats.RecentOrders).Error; err != nil {
 		return nil, err
