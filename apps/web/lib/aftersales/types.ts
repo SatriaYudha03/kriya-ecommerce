@@ -76,6 +76,7 @@ export interface Order {
   payment: PaymentInfo;
   can_cancel: boolean;
   can_return: boolean;
+  refundable_amount?: number;
   paid_at: string | null;
   shipped_at: string | null;
   completed_at: string | null;
@@ -135,4 +136,71 @@ export interface UpdateReviewRequest {
 export interface AdminUpdateReviewRequest {
   status?: ReviewStatus;
   admin_reply?: string;
+}
+export type ReturnStatus = "requested" | "approved" | "rejected" | "received" | "refunded" | "cancelled";
+export type ReturnReasonCode = "damaged" | "wrong_item" | "not_as_described" | "missing_parts" | "changed_mind" | "other";
+
+export interface ReturnRequestItem {
+  order_item_id: string;
+  qty: number;
+  product_name: string;
+  product_slug: string;
+  thumbnail_url: string;
+}
+
+export interface ReturnRequest {
+  id: string;
+  order_id: string;
+  order_number?: string;
+  status: ReturnStatus;
+  reason_code: ReturnReasonCode;
+  description: string | null;
+  admin_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
+  items: ReturnRequestItem[];
+}
+
+export interface CreateReturnRequestItem {
+  order_item_id: string;
+  qty: number;
+}
+
+export interface CreateReturnRequest {
+  reason_code: ReturnReasonCode;
+  description?: string;
+  items: CreateReturnRequestItem[];
+}
+
+export interface AdminUpdateReturnStatusRequest {
+  status: ReturnStatus;
+  admin_note?: string;
+}
+
+export interface RefundItem {
+  order_item_id: string;
+  qty: number;
+  amount: number;
+}
+
+export interface Refund {
+  id: string;
+  order_id: string;
+  amount: number;
+  shipping_amount: number;
+  restock: boolean;
+  created_at: string;
+  items: RefundItem[];
+}
+
+export interface CreateRefundRequestItem {
+  order_item_id: string;
+  qty: number;
+}
+
+export interface CreateRefundRequest {
+  items: CreateRefundRequestItem[];
+  restock: boolean;
+  return_id?: string;
+  note?: string;
 }

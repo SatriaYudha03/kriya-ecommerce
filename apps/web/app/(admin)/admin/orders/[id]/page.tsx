@@ -8,6 +8,7 @@ import type { OrderStatus } from "@/lib/aftersales/types";
 import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
 import Link from "next/link";
 import { ArrowLeft, Package, Loader2 } from "lucide-react";
+import { RefundOrderDialog } from "@/components/kriya/aftersales/refund-order-dialog";
 
 export default function AdminOrderDetailPage({ params }: { params: { id: string } }) {
   const queryClient = useQueryClient();
@@ -153,6 +154,18 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
                 {statusMut.isPending ? 'Memperbarui...' : 'Perbarui Status'}
               </button>
             </div>
+            
+            {order.status === "completed" || order.status === "cancelled" || order.status === "refunded" ? (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-semibold text-sm mb-2 text-neutral-900">Refund Manual</h3>
+                <p className="text-xs text-neutral-500 mb-3">
+                  Proses refund sebagian atau seluruhnya.
+                </p>
+                <div className="w-full">
+                  <RefundOrderDialog order={order} className="w-full" />
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-neutral-200">

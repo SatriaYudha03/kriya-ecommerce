@@ -79,6 +79,7 @@ type OrderResponse struct {
 	Payment          PaymentResponse          `json:"payment"`
 	CanCancel        bool                     `json:"can_cancel"`
 	CanReturn        bool                     `json:"can_return"`
+	RefundableAmount int                      `json:"refundable_amount"`
 	PaidAt           *time.Time               `json:"paid_at"`
 	ShippedAt        *time.Time               `json:"shipped_at"`
 	CompletedAt      *time.Time               `json:"completed_at"`

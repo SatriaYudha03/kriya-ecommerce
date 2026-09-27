@@ -1,6 +1,7 @@
 package aftersales
 
 import (
+	"github.com/kriya-commerce/api/internal/checkout"
 	"github.com/kriya-commerce/api/internal/platform"
 )
 
@@ -14,10 +15,27 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	reviewRepo := NewReviewRepository(deps.DB)
 	reviewHandler := NewReviewHandler(reviewRepo)
 
+	// PERMINTAAN LINTAS-DOMAIN (I-BE):
+	// Mohon tambahkan checkout.Ports ke platform.Deps.
+	dummyPorts := checkout.Ports{}
+
+	returnsRepo := NewReturnsRepository(deps.DB)
+	returnsHandler := NewReturnsHandler(returnsRepo, orderRepo, adminRepo, dummyPorts)
+
 	// Orders
 	r.Authed.GET("/orders", orderHandler.ListOrders)
 	r.Authed.GET("/orders/:id", orderHandler.GetOrder)
 	r.Authed.POST("/orders/:id/cancel", orderHandler.CancelOrder)
+
+	// Returns (Customer)
+	r.Authed.GET("/returns", returnsHandler.ListReturnRequests)
+	r.Authed.GET("/returns/:id", returnsHandler.GetReturnRequest)
+	r.Authed.POST("/orders/:id/returns", returnsHandler.CreateReturnRequest)
+
+	// Admin Returns & Refunds
+	r.Admin.GET("/returns", returnsHandler.AdminListReturns)
+	r.Admin.PUT("/returns/:id", returnsHandler.AdminUpdateReturnStatus)
+	r.Admin.POST("/orders/:id/refunds", returnsHandler.AdminCreateRefund)
 
 	// Reviews
 	r.Public.GET("/products/:slug/reviews", reviewHandler.GetProductReviews)

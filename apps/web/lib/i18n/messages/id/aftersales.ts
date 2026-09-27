@@ -83,4 +83,8 @@ export const aftersalesId = {
   "after.admin.reviews.replyCancel": "Batal",
   "after.admin.reviews.replySubmit": "Kirim Balasan",
   "after.admin.reviews.successUpdate": "Ulasan diperbarui",
+
+  "after.returns.title": "Daftar Retur",
+  "after.returns.empty": "Belum ada retur.",
+  "adminAfter.returns.title": "Kelola Retur",
 };

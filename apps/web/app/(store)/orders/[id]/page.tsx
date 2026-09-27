@@ -8,6 +8,7 @@ import { ArrowLeft, ExternalLink, Package } from "lucide-react";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
 import { CancelOrderDialog } from "@/components/kriya/aftersales/cancel-order-dialog";
+import { ReturnOrderDialog } from "@/components/kriya/aftersales/return-order-dialog";
 
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const { t, locale } = useLanguage();
@@ -51,6 +52,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <div className="flex items-center gap-2 mt-4 sm:mt-0">
               {order.can_cancel && (
                 <CancelOrderDialog orderId={order.id} />
+              )}
+              {order.can_return && (
+                <ReturnOrderDialog orderId={order.id} items={order.items} />
               )}
               {order.payment?.can_continue && (
                 <Link 

@@ -98,6 +98,7 @@ type Order struct {
 	TotalCount      int64      `gorm:"->;column:total_count"`
 	PaStatus        *string    `gorm:"->;column:pa_status"`
 	PaExpiresAt     *time.Time `gorm:"->;column:pa_expires_at"`
+	RefundableAmount int       `gorm:"->;column:refundable_amount"`
 }
 
 func (Order) TableName() string { return "orders" }
@@ -225,7 +226,7 @@ func (r *OrderRepository) ListByUser(userID string, page, limit int, status stri
 func (r *OrderRepository) GetByIDForUser(id, userID string) (*Order, error) {
 	var order Order
 	err := r.db.Model(&Order{}).
-		Select("orders.*, pa.status as pa_status, pa.expires_at as pa_expires_at").
+		Select("orders.*, pa.status as pa_status, pa.expires_at as pa_expires_at, (orders.total - COALESCE((SELECT SUM(amount) FROM refunds WHERE order_id = orders.id), 0)) as refundable_amount").
 		Joins("LEFT JOIN payment_attempts pa ON pa.order_id = orders.id AND pa.status = 'active'").
 		Where("orders.id = ? AND orders.user_id = ?", id, userID).
 		First(&order).Error

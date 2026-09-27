@@ -84,4 +84,8 @@ export const aftersalesEn: typeof aftersalesId = {
   "after.admin.reviews.replyCancel": "Cancel",
   "after.admin.reviews.replySubmit": "Submit Reply",
   "after.admin.reviews.successUpdate": "Review updated",
+
+  "after.returns.title": "Returns List",
+  "after.returns.empty": "No returns yet.",
+  "adminAfter.returns.title": "Manage Returns",
 };
