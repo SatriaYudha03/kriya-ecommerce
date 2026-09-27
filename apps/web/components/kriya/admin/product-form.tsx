@@ -8,8 +8,9 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X, Plus, Trash2, Star, Loader2, ImagePlus } from "lucide-react";
-import { useCategories, useAdminProduct, useAdminTags, useAdminAttributes } from "@/lib/catalog/queries";
+import { useCategories, useAdminProduct, useAdminTags, useAdminAttributes, useAdminProducts } from "@/lib/catalog/queries";
 import { uploadProductImage } from "@/lib/storage";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   createProduct,
   updateProduct,
@@ -22,6 +23,7 @@ import {
 } from "@/lib/catalog/api";
 import { ApiError } from "@/lib/http";
 import type { VariantInput } from "@/lib/catalog/types";
+import { useLanguage } from "../language-provider";
 
 type VariantRow = {
   key: string;
@@ -56,6 +58,92 @@ function emptyVariant(): VariantRow {
   return { key: uid(), sku: "", color: "", size: "", price: 0, stock: 0 };
 }
 
+function ProductMultiSelect({
+  value,
+  onChange,
+  excludeId,
+  label,
+}: {
+  value: string[];
+  onChange: (val: string[]) => void;
+  excludeId?: string;
+  label: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const { data } = useAdminProducts({ q, limit: 20, status: "published" });
+
+  const toggle = (id: string) => {
+    if (value.includes(id)) {
+      onChange(value.filter((v) => v !== id));
+    } else {
+      onChange([...value, id]);
+    }
+  };
+
+  const remove = (id: string) => {
+    onChange(value.filter((v) => v !== id));
+  };
+
+  return (
+    <div className="space-y-2">
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {value.map((id) => {
+            const prod = data?.data.find((p) => p.id === id);
+            return (
+              <div key={id} className="flex items-center gap-1 rounded bg-neutral-100 px-2 py-1 text-xs">
+                <span className="truncate max-w-[150px]" title={id}>
+                  {prod ? prod.name : id}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => remove(id)}
+                  className="text-neutral-500 hover:text-red-500 ml-1"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger className="flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50">
+          Pilih {label}...
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-0" align="start">
+          <div className="p-2 border-b">
+            <input
+              type="text"
+              placeholder="Cari produk..."
+              className="w-full rounded bg-neutral-100 px-2 py-1 text-sm outline-none"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto p-2">
+            {data?.data.filter((p) => p.id !== excludeId).map((p) => (
+              <label key={p.id} className="flex cursor-pointer items-center gap-2 rounded p-1 hover:bg-neutral-100">
+                <input
+                  type="checkbox"
+                  checked={value.includes(p.id)}
+                  onChange={() => toggle(p.id)}
+                  className="rounded border-neutral-300 text-brand-strong focus:ring-brand-strong"
+                />
+                <span className="text-sm truncate">{p.name}</span>
+              </label>
+            ))}
+            {data?.data.length === 0 && (
+              <div className="p-2 text-center text-sm text-neutral-500">Tidak ada hasil</div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 export function ProductForm({
   productId,
   onClose,
@@ -63,6 +151,7 @@ export function ProductForm({
   productId?: string;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const isEdit = Boolean(productId);
   const qc = useQueryClient();
   const { data: categories } = useCategories();
@@ -432,20 +521,20 @@ export function ProductForm({
               ))}
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Upsell Product IDs (koma separated)">
-                  <input
-                    className={inputCls}
-                    value={upsellIds.join(", ")}
-                    onChange={(e) => setUpsellIds(e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                    placeholder="id1, id2"
+                <Field label={t("adminCatalog.productForm.upsell")}>
+                  <ProductMultiSelect
+                    label="Upsell"
+                    value={upsellIds}
+                    onChange={setUpsellIds}
+                    excludeId={productId}
                   />
                 </Field>
-                <Field label="Cross-Sell Product IDs (koma separated)">
-                  <input
-                    className={inputCls}
-                    value={crossSellIds.join(", ")}
-                    onChange={(e) => setCrossSellIds(e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                    placeholder="id1, id2"
+                <Field label={t("adminCatalog.productForm.crossSell")}>
+                  <ProductMultiSelect
+                    label="Cross-sell"
+                    value={crossSellIds}
+                    onChange={setCrossSellIds}
+                    excludeId={productId}
                   />
                 </Field>
               </div>

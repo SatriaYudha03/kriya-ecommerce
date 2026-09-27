@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Minus, Package, Plus, Ruler, ShoppingBag, Truck } from "lucide-react";
 import { categoryLabel } from "@/lib/category-meta";
-import { useProduct, useSimilarProducts } from "@/lib/catalog/queries";
+import { useProduct, useRelatedProducts } from "@/lib/catalog/queries";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
@@ -15,29 +15,22 @@ import { ProductTabs } from "./product-tabs";
 import { VariantSelector } from "./variant-selector";
 import { ProductCard } from "./product-card";
 import { PriceTag } from "./catalog/price-tag";
+import { RatingStars } from "./catalog/rating-stars";
 import { useLanguage } from "./language-provider";
+import { WishlistButton } from "@/components/kriya/customer/wishlist-button";
+import { ProductReviews } from "@/components/kriya/aftersales/product-reviews";
 
-function SimilarProducts({ productId }: { productId: string }) {
-  const { data, isLoading } = useSimilarProducts(productId);
+function RelatedProducts({ slug, type, title }: { slug: string; type: "upsell" | "cross_sell"; title: string }) {
+  const { data, isLoading } = useRelatedProducts(slug, type, 8);
 
   if (isLoading || !data || data.data.length === 0) return null;
 
   return (
     <section className="mt-20 border-t border-neutral-200 pt-16">
-      <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Mungkin Kamu Suka</h2>
+      <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">{title}</h2>
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
-        {data.data.slice(0, 4).map((item) => (
-          <ProductCard
-            key={item.slug}
-            product={{
-              id: item.product_id,
-              slug: item.slug,
-              name: item.name,
-              category_slug: "", // Not strictly used for display
-              thumbnail_url: item.thumbnail_url,
-              price_min: item.price_min,
-            }}
-          />
+        {data.data.map((item) => (
+          <ProductCard key={item.slug} product={item} />
         ))}
       </div>
     </section>
@@ -45,7 +38,7 @@ function SimilarProducts({ productId }: { productId: string }) {
 }
 
 export function ProductDetailView({ slug }: { slug: string }) {
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const { data: product, isLoading, isError } = useProduct(slug);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
@@ -133,6 +126,12 @@ export function ProductDetailView({ slug }: { slug: string }) {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
             {product.name}
           </h1>
+
+          {(product.rating_count ?? 0) > 0 && (
+            <div className="mt-3">
+              <RatingStars value={product.rating_avg ?? 0} count={product.rating_count ?? 0} />
+            </div>
+          )}
 
           <div className="mt-4 flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -224,6 +223,7 @@ export function ProductDetailView({ slug }: { slug: string }) {
               <ShoppingBag className="h-4 w-4" />
               {stock > 0 ? (loading ? "Memproses..." : "Tambah ke keranjang") : "Stok habis"}
             </button>
+            <WishlistButton productId={product.id} variant="full" />
           </div>
 
           <ul className="mt-8 space-y-2.5 border-t border-neutral-200 pt-6 text-sm text-neutral-600">
@@ -244,14 +244,19 @@ export function ProductDetailView({ slug }: { slug: string }) {
         </div>
       </div>
 
-      <div className="mt-14">
-        <ProductTabs product={product} />
-      </div>
+        <div className="mt-14">
+          <ProductTabs product={product} />
+        </div>
 
-      <SimilarProducts productId={product.id} />
-    </div>
-  );
-}
+        <div className="mt-14">
+          <ProductReviews productSlug={product.slug} />
+        </div>
+
+        <RelatedProducts slug={product.slug} type="cross_sell" title={t("catalog.related.cross_sell")} />
+        <RelatedProducts slug={product.slug} type="upsell" title={t("catalog.related.upsell")} />
+      </div>
+    );
+  }
 
 function PdpSkeleton() {
   return (

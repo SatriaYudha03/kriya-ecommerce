@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { formatRupiah } from "@/lib/format";
 import type { ProductListItem } from "@/lib/types";
 import { ProductMedia } from "./product-media";
 import { useLanguage } from "./language-provider";
 import { PriceTag } from "./catalog/price-tag";
+import { RatingStars } from "./catalog/rating-stars";
+import { WishlistButton } from "@/components/kriya/customer/wishlist-button";
 
 // Kartu produk katalog. Rasio media 4:5 (AGENT-FE). Presentasional ?" dipakai
 // baik di server maupun client component.
@@ -19,6 +20,9 @@ export function ProductCard({ product }: { product: ProductListItem }) {
             SALE
           </div>
         )}
+        <div className="absolute right-2 top-2 z-10">
+          <WishlistButton productId={product.id} variant="icon" />
+        </div>
         <ProductMedia
           name={product.name}
           src={product.thumbnail_url}
@@ -29,6 +33,11 @@ export function ProductCard({ product }: { product: ProductListItem }) {
         <h3 className="text-sm font-medium text-neutral-900 group-hover:text-brand-strong">
           {product.name}
         </h3>
+        {(product.rating_count ?? 0) > 0 && (
+          <div className="mt-1">
+            <RatingStars value={product.rating_avg ?? 0} count={product.rating_count ?? 0} size="sm" />
+          </div>
+        )}
         <div className="mt-1">
           <span className="text-xs text-neutral-500">{t("product.startsFrom")}</span>
           <div className="-mt-0.5">
