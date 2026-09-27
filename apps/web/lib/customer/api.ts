@@ -1,6 +1,6 @@
 import { request, USE_FIXTURES } from "../http";
 import type { Envelope } from "../http";
-import type { Profile, UpdateProfilePayload, Cart, Address, AddressInput, Province, Wishlist } from "./types";
+import type { Profile, UpdateProfilePayload, Cart, Address, AddressInput, Province, Wishlist, ContinuePaymentResponse } from "./types";
 import { fixtures } from "./fixtures";
 
 export async function getProfile(): Promise<Profile> {
@@ -121,3 +121,11 @@ export async function deleteWishlist(productId: string): Promise<void> {
   });
 }
 
+
+export async function continuePayment(orderId: string): Promise<ContinuePaymentResponse> {
+  const { data } = await request<Envelope<ContinuePaymentResponse>>(`/api/v1/orders/${orderId}/pay`, {
+    method: "POST",
+    auth: true,
+  });
+  return data;
+}

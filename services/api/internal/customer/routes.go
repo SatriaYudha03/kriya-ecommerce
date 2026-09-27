@@ -40,4 +40,8 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 
 	r.Admin.GET("/shipping/zones", shippingHandler.GetAdminZones)
 	r.Admin.PUT("/shipping/methods/:id", shippingHandler.UpdateMethod)
+	paymentRepo := NewPaymentRepository(deps.DB)
+	paymentHandler := NewPaymentHandler(paymentRepo, deps.Midtrans, deps.Cfg.MidtransClientKey)
+
+	r.Authed.POST("/orders/:id/pay", paymentHandler.PayOrder)
 }

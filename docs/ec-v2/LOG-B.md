@@ -22,5 +22,9 @@
 *Format: YYYY-MM-DD · TaskID · BUTUH: ... · ALASAN: ... · MEMBLOKIR: (ya/tidak) · USULAN: ...*
 
 - [Kosong]
+- 2026-09-27 - B5 - BUTUH: `CreateSnapTransaction` menerima argumen `expiryMinutes` di `internal/service/midtrans.go`. ALASAN: Endpoint `POST /orders/:id/pay` perlu menentukan expiry TTL dari tabel `store_settings`. Saat ini MidtransService hanya menerima order_id dan amount. MEMBLOKIR: Tidak (dikerjakan dengan parameter yang ada sebagai dummy sementara). USULAN: Claude (core) perlu mengubah signature menjadi `CreateSnapTransaction(midtransOrderID string, grossAmount int, expiryMinutes int)`.
+- 2026-09-27 - B5 - CATATAN: Webhook yang mengenali payment attempt baru belum diimplementasi (tugas I-BE di F2).
 
 - 2026-09-27 - B3 (wishlist): Menyelesaikan fitur Wishlist (backend GORM dan frontend) di branch ec/B3-wishlist. DoD hijau.
+- 2026-09-27 - B5 (lanjut bayar): Menyelesaikan fitur lanjut bayar.
+
