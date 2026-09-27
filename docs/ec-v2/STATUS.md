@@ -81,7 +81,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | D4 | Ulasan | ✅ | D | 2026-09-27 | `ec/D4-ulasan` | `7124123` | `docs/report/D4.md` | |
 | D5 | Retur & refund | ✅ | D | 2026-09-27 | `ec/D5-retur-refund` | `a896fea` | `docs/report/D5.md` | Diperbaiki saat merge: map[string]interface{} diganti typed struct, map[string]string response diganti named type |
 | D6 | Notifikasi & invoice | ✅ | D | 2026-09-27 | `ec/D6-notifikasi-invoice` | `3a219fe` | `docs/report/D6.md` | Di-merge 2026-09-27. Diperbaiki: map[string]interface{} di UpdateOrderStatus diganti typed struct |
-| D7 | E2E aftersales | 🟦 | D | 2026-09-27 | | | | |
+| D7 | E2E aftersales | ✅ | D | 2026-09-27 | `ec/D7-e2e-aftersales` | `a115645` | `docs/report/D7.md` | |
 
 ## F2 — Integrasi checkout (menunggu G1)
 
