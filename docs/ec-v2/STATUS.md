@@ -79,7 +79,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | D2 | Event, catatan, resi | ✅ | D | 2026-09-26 | `ec/D2-event-catatan-resi` | `80b1944` | `docs/report/D2.md` | |
 | D3 | Batal oleh customer | ✅ | D | 2026-09-27 | `ec/D3-batal-oleh-customer` | `04a715f` | `docs/report/D3.md` | |
 | D4 | Ulasan | ✅ | D | 2026-09-27 | `ec/D4-ulasan` | `7124123` | `docs/report/D4.md` | |
-| D5 | Retur & refund | 🟦 | D | 2026-09-27 | | | | |
+| D5 | Retur & refund | ✅ | D | 2026-09-27 | `ec/D5-retur-refund` | `a896fea` | `docs/report/D5.md` | |
 | D6 | Notifikasi & invoice | ⬜ | | | | | | |
 | D7 | E2E aftersales | ⬜ | | | | | | |
 
