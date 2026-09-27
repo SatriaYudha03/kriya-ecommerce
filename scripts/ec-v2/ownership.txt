@@ -144,9 +144,13 @@ Claude scripts/ec-v2/**
 # check-ownership.sh memakai aturan terakhir yang cocok (lihat komentar di check-ownership.sh).
 shared docs/ec-v2/STATUS.md
 A docs/report/A*.md
+A docs/report/F3-A*.md
 B docs/report/B*.md
+B docs/report/F3-B*.md
 C docs/report/C*.md
+C docs/report/F3-C*.md
 D docs/report/D*.md
+D docs/report/F3-D*.md
 I docs/report/I-*.md
 0A docs/report/0A.md
 0B docs/report/0B.md
