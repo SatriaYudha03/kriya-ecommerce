@@ -32,4 +32,8 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Admin.POST("/products/:id/variants", adminHandler.CreateVariant)
 	r.Admin.PUT("/products/:id/variants/:variant_id", adminHandler.UpdateVariant)
 	r.Admin.DELETE("/products/:id/variants/:variant_id", adminHandler.DeleteVariant)
+
+	r.Admin.GET("/inventory", adminHandler.ListInventory)
+	r.Admin.GET("/inventory/movements", adminHandler.ListMovements)
+	r.Admin.POST("/inventory/adjustments", adminHandler.CreateAdjustment)
 }

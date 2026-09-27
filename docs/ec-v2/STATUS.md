@@ -59,14 +59,14 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | A2 | Harga sale terjadwal | ✅ | A | 2026-09-26 | ec/A2-harga-sale-terjadwal | e161ddf | docs/report/A2.md | |
 | A3 | Kategori bertingkat | ✅ | A | 2026-09-26 | `ec/A3-kategori-bertingkat` | `60db1c4` | `docs/report/A3.md` | |
 | A4 | Tag, atribut & facet | ✅ | A | 2026-09-27 | `ec/A4-tag-atribut-facet` | `ca8fda4` | `docs/report/A4.md` | `map[string]interface{}` baru di UpdateTag/UpdateAttribute/UpdateAttributeTerm mengikuti pola pre-existing — technical debt repo-wide, bukan pelanggaran A4 saja |
-| A5 | Ledger stok | 🟦 | A | 2026-09-27 | | | | |
+| A5 | Ledger stok | ✅ | A | 2026-09-27 | `ec/A5-ledger-stok` | `7e6af62` | `docs/report/A5.md` | |
 | A6 | Produk terkait & rating | ⬜ | | | | | | |
 | A7 | Seed & E2E katalog | ⬜ | | | | | | |
 | B1 | Buku alamat | ✅ | B | 2026-09-26 | `ec/B1-buku-alamat` (direwrite, lihat `9b51245`) | `9b51245` | `docs/report/B1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): tidak ada pelanggaran kepemilikan, tapi 2 penyimpangan kontrak diperbaiki saat merge — `api.ts` diarahkan ke `request()` dari `lib/http.ts` (sebelumnya custom fetch+supabase), dan `AddressPicker` dikembalikan ke signature beku §5.3 (`value`/`onChange`, sebelumnya diubah jadi `selectedId`/`onSelect`). Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
 | B2 | Keranjang relasional | ✅ | B | 2026-09-26 | `ec/B2-keranjang-relasional` | `0ddaaa5` | `docs/report/B2.md` | **Diperbaiki & di-merge 2026-09-26** (Claude): Memperbaiki pelanggaran kepemilikan core pada halaman auth dan `product-detail-view.tsx`. Penyesuaian `cart-store.ts` agar pemanggilan `syncFromServer` otomatis melakukan `mergeWithServer` tanpa perlu merubah logika halaman auth inti. |
 | B3 | Wishlist | ✅ | B | 2026-09-26 | `ec/B3-wishlist` | `d01c5d2` | `docs/report/B3.md` | |
 | B4 | Ongkir tabel | ✅ | B | 2026-09-27 | `ec/B4-ongkir-tabel` | `0a0a500` | `docs/report/B4.md` | Selesai |
-| B5 | Lanjut bayar | ⬜ | | | | | | |
+| B5 | Lanjut bayar | 🟦 | B | 2026-09-27 | | | | |
 | B6 | Admin pelanggan & pengaturan | ⬜ | | | | | | |
 | B7 | E2E customer | ⬜ | | | | | | |
 | C1 | Kupon admin | ✅ | C | 2026-09-26 | `ec/C1-kupon-admin` (direwrite, lihat `efc06d3`) | `efc06d3` | `docs/report/C1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): kode asli C1 (`d1c4079`) menaruh fungsi/tipe kupon di barrel core (`lib/api.ts`/`types.ts`/`admin-queries.ts`) karena worktree-nya predates 0C's real merge ke main. Dipindah ke `lib/promo/{api,types,queries}.ts`, endpoint Go (`internal/promo/**`) tidak berubah (sudah benar dari awal). Dua perubahan lain di commit asli (anotasi tipe di `search/page.tsx`/`product-detail-view.tsx`, di luar domain C) tidak diikutsertakan — tsc sudah bersih tanpanya. Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
@@ -79,7 +79,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | D2 | Event, catatan, resi | ✅ | D | 2026-09-26 | `ec/D2-event-catatan-resi` | `80b1944` | `docs/report/D2.md` | |
 | D3 | Batal oleh customer | ✅ | D | 2026-09-27 | `ec/D3-batal-oleh-customer` | `04a715f` | `docs/report/D3.md` | |
 | D4 | Ulasan | ✅ | D | 2026-09-27 | `ec/D4-ulasan` | `7124123` | `docs/report/D4.md` | |
-| D5 | Retur & refund | ⬜ | | | | | | |
+| D5 | Retur & refund | 🟦 | D | 2026-09-27 | | | | |
 | D6 | Notifikasi & invoice | ⬜ | | | | | | |
 | D7 | E2E aftersales | ⬜ | | | | | | |
 

@@ -224,7 +224,37 @@ export interface AdminAttributeTerm {
 export interface AdminAttributeTermInput {
   slug: string;
   name_i18n: Record<string, string>;
-  position: number;
+  position?: number;
+}
+
+export interface InventoryItem {
+  variant_id: string;
+  product_id: string;
+  product_name: string;
+  product_slug: string;
+  sku: string;
+  color: string;
+  size?: string;
+  stock: number;
+  low_stock: boolean;
+}
+
+export interface StockMovement {
+  id: string;
+  variant_id: string;
+  delta: number;
+  stock_after: number;
+  reason: "initial" | "order_reserved" | "order_released" | "restock" | "adjustment" | "return_restock";
+  order_id?: string;
+  actor_id?: string;
+  note?: string;
+  created_at: string;
+}
+
+export interface AdjustmentInput {
+  variant_id: string;
+  qty: number;
+  note?: string;
 }
 
 export interface AdminAttribute {

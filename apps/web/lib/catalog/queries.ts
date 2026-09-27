@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, getTags, getAttributes, getAdminTags, getAdminAttributes, type ProductsQuery, type AdminProductsQuery } from "./api";
+import { getCategories, getProduct, getProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, getTags, getAttributes, getAdminTags, getAdminAttributes, getAdminInventory, getAdminMovements, adjustStock, type ProductsQuery, type AdminProductsQuery, type AdminInventoryQuery } from "./api";
 import { ApiError } from "../http";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { promoKeys } from "../promo/queries";
@@ -173,5 +173,30 @@ export function useAdminAttributes() {
   return useQuery({
     queryKey: [...catalogKeys.all, "admin-attributes"],
     queryFn: () => getAdminAttributes(),
+  });
+}
+
+export function useInventory(query: AdminInventoryQuery) {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "inventory", query],
+    queryFn: () => getAdminInventory(query),
+  });
+}
+
+export function useMovements(variantId?: string, page = 1, limit = 20) {
+  return useQuery({
+    queryKey: [...catalogKeys.all, "movements", variantId, page, limit],
+    queryFn: () => getAdminMovements(variantId, page, limit),
+  });
+}
+
+export function useAdjustment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: adjustStock,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...catalogKeys.all, "inventory"] });
+      qc.invalidateQueries({ queryKey: [...catalogKeys.all, "movements"] });
+    },
   });
 }

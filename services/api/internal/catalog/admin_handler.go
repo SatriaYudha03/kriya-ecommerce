@@ -421,6 +421,8 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 		return
 	}
 
+	actorID, _ := httpx.UserID(c) // from context
+	
 	updates := map[string]interface{}{
 		"sku":            req.Sku,
 		"color":          req.Color,
@@ -435,9 +437,9 @@ func (h *AdminHandler) UpdateVariant(c *gin.Context) {
 		updates["is_active"] = *req.IsActive
 	}
 
-	if err := h.repo.UpdateVariant(variantID, updates); err != nil {
+	if err := h.repo.UpdateVariantWithLedger(variantID, updates, req.Stock, actorID); err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
-			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui varian"},
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memperbarui varian: " + err.Error()},
 		})
 		return
 	}
@@ -554,8 +556,8 @@ func (h *AdminHandler) GetProduct(c *gin.Context) {
 }
 
 // AddProductImage menambah gambar ke produk yang sudah ada (dipakai saat edit).
-// storage_path diproduksi FE setelah meng-upload berkas ke Supabase Storage.
 func (h *AdminHandler) AddProductImage(c *gin.Context) {
+
 	productID := c.Param("id")
 	var req AdminImageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -845,4 +847,66 @@ func (h *AdminHandler) DeleteAttributeTerm(c *gin.Context) {
 		Deleted bool   `json:"deleted"`
 	}
 	c.JSON(http.StatusOK, httpx.Response{Data: deleteResp{ID: id, Deleted: true}})
+}
+
+func (h *AdminHandler) ListInventory(c *gin.Context) {
+	q := c.Query("q")
+	lowStockStr := c.Query("low_stock")
+	lowStock := false
+	if lowStockStr == "true" {
+		lowStock = true
+	}
+	page, limit := httpx.ParsePagination(c)
+
+	items, total, err := h.repo.GetInventory(q, lowStock, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil inventori"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{
+		Data: items,
+		Meta: &httpx.Meta{Page: page, Limit: limit, Total: total},
+	})
+}
+
+func (h *AdminHandler) ListMovements(c *gin.Context) {
+	variantID := c.Query("variant_id")
+	page, limit := httpx.ParsePagination(c)
+
+	movements, total, err := h.repo.GetStockMovements(variantID, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil riwayat stok"},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{
+		Data: movements,
+		Meta: &httpx.Meta{Page: page, Limit: limit, Total: total},
+	})
+}
+
+func (h *AdminHandler) CreateAdjustment(c *gin.Context) {
+	var req AdminStockAdjustmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "validation_error", Message: err.Error()},
+		})
+		return
+	}
+
+	actorID, _ := httpx.UserID(c)
+
+	if err := h.repo.AdjustStock(req.VariantID, req.Qty, req.Note, actorID); err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menyesuaikan stok: " + err.Error()},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"variant_id": req.VariantID}})
 }
