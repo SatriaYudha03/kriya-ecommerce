@@ -88,7 +88,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | ID | Task | Status | Agent | Tgl klaim | Branch | Commit | Report | Catatan |
 |---|---|---|---|---|---|---|---|---|
 | I-BE | Checkout v2 backend | ⬜ | | | | | | |
-| I-FE | Checkout v2 frontend | ⬜ | | | | | | |
+| I-FE | Checkout v2 frontend | 🟦 | I-FE | 2026-09-27 | | | | |
 | I-QA | E2E flow penuh | ⬜ | | | | | | |
 
 ## F3 — Pengerasan (menunggu G2)
