@@ -136,3 +136,46 @@ export async function updateAdminReview(id: string, req: AdminUpdateReviewReques
   });
   return data;
 }
+import type { ReturnRequest, CreateReturnRequest, AdminUpdateReturnStatusRequest, CreateRefundRequest, Refund } from "./types";
+
+export async function createReturn(orderId: string, req: CreateReturnRequest): Promise<ReturnRequest> {
+  const { data } = await request<Envelope<ReturnRequest>>(`/api/v1/orders/${orderId}/returns`, {
+    method: "POST",
+    body: req,
+    auth: true,
+  });
+  return data;
+}
+
+export async function getReturns(page: number = 1, limit: number = 10): Promise<ListEnvelope<ReturnRequest>> {
+  const query = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  return request<ListEnvelope<ReturnRequest>>(`/api/v1/returns?${query.toString()}`, { auth: true });
+}
+
+export async function getReturn(id: string): Promise<ReturnRequest> {
+  const { data } = await request<Envelope<ReturnRequest>>(`/api/v1/returns/${id}`, { auth: true });
+  return data;
+}
+
+export async function getAdminReturns(status?: string, page: number = 1, limit: number = 10): Promise<ListEnvelope<ReturnRequest>> {
+  const query = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (status) query.append("status", status);
+  return request<ListEnvelope<ReturnRequest>>(`/api/v1/admin/returns?${query.toString()}`, { auth: true });
+}
+
+export async function updateAdminReturnStatus(id: string, req: AdminUpdateReturnStatusRequest): Promise<void> {
+  await request<Envelope<{ status: string }>>(`/api/v1/admin/returns/${id}`, {
+    method: "PUT",
+    body: req,
+    auth: true,
+  });
+}
+
+export async function createAdminRefund(orderId: string, req: CreateRefundRequest): Promise<Refund> {
+  const { data } = await request<Envelope<Refund>>(`/api/v1/admin/orders/${orderId}/refunds`, {
+    method: "POST",
+    body: req,
+    auth: true,
+  });
+  return data;
+}

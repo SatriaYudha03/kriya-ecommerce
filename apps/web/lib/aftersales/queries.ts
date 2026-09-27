@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOrders, getOrder, getAdminOrders, updateAdminOrderStatus, cancelOrder, getProductReviews, getProductReviewSummary, getMyReviewables, getMyReviews, createReview, updateReview, getAdminReviews, updateAdminReview } from "./api";
+import { getOrders, getOrder, getAdminOrders, updateAdminOrderStatus, cancelOrder, getProductReviews, getProductReviewSummary, getMyReviewables, getMyReviews, createReview, updateReview, getAdminReviews, updateAdminReview, getReturns, getReturn, getAdminReturns, createReturn, updateAdminReturnStatus, createAdminRefund } from "./api";
 import { useLanguage } from "@/components/kriya/language-provider";
-import type { AdminOrdersQuery, OrderStatus, CreateReviewRequest, UpdateReviewRequest, AdminUpdateReviewRequest, ReviewStatus } from "./types";
+import type { AdminOrdersQuery, OrderStatus, CreateReviewRequest, UpdateReviewRequest, AdminUpdateReviewRequest, ReviewStatus, CreateReturnRequest, AdminUpdateReturnStatusRequest, CreateRefundRequest } from "./types";
 import { toast } from "sonner";
 import { ApiError } from "../http";
 import { promoKeys } from "../promo/queries";
@@ -17,6 +17,10 @@ export const afterKeys = {
   myReviewables: (page: number) => [...afterKeys.all, "my-reviewables", page] as const,
   myReviews: (page: number) => [...afterKeys.all, "my-reviews", page] as const,
   adminReviews: (status?: string, page?: number) => [...afterKeys.all, "admin-reviews", status, page] as const,
+
+  returns: (page: number) => [...afterKeys.all, "returns", page] as const,
+  return: (id: string) => [...afterKeys.all, "return", id] as const,
+  adminReturns: (status?: string, page: number = 1) => [...afterKeys.all, "admin-returns", status, page] as const,
 };
 
 export function useOrders(page: number = 1, limit: number = 10, status?: string) {
@@ -152,6 +156,71 @@ export function useAdminUpdateReview() {
     },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : "Gagal memperbarui ulasan");
+    },
+  });
+}
+
+
+export function useReturns(page: number = 1, limit: number = 10) {
+  return useQuery({
+    queryKey: afterKeys.returns(page),
+    queryFn: () => getReturns(page, limit),
+  });
+}
+
+export function useReturn(id: string) {
+  return useQuery({
+    queryKey: afterKeys.return(id),
+    queryFn: () => getReturn(id),
+    enabled: Boolean(id),
+  });
+}
+
+export function useAdminReturns(status?: string, page: number = 1, limit: number = 10) {
+  return useQuery({
+    queryKey: afterKeys.adminReturns(status, page),
+    queryFn: () => getAdminReturns(status, page, limit),
+  });
+}
+
+export function useCreateReturn() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, req }: { orderId: string; req: CreateReturnRequest }) => createReturn(orderId, req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: afterKeys.all });
+      toast.success("Pengajuan retur berhasil dibuat");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Gagal membuat retur");
+    },
+  });
+}
+
+export function useUpdateAdminReturnStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: AdminUpdateReturnStatusRequest }) => updateAdminReturnStatus(id, req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: afterKeys.all });
+      toast.success("Status retur diperbarui");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Gagal memperbarui status");
+    },
+  });
+}
+
+export function useCreateAdminRefund() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, req }: { orderId: string; req: CreateRefundRequest }) => createAdminRefund(orderId, req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: afterKeys.all });
+      toast.success("Refund berhasil diproses");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Gagal memproses refund");
     },
   });
 }

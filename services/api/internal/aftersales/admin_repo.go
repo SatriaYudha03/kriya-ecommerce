@@ -134,7 +134,7 @@ func (r *AdminRepository) UpdateOrderStatus(id string, status string, courier, t
 func (r *AdminRepository) GetOrder(id string) (*Order, error) {
 	var order Order
 	err := r.DB.Model(&Order{}).
-		Select("orders.*, pa.status as pa_status, pa.expires_at as pa_expires_at").
+		Select("orders.*, pa.status as pa_status, pa.expires_at as pa_expires_at, (orders.total - COALESCE((SELECT SUM(amount) FROM refunds WHERE order_id = orders.id), 0)) as refundable_amount").
 		Joins("LEFT JOIN payment_attempts pa ON pa.order_id = orders.id AND pa.status = 'active'").
 		Where("orders.id = ?", id).
 		First(&order).Error
