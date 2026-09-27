@@ -138,3 +138,27 @@ export interface PublicStoreSettings {
   prices_include_tax: boolean;
   return_window_days: number;
 }
+
+export interface ShippingMethod {
+  id: string;
+  code: string;
+  name_i18n: Record<string, string>;
+  rate_type: string;
+  base_cost: number;
+  per_kg_cost: number;
+  max_weight_kg: number | null;
+  free_shipping_min_subtotal: number | null;
+  eta_min_days: number;
+  eta_max_days: number;
+  is_active: boolean;
+}
+
+export interface ShippingZone {
+  id: string;
+  code: string;
+  name_i18n: Record<string, string>;
+  is_active: boolean;
+  provinces: string[];
+  methods: ShippingMethod[];
+}
+
