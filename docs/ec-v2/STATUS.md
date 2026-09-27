@@ -59,7 +59,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 | A2 | Harga sale terjadwal | ✅ | A | 2026-09-26 | ec/A2-harga-sale-terjadwal | e161ddf | docs/report/A2.md | |
 | A3 | Kategori bertingkat | ✅ | A | 2026-09-26 | `ec/A3-kategori-bertingkat` | `60db1c4` | `docs/report/A3.md` | |
 | A4 | Tag, atribut & facet | ✅ | A | 2026-09-27 | `ec/A4-tag-atribut-facet` | `ca8fda4` | `docs/report/A4.md` | `map[string]interface{}` baru di UpdateTag/UpdateAttribute/UpdateAttributeTerm mengikuti pola pre-existing — technical debt repo-wide, bukan pelanggaran A4 saja |
-| A5 | Ledger stok | 🟦 | A | 2026-09-27 | | | | |
+| A5 | Ledger stok | ✅ | A | 2026-09-27 | `ec/A5-ledger-stok` | `7e6af62` | `docs/report/A5.md` | |
 | A6 | Produk terkait & rating | ⬜ | | | | | | |
 | A7 | Seed & E2E katalog | ⬜ | | | | | | |
 | B1 | Buku alamat | ✅ | B | 2026-09-26 | `ec/B1-buku-alamat` (direwrite, lihat `9b51245`) | `9b51245` | `docs/report/B1.md` | **Direview ulang & di-merge 2026-09-26** (Claude, audit §4 langkah 5): tidak ada pelanggaran kepemilikan, tapi 2 penyimpangan kontrak diperbaiki saat merge — `api.ts` diarahkan ke `request()` dari `lib/http.ts` (sebelumnya custom fetch+supabase), dan `AddressPicker` dikembalikan ke signature beku §5.3 (`value`/`onChange`, sebelumnya diubah jadi `selectedId`/`onSelect`). Verified: go build/vet/test 29 lulus, tsc 0 error, eslint 0 error, next build hijau. |
