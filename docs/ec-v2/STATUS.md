@@ -95,7 +95,7 @@ Aturan pakai lengkap: `docs/rencana/EKSEKUSI-PARALEL-V2.md` §0, R18–R20, §11
 
 | ID | Task | Status | Agent | Tgl klaim | Branch | Commit | Report | Catatan |
 |---|---|---|---|---|---|---|---|---|
-| F3-A | Seed/audit katalog | ⬜ | | | | | | |
+| F3-A | Seed/audit katalog | 🟦 | A | 2026-09-27 | `ec/F3-A-seed-audit-katalog` | | | |
 | F3-B | Audit customer | ⬜ | | | | | | |
 | F3-C | Seed/audit promo | ⬜ | | | | | | |
 | F3-D | Seed/audit after-sales | ⬜ | | | | | | |
