@@ -64,7 +64,7 @@ func (h *WishlistHandler) PutWishlist(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, httpx.Response{
-		Data: gin.H{"status": "ok"},
+		Data: WishlistActionResponse{Status: "ok"},
 	})
 }
 
@@ -93,6 +93,6 @@ func (h *WishlistHandler) DeleteWishlist(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, httpx.Response{
-		Data: gin.H{"status": "ok"},
+		Data: WishlistActionResponse{Status: "ok"},
 	})
 }

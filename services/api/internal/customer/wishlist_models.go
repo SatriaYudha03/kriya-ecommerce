@@ -7,3 +7,7 @@ type WishlistRequest struct {
 type WishlistResponse struct {
 	Items []ProductListResponse `json:"items"`
 }
+
+type WishlistActionResponse struct {
+	Status string `json:"status"`
+}
