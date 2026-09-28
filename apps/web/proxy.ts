@@ -12,7 +12,7 @@ export function proxy(request: NextRequest) {
     
   if (isProtected) {
     const cookies = request.cookies.getAll();
-    const hasAuth = cookies.some(c => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+    const hasAuth = cookies.some(c => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
     
     if (!hasAuth) {
       const url = new URL("/login", request.url);
