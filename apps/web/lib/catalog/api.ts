@@ -1,5 +1,5 @@
 import { request, USE_FIXTURES } from "../http";
-import type { Envelope, ListEnvelope } from "../http";
+import type { Envelope, ListEnvelope, FetchOpts } from "../http";
 import type {
   Category,
   ProductListItem,
@@ -17,9 +17,13 @@ import type {
 } from "./types";
 import { fixtures } from "./fixtures";
 
-export async function getCategories(): Promise<Category[]> {
+// Opsi untuk pemanggilan dari Server Component: locale eksplisit (cookie browser
+// tidak terbaca di server) + cache data Next.js. Lihat lib/catalog/server.ts.
+export type CatalogFetchOpts = Pick<FetchOpts, "lang" | "revalidate">;
+
+export async function getCategories(opts: CatalogFetchOpts = {}): Promise<Category[]> {
   if (USE_FIXTURES) return fixtures.categories;
-  const { data } = await request<Envelope<Category[]>>("/api/v1/categories");
+  const { data } = await request<Envelope<Category[]>>("/api/v1/categories", opts);
   return data;
 }
 
@@ -61,6 +65,7 @@ function queryFixtures(query: ProductsQuery): ListEnvelope<ProductListItem> {
 
 export async function getProducts(
   query: ProductsQuery = {},
+  opts: CatalogFetchOpts = {},
 ): Promise<ListEnvelope<ProductListItem>> {
   if (USE_FIXTURES) return queryFixtures(query);
   const params = new URLSearchParams();
@@ -68,16 +73,16 @@ export async function getProducts(
     if (v !== undefined) params.set(k, String(v));
   }
   const qs = params.toString();
-  return request<ListEnvelope<ProductListItem>>(`/api/v1/products${qs ? "?" + qs : ""}`);
+  return request<ListEnvelope<ProductListItem>>(`/api/v1/products${qs ? "?" + qs : ""}`, opts);
 }
 
-export async function getProduct(slug: string): Promise<ProductDetail> {
+export async function getProduct(slug: string, opts: CatalogFetchOpts = {}): Promise<ProductDetail> {
   if (USE_FIXTURES) {
     const detail = fixtures.productDetails[slug];
     if (!detail) throw new Error("Product not found");
     return detail;
   }
-  const { data } = await request<Envelope<ProductDetail>>(`/api/v1/products/${slug}`);
+  const { data } = await request<Envelope<ProductDetail>>(`/api/v1/products/${slug}`, opts);
   return data;
 }
 

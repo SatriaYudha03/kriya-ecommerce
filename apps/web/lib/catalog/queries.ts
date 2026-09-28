@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { getCategories, getProduct, getProducts, getRelatedProducts, getAdminProducts, searchProducts, getSimilarProducts, getAdminProduct, deleteProduct, getAdminCategories, getAdminCategory, createCategory, updateCategory, deleteCategory, getTags, getAttributes, getAdminTags, getAdminAttributes, getAdminInventory, getAdminMovements, adjustStock, type ProductsQuery, type AdminProductsQuery, type AdminInventoryQuery } from "./api";
 import { ApiError } from "../http";
 import { useLanguage } from "@/components/kriya/language-provider";
+import type { ListEnvelope } from "../http";
+import type { ProductDetail, ProductListItem, ServerInitial } from "./types";
 import { promoKeys } from "../promo/queries";
 
 export const catalogKeys = {
@@ -22,16 +24,20 @@ export function useCategories() {
   const { locale } = useLanguage();
   return useQuery({
     queryKey: catalogKeys.categories(locale),
-    queryFn: getCategories,
+    queryFn: () => getCategories(),
     staleTime: 5 * 60_000,
   });
 }
 
-export function useProducts(query: ProductsQuery = {}) {
+// `initial`: data hasil fetch Server Component (lihat lib/catalog/server.ts) agar
+// client tidak mengambil ulang data yang sama saat mount. Hanya dipakai bila
+// locale-nya sama; setelah ganti bahasa, key baru di-fetch seperti biasa.
+export function useProducts(query: ProductsQuery = {}, initial?: ServerInitial<ListEnvelope<ProductListItem>>) {
   const { locale } = useLanguage();
   return useQuery({
     queryKey: catalogKeys.products(query, locale),
     queryFn: () => getProducts(query),
+    initialData: initial?.locale === locale ? initial.data : undefined,
   });
 }
 
@@ -42,12 +48,17 @@ export function useAdminProducts(query: AdminProductsQuery = {}) {
   });
 }
 
-export function useProduct(slug: string) {
+export function useProduct(slug: string, initial?: ServerInitial<ProductDetail>) {
   const { locale } = useLanguage();
   return useQuery({
     queryKey: catalogKeys.product(slug, locale),
     queryFn: () => getProduct(slug),
     enabled: Boolean(slug),
+    initialData: initial?.locale === locale ? initial.data : undefined,
+    // 404 tidak akan berubah bila diulang; retry default (3× dengan backoff)
+    // membuat "produk tidak ditemukan" baru tampil setelah ±10 detik.
+    retry: (failureCount, error) =>
+      !(error instanceof ApiError && error.status === 404) && failureCount < 3,
   });
 }
 

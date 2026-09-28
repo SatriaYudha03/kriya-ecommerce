@@ -2,6 +2,8 @@
 
 import type { ProductsQuery } from "@/lib/api";
 import { useProducts } from "@/lib/queries";
+import type { ListEnvelope } from "@/lib/http";
+import type { ProductListItem, ServerInitial } from "@/lib/catalog/types";
 import { ProductGrid, ProductGridSkeleton } from "./product-grid";
 import { SectionHeading } from "./section-heading";
 import { useLanguage } from "./language-provider";
@@ -12,15 +14,18 @@ export function ProductRail({
   subtitle,
   href,
   params,
+  initial,
   skeletonCount = 4,
 }: {
   title: string;
   subtitle?: string;
   href?: string;
   params: ProductsQuery;
+  // Data awal dari Server Component (lihat app/(store)/page.tsx).
+  initial?: ServerInitial<ListEnvelope<ProductListItem>>;
   skeletonCount?: number;
 }) {
-  const { data, isLoading, isError } = useProducts(params);
+  const { data, isLoading, isError } = useProducts(params, initial);
   const products = data?.data ?? [];
   const { t } = useLanguage();
 

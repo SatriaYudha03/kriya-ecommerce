@@ -1,4 +1,6 @@
 // Removed unused http imports
+import type { Locale } from "../i18n";
+
 export interface Category {
   id: string;
   slug: string;
@@ -271,4 +273,12 @@ export interface AdminAttributeInput {
   name_i18n: Record<string, string>;
   is_filterable?: boolean;
   position: number;
+}
+
+// Data awal hasil fetch Server Component untuk hook TanStack Query di client.
+// `locale` ikut dibawa agar data tidak dipakai untuk bahasa lain setelah user
+// ganti bahasa (query key memuat locale).
+export interface ServerInitial<T> {
+  locale: Locale;
+  data: T;
 }

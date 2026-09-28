@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useUnreadNotificationCount } from "@/lib/aftersales/queries";
+import { useAuth } from "@/components/kriya/auth-provider";
 
 export function NotificationBell() {
-  const { data: count = 0 } = useUnreadNotificationCount();
+  const { user } = useAuth();
+  const { data: count = 0 } = useUnreadNotificationCount(Boolean(user));
 
   return (
     <Link href="/account/notifications" className="relative p-2 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-700">

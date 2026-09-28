@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Minus, Package, Plus, Ruler, ShoppingBag, Truck } from "lucide-react";
 import { categoryLabel } from "@/lib/category-meta";
 import { useProduct, useRelatedProducts } from "@/lib/catalog/queries";
+import type { ProductDetail, ServerInitial } from "@/lib/catalog/types";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
@@ -37,9 +38,15 @@ function RelatedProducts({ slug, type, title }: { slug: string; type: "upsell" |
   );
 }
 
-export function ProductDetailView({ slug }: { slug: string }) {
+export function ProductDetailView({
+  slug,
+  initialProduct,
+}: {
+  slug: string;
+  initialProduct?: ServerInitial<ProductDetail>;
+}) {
   const { locale, t } = useLanguage();
-  const { data: product, isLoading, isError } = useProduct(slug);
+  const { data: product, isLoading, isError } = useProduct(slug, initialProduct);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const addItem = useCartStore(state => state.addItem);

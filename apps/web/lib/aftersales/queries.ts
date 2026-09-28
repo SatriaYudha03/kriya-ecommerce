@@ -236,11 +236,14 @@ export function useNotifications(page: number = 1, unreadOnly: boolean = false) 
   });
 }
 
-export function useUnreadNotificationCount() {
+// `enabled` = user sudah login. Tamu mendapat 401 dan TanStack Query mengulang
+// (retry default 3×) di setiap halaman — request sia-sia ke API.
+export function useUnreadNotificationCount(enabled: boolean = true) {
   return useQuery({
     queryKey: afterKeys.unreadNotificationCount(),
     queryFn: () => getUnreadNotificationCount(),
     refetchInterval: 60000,
+    enabled,
   });
 }
 

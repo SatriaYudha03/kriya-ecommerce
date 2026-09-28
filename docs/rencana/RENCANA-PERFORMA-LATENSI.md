@@ -210,6 +210,48 @@ jangan menebak `fetch` cache semantics / `revalidate` / `"use cache"` dari ingat
   halaman toko tidak memicu `/categories` berulang dalam jendela revalidasi.
   `pnpm build` + lint hijau.
 
+> **✅ SELESAI 2026-09-29 (Claude, sesi diawasi Satria).** Mode caching yang dipakai:
+> model lama tanpa `cacheComponents` (sesuai `node_modules/next/dist/docs/01-app/02-guides/caching-without-cache-components.md`):
+> `fetch` + `next.revalidate`, dedupe per render dengan React `cache()`.
+> - `lib/catalog/server.ts` (baru): `getServerLocale()` (cookie `kriya-locale`),
+>   `getCategoriesServer` (revalidate 300 s), `getProductServer` (60 s, `cache()`),
+>   `getProductsServer` (60 s). `lib/catalog/api.ts`: `getCategories/getProducts/getProduct`
+>   menerima `CatalogFetchOpts` opsional (`lang`, `revalidate`).
+> - Detail produk: fetch sekali di server (metadata + page) → `initialProduct` →
+>   `useProduct(slug, initial)` (`initialData` hanya bila locale sama). `useProduct` tidak
+>   lagi me-retry 404.
+> - Home: kategori + 3 rail di-fetch paralel di server (`app/(store)/home-rails.ts` =
+>   parameter bersama server/client) → `ProductRail initial`.
+> - Layout toko: kategori ter-cache & **sesuai locale** (memperbaiki temuan sampingan:
+>   kategori render server dulu selalu `id`).
+> - `lib/http.ts`: `Content-Type` hanya dikirim bila ada body → GET dari browser tidak lagi
+>   memicu preflight CORS `OPTIONS`. Opsi `revalidate` → `next: { revalidate }`.
+> - `NotificationBell`: `unread-count` hanya bila login (tamu dulu 401 + retry 3× tiap halaman).
+>
+> Ukuran (Playwright, build produksi, API lokal → Supabase Sydney; "ready" = konten utama tampil):
+>
+> | Halaman | Sebelum | Sesudah (cache kosong) | Sesudah (cache terisi) |
+> |---|---|---|---|
+> | Home (16 kartu produk) | 2,0–2,8 s | 1,5 s | 0,07–0,24 s |
+> | Detail produk | 1,3–2,0 s | 0,8–1,2 s | 0,10–0,11 s |
+> | Produk tidak ada | 10,3 s | 1,3 s | — |
+> | Request ke API (6 page load) | 82 | 20 | |
+>
+> Verifikasi perilaku (18 cek, semua lulus): HTML server memuat nama/deskripsi produk &
+> kategori sesuai cookie id/en (cache tidak tercampur antar bahasa), detail tidak di-fetch
+> ulang di client, klik ganti bahasa menampilkan konten en, produk tidak ada tampil
+> "tidak ditemukan", tamu tidak memanggil `unread-count`.
+>
+> **Konsekuensi yang disengaja:** halaman publik bisa menampilkan harga/stok hingga
+> **60 s** lebih lama setelah admin mengubahnya (kategori 5 menit). Stok & harga tetap
+> divalidasi ulang backend saat quote/checkout. Bila perlu segar seketika: admin memicu
+> `revalidateTag` lewat route handler (belum ada).
+>
+> **Sisa / lintas-teritori:** (1) request ber-`Authorization` tetap butuh preflight CORS —
+> BE bisa menambah `Access-Control-Max-Age` di `middleware.CORS` agar preflight di-cache
+> browser; (2) halaman kategori (`CategoryView`, client) & blok related/review di PDP masih
+> fetch di client — kandidat berikutnya bila dirasa perlu.
+
 ### Fase 4 — Satria: pindah project Supabase ke Singapura (keputusan pemilik)
 
 Bukan teritori agent — **butuh keputusan & eksekusi Satria** (kredensial, dashboard).

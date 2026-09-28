@@ -26,6 +26,9 @@ export interface FetchOpts {
   body?: unknown;
   auth?: boolean;
   lang?: string;
+  // Khusus fetch di server (Server Component): cache data Next.js selama N detik.
+  // Hanya untuk endpoint katalog publik — jangan untuk request ber-auth.
+  revalidate?: number;
 }
 
 export function getLocaleCookie(): string {
@@ -42,8 +45,12 @@ export interface ApiErrorBody {
 
 export async function request<T>(path: string, opts: FetchOpts = {}): Promise<T> {
   const baseUrl = opts.base === "ai" ? AI_URL : API_URL;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  
+  // Content-Type hanya bila ada body: GET dengan Content-Type application/json
+  // bukan "simple request" CORS, jadi browser menambah preflight OPTIONS
+  // (+1 round-trip) sebelum setiap GET ke API.
+  const headers: Record<string, string> = {};
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+
   const lang = opts.lang || getLocaleCookie();
   headers["Accept-Language"] = lang;
 
@@ -55,6 +62,7 @@ export async function request<T>(path: string, opts: FetchOpts = {}): Promise<T>
     method: opts.method ?? "GET",
     headers,
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+    ...(opts.revalidate !== undefined ? { next: { revalidate: opts.revalidate } } : {}),
   });
   const json: unknown = await res.json().catch(() => null);
   if (!res.ok) {
