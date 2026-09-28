@@ -372,13 +372,11 @@ func (h *CatalogHandler) GetAttributes(c *gin.Context) {
 	lang := httpx.ResolveLocale(c)
 	cat := c.Query("category")
 	
-	attrs, err := h.repo.GetAttributes(cat)
+	attrs, counts, err := h.repo.GetAttributesWithCounts(cat)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{Error: httpx.ErrorDetail{Code: "internal", Message: err.Error()}})
 		return
 	}
-	
-	counts, _ := h.repo.GetProductCountsForTerms(cat)
 
 	var res []AttributeResponse
 	for _, a := range attrs {

@@ -145,6 +145,47 @@ Teritori: AGENT-BE. **Bentuk respons JSON tidak boleh berubah** (kontrak Bagian 
 - **Verifikasi:** golden diff kosong + angka warm per endpoint ≈ 1× RTT
   (≈ 0,34 s dari Sydney). Tambah test Go untuk fungsi scan/unmarshal agregat.
 
+> **✅ SELESAI 2026-09-28 (Claude, sesi diawasi Satria).** File baru
+> `services/api/internal/catalog/aggregate.go` (fragmen SQL `json_agg` bertipe
+> konstan + struct JSON eksplisit + konversi ke model) dan `aggregate_test.go`;
+> `repository.go`: `GetProducts` (COUNT(*) OVER() + agregat; hitung ulang hanya bila
+> halaman di luar jangkauan), `GetProductBySlug`, `GetRelatedProducts`, dan
+> `GetAttributesWithCounts` (menggantikan `GetAttributes` + `GetProductCountsForTerms`;
+> handler hanya ganti pemanggilan). Signature lain & handler pembentuk respons tetap.
+>
+> | Endpoint | Sebelum (warm) | Sesudah (warm) | Sebelum (cold) | Sesudah (cold) |
+> |---|---|---|---|---|
+> | `/products?limit=20` | 1,42 s | 0,36 s | 4,59 s | 1,79 s |
+> | `/products/:slug` | 2,82 s | 0,35 s | 8,43 s | 1,05 s |
+> | `/products/:slug/related` | 1,05 s | 0,35 s | 3,16 s | 1,05 s |
+> | `/attributes` | 1,05 s | 0,35 s | 3,16 s | 1,09 s |
+> | burst home (6 request serentak) | 3,9–4,4 s | **1,5 s** | | |
+>
+> **Golden test:** 448 respons (62 produk × detail/related/list/filter/sort/atribut,
+> lang id+en, 404) dibandingkan sebelum/sesudah, dengan fixture sementara
+> (`zz-perf-*`: kategori bertingkat, tag, relasi termasuk ke produk draft, varian
+> sale aktif/terjadwal/tanpa tanggal/nonaktif, produk tanpa varian) yang **sudah
+> dihapus** lagi dari DB dev. Hasil: identik kecuali 9 produk × 2 bahasa yang
+> **urutan variannya** berubah (isi sama persis) — lihat temuan 1.
+>
+> **Temuan:**
+> 1. **Urutan varian & gambar dulu tidak stabil.** Preload tanpa `ORDER BY` = urutan
+>    fisik baris, yang bergeser tiap `UPDATE` (mis. stok berubah karena order) —
+>    varian default di PDP (`variants[0]`) bisa berganti sendiri. Kini eksplisit:
+>    varian `created_at, id` (urutan pembuatan), gambar `created_at, storage_path`
+>    (seed menyisipkan gambar dengan `created_at` kembar; hasilnya identik dengan
+>    urutan lama untuk semua 60 produk). Efek terlihat: 9 produk kini menampilkan
+>    varian pertama-dibuat sebagai default.
+> 2. **`sale_ends_at` keluar dalam zona waktu lokal mesin API** (mis. `+08:00`),
+>    padahal kontrak Bagian 5 = ISO 8601 UTC. Perilaku lama **dipertahankan**
+>    (`localTime()` di `aggregate.go`) agar respons identik; perbaikan ke UTC =
+>    keputusan terpisah (FE mem-parse ISO sehingga keduanya aman dibaca).
+> 3. **Pool size session pooler Supabase terkonfirmasi 15.** Dua instance API
+>    sekaligus (masing-masing MaxOpenConns 10) memicu
+>    `EMAXCONNSESSION max clients reached`. Jangan menjalankan >1 API terhadap DB
+>    yang sama (mis. beberapa worktree agent) tanpa menurunkan `maxOpenConns` di
+>    `internal/db/db.go`.
+
 ### Fase 3 — FE: hapus fetch ganda & cache data katalog publik
 
 Teritori: AGENT-FE (`apps/web/`). **Baca dulu `node_modules/next/dist/docs/`**

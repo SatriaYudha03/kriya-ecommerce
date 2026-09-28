@@ -91,12 +91,9 @@ func (r *CatalogRepository) GetCategories() ([]Category, error) {
 }
 
 func (r *CatalogRepository) GetProducts(categorySlug, q, tags, attrs, sort string, minPrice, maxPrice int, onSale, inStock, featured bool, page, limit int) ([]Product, int64, error) {
-	var products []Product
 	var total int64
 
 	query := r.db.Model(&Product{}).
-		Preload("Variants", "is_active = ?", true).
-		Preload("Images", "is_primary = ?", true).
 		Where("products.status = ?", "published")
 
 	if categorySlug != "" {
@@ -144,11 +141,16 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, tags, attrs, sort strin
 		}
 		query = query.Group("products.id") // Avoid duplicates if multiple variants match
 	}
-
-	query.Count(&total)
+	countQuery := query.Session(&gorm.Session{})
+	query = query.Session(&gorm.Session{})
 
 	offset := (page - 1) * limit
-	query = query.Offset(offset).Limit(limit)
+
+	// Satu query: baris produk + total (window function, dihitung setelah GROUP BY)
+	// + varian aktif & gambar utama sebagai json_agg. Dulu 4 query berurutan.
+	query = query.Select("products.*, COUNT(*) OVER() AS total_count, " +
+		selectActiveVariantsJSON + ", " + selectPrimaryImagesJSON).
+		Offset(offset).Limit(limit)
 
 	// Sorting
 	switch sort {
@@ -164,20 +166,39 @@ func (r *CatalogRepository) GetProducts(categorySlug, q, tags, attrs, sort strin
 		query = query.Order("products.created_at DESC")
 	}
 
-	err := query.Find(&products).Error
+	var rows []productAggRow
+	if err := query.Scan(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	if len(rows) > 0 {
+		total = rows[0].TotalCount
+	} else if offset > 0 {
+		// Halaman di luar jangkauan: tidak ada baris untuk membawa total_count.
+		if err := countQuery.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+	}
+	products, err := rowsToProducts(rows)
 	return products, total, err
 }
 
 func (r *CatalogRepository) GetProductBySlug(slug string) (*Product, error) {
-	var product Product
-	err := r.db.Preload("Category.Parent").
-		Preload("Variants", "is_active = ?", true).
-		Preload("Images").
-		Preload("Tags").
-		Preload("AttributeTerms").
-		Preload("AttributeTerms.Attribute").
-		Where("slug = ? AND status = ?", slug, "published").
-		First(&product).Error
+	// Satu query: produk + kategori (& induk), varian aktif, semua gambar, tag,
+	// dan term atribut (& atributnya). Dulu 1 query + 7 Preload berurutan.
+	var row productAggRow
+	res := r.db.Model(&Product{}).
+		Select("products.*, " + selectCategoryJSON + ", " + selectActiveVariantsJSON + ", " +
+			selectAllImagesJSON + ", " + selectTagsJSON + ", " + selectTermsJSON).
+		Where("products.slug = ? AND products.status = ?", slug, "published").
+		Limit(1).
+		Scan(&row)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	product, err := row.toProduct()
 	if err != nil {
 		return nil, err
 	}
@@ -241,61 +262,76 @@ func (r *CatalogRepository) GetTags() ([]Tag, error) {
 	return tags, err
 }
 
-func (r *CatalogRepository) GetAttributes(categorySlug string) ([]Attribute, error) {
-	var attrs []Attribute
-	query := r.db.Preload("Terms", func(db *gorm.DB) *gorm.DB {
-		return db.Order("position ASC")
-	}).Where("is_filterable = ?", true)
-
-	// In a real scenario we could filter terms by product_count > 0 in this category.
-	// For now let's just get them and we'll calculate counts if needed, 
-	// or we can do a more complex query.
-	err := query.Order("position ASC").Find(&attrs).Error
-	
-	// Wait, we need product_count per term in the category. 
-	// To do this properly without N+1, we might need a custom query or post-processing.
-	return attrs, err
-}
-
-func (r *CatalogRepository) GetProductCountsForTerms(categorySlug string) (map[string]int, error) {
-	counts := make(map[string]int)
-	query := r.db.Table("product_attribute_terms").
-		Select("term_id, count(DISTINCT products.id) as count").
-		Joins("JOIN products ON products.id = product_attribute_terms.product_id").
-		Where("products.status = ?", "published")
-	
+// GetAttributesWithCounts mengembalikan atribut filterable beserta term-nya dan
+// jumlah produk published per term (dibatasi pohon kategori bila categorySlug
+// diisi). Satu query; dulu 3 query berurutan (atribut, Preload term, hitungan).
+func (r *CatalogRepository) GetAttributesWithCounts(categorySlug string) ([]Attribute, map[string]int, error) {
+	catFilter := ""
 	if categorySlug != "" {
-		query = query.Where("products.category_slug IN (WITH RECURSIVE cat_tree AS (SELECT slug, id FROM categories WHERE slug = ? UNION ALL SELECT c.slug, c.id FROM categories c INNER JOIN cat_tree ct ON c.parent_id = ct.id) SELECT slug FROM cat_tree)", categorySlug)
+		catFilter = " AND p.category_slug IN (WITH RECURSIVE cat_tree AS (SELECT slug, id FROM categories WHERE slug = ? UNION ALL SELECT c.slug, c.id FROM categories c INNER JOIN cat_tree ct ON c.parent_id = ct.id) SELECT slug FROM cat_tree)"
 	}
+	query := `WITH term_counts AS (
+		SELECT pat.term_id, count(DISTINCT p.id) AS n
+		FROM product_attribute_terms pat JOIN products p ON p.id = pat.product_id
+		WHERE p.status = 'published'` + catFilter + `
+		GROUP BY pat.term_id)
+	SELECT a.id, a.slug, a.name_i18n,
+		(SELECT COALESCE(json_agg(json_build_object('term', t, 'count', COALESCE(tc.n, 0)) ORDER BY t.position, t.slug), '[]')
+		 FROM attribute_terms t LEFT JOIN term_counts tc ON tc.term_id = t.id
+		 WHERE t.attribute_id = a.id) AS terms_json
+	FROM attributes a
+	WHERE a.is_filterable = true
+	ORDER BY a.position, a.slug`
 
-	rows, err := query.Group("term_id").Rows()
+	var rows []attributeWithTermsRow
+	var err error
+	if categorySlug != "" {
+		err = r.db.Raw(query, categorySlug).Scan(&rows).Error
+	} else {
+		err = r.db.Raw(query).Scan(&rows).Error
+	}
 	if err != nil {
-		return counts, err
+		return nil, nil, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var termID string
-		var count int
-		if err := rows.Scan(&termID, &count); err == nil {
-			counts[termID] = count
+	attrs := make([]Attribute, 0, len(rows))
+	counts := make(map[string]int)
+	for _, row := range rows {
+		var terms []termCountJSON
+		if err := decodeAgg(row.TermsJSON, &terms, "attribute terms"); err != nil {
+			return nil, nil, err
 		}
+		a := Attribute{ID: row.ID, Slug: row.Slug, NameI18n: row.NameI18n, IsFilterable: true}
+		for _, t := range terms {
+			a.Terms = append(a.Terms, AttributeTerm{
+				ID:          t.Term.ID,
+				AttributeID: t.Term.AttributeID,
+				Slug:        t.Term.Slug,
+				NameI18n:    rawBytes(t.Term.NameI18n),
+				Position:    t.Term.Position,
+			})
+			if t.Count > 0 {
+				counts[t.Term.ID] = t.Count
+			}
+		}
+		attrs = append(attrs, a)
 	}
-	return counts, nil
+	return attrs, counts, nil
 }
 
 func (r *CatalogRepository) GetRelatedProducts(slug string, relType string, limit int) ([]Product, error) {
-	var products []Product
-
+	// Satu query: produk terkait + varian aktif & gambar utama (dulu 3 query).
+	var rows []productAggRow
 	err := r.db.Model(&Product{}).
+		Select("products.*, "+selectActiveVariantsJSON+", "+selectPrimaryImagesJSON).
 		Joins("JOIN product_relations ON products.id = product_relations.related_product_id").
 		Joins("JOIN products p2 ON p2.id = product_relations.product_id").
-		Preload("Variants", "is_active = ?", true).
-		Preload("Images", "is_primary = ?", true).
 		Where("p2.slug = ? AND product_relations.relation_type = ? AND products.status = ?", slug, relType, "published").
 		Order("product_relations.position ASC").
 		Limit(limit).
-		Find(&products).Error
-
-	return products, err
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	return rowsToProducts(rows)
 }
