@@ -25,14 +25,23 @@ func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
 			(SELECT COALESCE(SUM(total), 0) FROM orders WHERE status IN ('paid','processing','shipped','completed') AND created_at >= CURRENT_DATE) AS today_revenue,
 			(SELECT COUNT(*) FROM orders WHERE created_at >= CURRENT_DATE) AS today_orders,
 			(SELECT COUNT(*) FROM orders WHERE status = 'pending_payment') AS pending_payment_count,
-			(SELECT COUNT(*) FROM orders WHERE status = 'processing') AS to_ship_count,
-			COALESCE((SELECT COUNT(*) FROM product_variants WHERE stock <= 5), 0) AS low_stock_count,
-			COALESCE((SELECT COUNT(*) FROM product_reviews WHERE status = 'pending'), 0) AS pending_reviews_count,
-			COALESCE((SELECT COUNT(*) FROM return_requests WHERE status IN ('requested','approved','received')), 0) AS open_returns_count
+			(SELECT COUNT(*) FROM orders WHERE status = 'processing') AS to_ship_count
 	`
 
 	if err := r.db.Raw(aggregateSQL).Scan(stats).Error; err != nil {
 		return nil, err
+	}
+
+	if err := r.db.Table("product_variants").Where("stock <= ?", 5).Count(&stats.LowStockCount).Error; err != nil {
+		stats.LowStockCount = 0
+	}
+
+	if err := r.db.Table("product_reviews").Where("status = ?", "pending").Count(&stats.PendingReviewsCount).Error; err != nil {
+		stats.PendingReviewsCount = 0
+	}
+
+	if err := r.db.Table("return_requests").Where("status IN ?", []string{"requested", "approved", "received"}).Count(&stats.OpenReturnsCount).Error; err != nil {
+		stats.OpenReturnsCount = 0
 	}
 
 	if err := r.db.Table("orders").

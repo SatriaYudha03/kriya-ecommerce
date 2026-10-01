@@ -45,7 +45,12 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   if (loading) return <GuardScreen label="Memeriksa sesi…" />;
   if (!user) return <GuardScreen label="Mengalihkan ke halaman masuk…" />;
   if (probe.isLoading) return <GuardScreen label="Memeriksa akses admin…" />;
-  if (probe.isError) return <GuardScreen label="Mengalihkan…" />;
+  if (probe.isError) {
+    const err = probe.error;
+    const isForbidden = err instanceof ApiError && (err.code === "forbidden" || err.code === "unauthorized");
+    if (isForbidden) return <GuardScreen label="Mengalihkan…" />;
+    return <GuardScreen label="Gagal memuat panel admin. Silakan coba lagi." />;
+  }
 
   return <>{children}</>;
 }
