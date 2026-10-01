@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  getAdminAccess,
   getAdminStats,
   getAdminCoupons,
   getAdminCoupon,
@@ -19,6 +20,17 @@ export const promoKeys = {
   coupon: (id: string) => [...promoKeys.all, "admin-coupon", id] as const,
   couponRedemptions: (id: string) => [...promoKeys.all, "admin-coupon-redemptions", id] as const,
 };
+
+// Probe akses ringan untuk AdminGuard (tanpa query agregat berat).
+export function useAdminAccess(enabled = true) {
+  return useQuery({
+    queryKey: [...promoKeys.all, "admin-access"] as const,
+    queryFn: getAdminAccess,
+    enabled,
+    retry: false,
+    staleTime: 5 * 60_000,
+  });
+}
 
 export function useAdminStats(enabled = true) {
   return useQuery({

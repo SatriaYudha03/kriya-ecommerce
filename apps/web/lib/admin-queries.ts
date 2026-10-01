@@ -1,4 +1,5 @@
 export {
+  useAdminAccess,
   useAdminStats,
 } from "./promo/queries";
 

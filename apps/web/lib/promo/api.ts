@@ -3,6 +3,11 @@ import type { Envelope, ListEnvelope, ApiErrorBody } from "../http";
 import type { AdminStats, Coupon, CouponPayload, CouponRedemption } from "./types";
 import type { QuoteCoupon } from "../types";
 
+export async function getAdminAccess(): Promise<boolean> {
+  await request<Envelope<{ ok: boolean }>>("/api/v1/admin/ping", { auth: true });
+  return true;
+}
+
 export async function getAdminStats(): Promise<AdminStats> {
   const { data } = await request<Envelope<AdminStats>>("/api/v1/admin/stats", { auth: true });
   return data;

@@ -2,14 +2,14 @@
 
 // Gerbang akses panel admin. Auth di KRIYA bersifat client-only (supabase-js),
 // dan FE dilarang query tabel `profiles` langsung — jadi role admin ditentukan
-// lewat API: kita "probe" GET /admin/stats. 200 = admin, 403 = bukan admin.
+// lewat API: kita "probe" GET /admin/ping. 200 = admin, 403 = bukan admin.
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/kriya/auth-provider";
-import { useAdminStats } from "@/lib/admin-queries";
+import { useAdminAccess } from "@/lib/admin-queries";
 import { ApiError } from "@/lib/api";
 
 function GuardScreen({ label }: { label: string }) {
@@ -24,7 +24,7 @@ function GuardScreen({ label }: { label: string }) {
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const probe = useAdminStats(!loading && Boolean(user));
+  const probe = useAdminAccess(!loading && Boolean(user));
 
   // Belum login → arahkan ke login dengan tujuan kembali ke /admin.
   useEffect(() => {

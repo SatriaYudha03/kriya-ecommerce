@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kriya-commerce/api/internal/aftersales"
@@ -48,6 +49,10 @@ func main() {
 
 	admin := authed.Group("/admin")
 	admin.Use(middleware.Admin(database))
+	// Probe ringan untuk gerbang FE: lolos middleware Admin = pengguna adalah admin.
+	admin.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"data": gin.H{"ok": true}})
+	})
 
 	internal := v1.Group("/internal")
 	internal.Use(middleware.InternalKey(cfg.InternalAPIKey))
