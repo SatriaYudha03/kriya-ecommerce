@@ -41,6 +41,7 @@ export const promoEn: typeof promoId = {
   "adminPromo.dashboard.thEmail": "Email",
   "adminPromo.dashboard.thDate": "Date",
   "adminPromo.dashboard.emptyOrders": "No orders yet",
+  "adminPromo.taskOverview": "Task Overview",
 
   // Admin Coupons List
   "adminPromo.coupons.title": "Coupon Management",

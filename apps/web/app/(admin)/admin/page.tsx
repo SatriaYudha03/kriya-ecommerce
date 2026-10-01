@@ -10,6 +10,15 @@ import {
   Star,
   RotateCcw,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { useAdminStats } from "@/lib/admin-queries";
 import { formatRupiah } from "@/lib/format";
 import { useLanguage } from "@/components/kriya/language-provider";
@@ -58,6 +67,14 @@ function StatCard({
 export default function AdminDashboard() {
   const { data, isLoading } = useAdminStats();
   const { t, locale } = useLanguage();
+
+  const chartData = [
+    { name: t("adminPromo.pendingPayment"), count: data?.pending_payment_count ?? 0 },
+    { name: t("adminPromo.toShip"), count: data?.to_ship_count ?? 0 },
+    { name: t("adminPromo.lowStock"), count: data?.low_stock_count ?? 0 },
+    { name: t("adminPromo.pendingReviews"), count: data?.pending_reviews_count ?? 0 },
+    { name: t("adminPromo.openReturns"), count: data?.open_returns_count ?? 0 },
+  ];
 
   return (
     <div>
@@ -115,20 +132,55 @@ export default function AdminDashboard() {
         />
       </div>
 
-      <div className="mt-12">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-neutral-900">
-            {t("adminPromo.recentOrders")}
+      <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            {t("adminPromo.taskOverview") || "Task Overview"}
           </h2>
-          <Link
-            href="/admin/orders"
-            className="text-sm font-medium text-brand-strong hover:underline"
-          >
-            {t("adminPromo.viewAll")} &rarr;
-          </Link>
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm h-[350px]">
+            {isLoading ? (
+              <div className="h-full w-full animate-pulse rounded bg-neutral-100" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: "#737373" }} 
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: "#737373" }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: "#f5f5f5" }}
+                    contentStyle={{ borderRadius: "8px", border: "1px solid #e5e5e5", boxShadow: "0 1px 2px 0 rgb(0 0 0 / 0.05)" }}
+                  />
+                  <Bar dataKey="count" fill="#000" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
-        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-neutral-200">
+
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-neutral-900">
+              {t("adminPromo.recentOrders")}
+            </h2>
+            <Link
+              href="/admin/orders"
+              className="text-sm font-medium text-brand-strong hover:underline"
+            >
+              {t("adminPromo.viewAll")} &rarr;
+            </Link>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <table className="min-w-full divide-y divide-neutral-200">
             <thead className="bg-neutral-50">
               <tr>
                 <th
@@ -208,6 +260,7 @@ export default function AdminDashboard() {
           </table>
         </div>
       </div>
+    </div>
     </div>
   );
 }

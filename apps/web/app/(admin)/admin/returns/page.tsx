@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/components/kriya/language-provider";
 import Image from "next/image";
 import type { ReturnStatus } from "@/lib/aftersales/types";
 
@@ -24,6 +25,7 @@ function getStatusColor(status: string) {
 }
 
 export default function AdminReturnsPage() {
+  const { t } = useLanguage();
   const [page] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data, isLoading, isError } = useAdminReturns(statusFilter === "all" ? undefined : statusFilter, page, 20);
@@ -36,15 +38,15 @@ export default function AdminReturnsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Kelola Retur</h1>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "all")}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Semua Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Status</SelectItem>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{t("adminAfter.returns.title")}</h1>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "all")}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={t("after.admin.orders.filterAll") || "Semua Status"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("after.admin.orders.filterAll") || "Semua Status"}</SelectItem>
             <SelectItem value="requested">Requested</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="received">Received</SelectItem>
@@ -57,10 +59,10 @@ export default function AdminReturnsPage() {
       {isLoading ? (
         <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>
       ) : isError ? (
-        <div className="p-8 text-center text-red-500">Error loading returns</div>
+        <div className="p-8 text-center text-red-500">{t("after.admin.orders.error")}</div>
       ) : data?.data.length === 0 ? (
         <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center text-neutral-500">
-          Tidak ada data retur.
+          {t("after.returns.empty")}
         </div>
       ) : (
         <div className="space-y-4">

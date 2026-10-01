@@ -7,6 +7,7 @@ import { useAdminOrders, useUpdateOrderStatus } from "@/lib/aftersales/queries";
 import { formatRupiah } from "@/lib/format";
 import type { OrderStatus } from "@/lib/aftersales/types";
 import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
+import { useLanguage } from "@/components/kriya/language-provider";
 
 const STATUS_KEYS: OrderStatus[] = [
   "pending_payment",
@@ -32,6 +33,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 const LIMIT = 20;
 
 export default function AdminOrdersPage() {
+  const { t, locale } = useLanguage();
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useAdminOrders({
@@ -49,8 +51,8 @@ export default function AdminOrdersPage() {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Pesanan Pelanggan</h1>
-          <p className="mt-1 text-sm text-neutral-500">{total} pesanan</p>
+          <h1 className="text-2xl font-bold text-neutral-900">{t("after.admin.orders.title")}</h1>
+          <p className="mt-1 text-sm text-neutral-500">{t("after.admin.orders.count").replace("{count}", String(total))}</p>
         </div>
         <select
           value={status}
@@ -60,39 +62,39 @@ export default function AdminOrdersPage() {
           }}
           className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
         >
-          <option value="">Semua status</option>
-          {STATUS_KEYS.map((s) => (
-            <option key={s} value={s}>
-              {STATUS_LABELS[s]}
-            </option>
-          ))}
+          <option value="">{t("after.admin.orders.filterAll")}</option>
+            {STATUS_KEYS.map((s) => (
+              <option key={s} value={s}>
+                {t(`after.status.${s}` as const)}
+              </option>
+            ))}
         </select>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-20 text-neutral-500">
-            <Loader2 className="h-5 w-5 animate-spin" /> Memuat pesanan…
+            <Loader2 className="h-5 w-5 animate-spin" /> {t("after.admin.orders.loading")}
           </div>
         ) : isError ? (
-          <div className="py-20 text-center text-sm text-red-600">Gagal memuat pesanan.</div>
+          <div className="py-20 text-center text-sm text-red-600">{t("after.admin.orders.error")}</div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-20 text-neutral-500">
-            <Package className="h-8 w-8" />
-            <p className="text-sm">Belum ada pesanan.</p>
+            <Package className="h-10 w-10 text-neutral-300" />
+            <p className="text-sm font-medium">{t("after.admin.orders.empty")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
-                <tr>
-                  <Th>ID Pesanan</Th>
-                  <Th>Tanggal</Th>
-                  <Th>Penerima</Th>
-                  <Th>Total</Th>
-                  <Th>Status</Th>
-                  <Th className="text-right">Ubah Status</Th>
-                </tr>
+              <tr>
+                <Th>{t("after.admin.orders.thOrderId")}</Th>
+                <Th>{t("after.admin.orders.thDate")}</Th>
+                <Th>{t("after.admin.orders.thRecipient")}</Th>
+                <Th>{t("after.admin.orders.thTotal")}</Th>
+                <Th>{t("after.admin.orders.thStatus")}</Th>
+                <Th className="text-right">{t("after.admin.orders.thAction")}</Th>
+              </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 bg-white">
                 {orders.map((o) => {

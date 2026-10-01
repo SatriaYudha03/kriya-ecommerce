@@ -39,6 +39,7 @@ export const promoId = {
   "adminPromo.dashboard.thEmail": "Email",
   "adminPromo.dashboard.thDate": "Tanggal",
   "adminPromo.dashboard.emptyOrders": "Belum ada pesanan",
+  "adminPromo.taskOverview": "Ringkasan Tugas",
 
   // Admin Coupons List
   "adminPromo.coupons.title": "Manajemen Kupon",

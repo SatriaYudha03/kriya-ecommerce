@@ -9,26 +9,28 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { AdminGuard } from "@/components/kriya/admin/admin-guard";
+import { useLanguage } from "@/components/kriya/language-provider";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   const NAV = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-    { href: "/admin/orders", label: "Pesanan", icon: ShoppingCart, exact: true },
-    { href: "/admin/products", label: "Produk", icon: Package, exact: false },
-    { href: "/admin/catalog/categories", label: "Kategori", icon: ListTree, exact: false },
-    { href: "/admin/catalog/tags", label: "Tag", icon: Tags, exact: false },
-    { href: "/admin/catalog/attributes", label: "Atribut", icon: CheckSquare, exact: false },
-    { href: "/admin/inventory", label: "Inventori", icon: Archive, exact: false },
-    { href: "/admin/customers", label: "Pelanggan", icon: Users, exact: false },
-    { href: "/admin/shipping", label: "Pengiriman", icon: Truck, exact: false },
-    { href: "/admin/coupons", label: "Kupon", icon: Ticket, exact: false },
-    { href: "/admin/reports", label: "Laporan", icon: BarChart3, exact: false },
-    { href: "/admin/reviews", label: "Ulasan", icon: MessageSquare, exact: false },
-    { href: "/admin/returns", label: "Retur", icon: Undo2, exact: false },
-    { href: "/admin/settings", label: "Pengaturan", icon: Settings, exact: false },
+    { href: "/admin", label: t("nav.admin.dashboard"), icon: LayoutDashboard, exact: true },
+    { href: "/admin/orders", label: t("nav.admin.orders"), icon: ShoppingCart, exact: true },
+    { href: "/admin/products", label: t("nav.admin.products"), icon: Package, exact: false },
+    { href: "/admin/catalog/categories", label: t("nav.admin.categories"), icon: ListTree, exact: false },
+    { href: "/admin/catalog/tags", label: t("nav.admin.tags"), icon: Tags, exact: false },
+    { href: "/admin/catalog/attributes", label: t("nav.admin.attributes"), icon: CheckSquare, exact: false },
+    { href: "/admin/inventory", label: t("nav.admin.inventory"), icon: Archive, exact: false },
+    { href: "/admin/customers", label: t("nav.admin.customers"), icon: Users, exact: false },
+    { href: "/admin/shipping", label: t("nav.admin.shipping"), icon: Truck, exact: false },
+    { href: "/admin/coupons", label: t("nav.admin.coupons"), icon: Ticket, exact: false },
+    { href: "/admin/reports", label: t("nav.admin.reports"), icon: BarChart3, exact: false },
+    { href: "/admin/reviews", label: t("nav.admin.reviews"), icon: MessageSquare, exact: false },
+    { href: "/admin/returns", label: t("nav.admin.returns"), icon: Undo2, exact: false },
+    { href: "/admin/settings", label: t("nav.admin.settings"), icon: Settings, exact: false },
   ];
 
   return (
@@ -63,13 +65,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href="/"
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
           >
-            <Store className="h-4 w-4 text-neutral-500" /> Kembali ke Toko
+            <Store className="h-4 w-4 text-neutral-500" /> {t("nav.backToStore")}
           </Link>
           <button
             onClick={() => signOut()}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
           >
-            <LogOut className="h-4 w-4 text-neutral-500" /> Keluar
+            <LogOut className="h-4 w-4 text-neutral-500" /> {t("nav.logout")}
           </button>
         </div>
       </aside>
