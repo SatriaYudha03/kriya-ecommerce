@@ -183,7 +183,7 @@ func (r *AdminRepository) DeleteImage(id string) error {
 
 func (r *AdminRepository) GetCategories() ([]Category, error) {
 	var categories []Category
-	err := r.db.Order("position ASC").Find(&categories).Error
+	err := r.db.Order("position ASC").Limit(1000).Find(&categories).Error
 	return categories, err
 }
 
@@ -214,8 +214,12 @@ func (r *AdminRepository) UpdateProductTags(productID string, tagSlugs []string)
 			if err := tx.Model(&Tag{}).Where("slug IN ?", tagSlugs).Pluck("id", &tagIDs).Error; err != nil {
 				return err
 			}
-			for _, tid := range tagIDs {
-				if err := tx.Create(&ProductTag{ProductID: productID, TagID: tid}).Error; err != nil {
+			if len(tagIDs) > 0 {
+				var tags []ProductTag
+				for _, tid := range tagIDs {
+					tags = append(tags, ProductTag{ProductID: productID, TagID: tid})
+				}
+				if err := tx.Create(&tags).Error; err != nil {
 					return err
 				}
 			}
@@ -229,8 +233,12 @@ func (r *AdminRepository) UpdateProductAttributeTerms(productID string, termIDs 
 		if err := tx.Where("product_id = ?", productID).Delete(&ProductAttributeTerm{}).Error; err != nil {
 			return err
 		}
-		for _, tid := range termIDs {
-			if err := tx.Create(&ProductAttributeTerm{ProductID: productID, TermID: tid}).Error; err != nil {
+		if len(termIDs) > 0 {
+			var terms []ProductAttributeTerm
+			for _, tid := range termIDs {
+				terms = append(terms, ProductAttributeTerm{ProductID: productID, TermID: tid})
+			}
+			if err := tx.Create(&terms).Error; err != nil {
 				return err
 			}
 		}
@@ -250,10 +258,14 @@ func (r *AdminRepository) UpdateProductRelations(productID string, relatedIDs []
 		if err := tx.Where("product_id = ? AND relation_type = ?", productID, relType).Delete(&ProductRelation{}).Error; err != nil {
 			return err
 		}
-		for i, rid := range relatedIDs {
-			if err := tx.Create(&ProductRelation{
-				ProductID: productID, RelatedProductID: rid, RelationType: relType, Position: i,
-			}).Error; err != nil {
+		if len(relatedIDs) > 0 {
+			var relations []ProductRelation
+			for i, rid := range relatedIDs {
+				relations = append(relations, ProductRelation{
+					ProductID: productID, RelatedProductID: rid, RelationType: relType, Position: i,
+				})
+			}
+			if err := tx.Create(&relations).Error; err != nil {
 				return err
 			}
 		}
@@ -262,7 +274,7 @@ func (r *AdminRepository) UpdateProductRelations(productID string, relatedIDs []
 }
 func (r *AdminRepository) ListTags() ([]Tag, error) {
 	var list []Tag
-	err := r.db.Order("slug ASC").Find(&list).Error
+	err := r.db.Order("slug ASC").Limit(1000).Find(&list).Error
 	return list, err
 }
 
@@ -281,8 +293,8 @@ func (r *AdminRepository) DeleteTag(id string) error {
 func (r *AdminRepository) ListAttributes() ([]Attribute, error) {
 	var list []Attribute
 	err := r.db.Preload("Terms", func(db *gorm.DB) *gorm.DB {
-		return db.Order("position ASC")
-	}).Order("position ASC").Find(&list).Error
+		return db.Order("position ASC").Limit(1000)
+	}).Order("position ASC").Limit(100).Find(&list).Error
 	return list, err
 }
 
@@ -334,8 +346,10 @@ func (r *AdminRepository) GetInventory(q string, lowStock bool, page, limit int)
 	if lowStock {
 		query = query.Where("pv.stock <= COALESCE(pv.low_stock_threshold, 5)")
 	}
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 
-	query.Count(&total)
 	offset := (page - 1) * limit
 	query = query.Order("p.name ASC, pv.sku ASC").Offset(offset).Limit(limit)
 	err := query.Scan(&items).Error
@@ -350,7 +364,9 @@ func (r *AdminRepository) GetStockMovements(variantID string, page, limit int) (
 	if variantID != "" {
 		query = query.Where("variant_id = ?", variantID)
 	}
-	query.Count(&total)
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 
 	offset := (page - 1) * limit
 	query = query.Order("created_at DESC").Offset(offset).Limit(limit)

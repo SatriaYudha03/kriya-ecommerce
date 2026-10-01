@@ -245,11 +245,60 @@ func (r *ReturnsRepository) CreateRefund(ctx context.Context, refund *Refund, it
 			return err
 		}
 
-		for _, item := range items {
-			if err := tx.Model(&OrderItem{}).
-				Where("id = ?", item.OrderItemID).
-				UpdateColumn("refunded_qty", gorm.Expr("refunded_qty + ?", item.Qty)).Error; err != nil {
+		if len(items) > 0 {
+			// Batch fetch order items for restock variant IDs
+			var itemIDs []string
+			for _, item := range items {
+				itemIDs = append(itemIDs, item.OrderItemID)
+			}
+			
+			var oItems []OrderItem
+			if err := tx.Where("id IN ?", itemIDs).Find(&oItems).Error; err != nil {
 				return err
+			}
+			oiMap := make(map[string]OrderItem)
+			for _, oi := range oItems {
+				oiMap[oi.ID] = oi
+			}
+
+			// Batch update refunded_qty
+			for _, item := range items {
+				if err := tx.Model(&OrderItem{}).
+					Where("id = ?", item.OrderItemID).
+					UpdateColumn("refunded_qty", gorm.Expr("refunded_qty + ?", item.Qty)).Error; err != nil {
+					return err
+				}
+			}
+
+			if refund.Restock {
+				var rItems []checkout.RestockItem
+				for _, item := range items {
+					oi, ok := oiMap[item.OrderItemID]
+					if !ok {
+						continue
+					}
+					rItems = append(rItems, checkout.RestockItem{
+						VariantID: oi.VariantID,
+						Qty:       item.Qty,
+					})
+				}
+				if ports.Inventory != nil {
+					var reasonStr string
+					if refund.Reason != nil {
+						reasonStr = *refund.Reason
+					}
+					if err := ports.Inventory.Restock(ctx, tx, order.ID, rItems, &adminID, reasonStr); err != nil {
+						return err
+					}
+				} else {
+					// Fallback F1: update stok
+					for _, item := range rItems {
+						if err := tx.Table("product_variants").Where("id = ?", item.VariantID).
+							Update("stock", gorm.Expr("stock + ?", item.Qty)).Error; err != nil {
+							return err
+						}
+					}
+				}
 			}
 		}
 
@@ -262,37 +311,6 @@ func (r *ReturnsRepository) CreateRefund(ctx context.Context, refund *Refund, it
 					UpdatedAt:  now,
 				}).Error; err != nil {
 				return err
-			}
-		}
-
-		if refund.Restock {
-			var rItems []checkout.RestockItem
-			for _, item := range items {
-				var oi OrderItem
-				if err := tx.Where("id = ?", item.OrderItemID).First(&oi).Error; err != nil {
-					return err
-				}
-				rItems = append(rItems, checkout.RestockItem{
-					VariantID: oi.VariantID,
-					Qty:       item.Qty,
-				})
-			}
-			if ports.Inventory != nil {
-				var reasonStr string
-				if refund.Reason != nil {
-					reasonStr = *refund.Reason
-				}
-				if err := ports.Inventory.Restock(ctx, tx, order.ID, rItems, &adminID, reasonStr); err != nil {
-					return err
-				}
-			} else {
-				// Fallback F1: update stok langsung karena ports belum di-wire oleh F2
-				for _, item := range rItems {
-					if err := tx.Table("product_variants").Where("id = ?", item.VariantID).
-						Update("stock", gorm.Expr("stock + ?", item.Qty)).Error; err != nil {
-						return err
-					}
-				}
 			}
 		}
 

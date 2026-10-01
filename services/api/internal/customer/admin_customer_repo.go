@@ -25,22 +25,19 @@ func (r *AdminCustomerRepository) GetCustomers(q, sort string, offset, limit int
 			p.full_name, 
 			p.phone, 
 			COALESCE(p.role, 'customer') as role,
-			COUNT(o.id) as orders_count,
-			COALESCE(SUM(CASE WHEN o.status IN ('paid', 'processing', 'shipped', 'completed') THEN o.total ELSE 0 END), 0) as total_spent,
-			MAX(o.created_at) as last_order_at,
+			(SELECT COUNT(*) FROM orders WHERE user_id = u.id) as orders_count,
+			(SELECT COALESCE(SUM(total), 0) FROM orders WHERE user_id = u.id AND status IN ('paid', 'processing', 'shipped', 'completed')) as total_spent,
+			(SELECT MAX(created_at) FROM orders WHERE user_id = u.id) as last_order_at,
 			u.created_at
 		`).
-		Joins("LEFT JOIN profiles p ON p.id = u.id").
-		Joins("LEFT JOIN orders o ON o.user_id = u.id")
+		Joins("LEFT JOIN profiles p ON p.id = u.id")
 
 	if q != "" {
 		searchTerm := "%" + strings.ToLower(q) + "%"
 		query = query.Where("LOWER(u.email) LIKE ? OR LOWER(p.full_name) LIKE ?", searchTerm, searchTerm)
 	}
 
-	query = query.Group("u.id, u.email, p.full_name, p.phone, p.role, u.created_at")
-
-	// Count total
+	// Count total (can use same base query without the heavy subqueries)
 	countQuery := r.db.Table("auth.users as u").Joins("LEFT JOIN profiles p ON p.id = u.id")
 	if q != "" {
 		searchTerm := "%" + strings.ToLower(q) + "%"
@@ -77,15 +74,13 @@ func (r *AdminCustomerRepository) GetCustomerDetail(id string) (*AdminCustomerDe
 			p.full_name, 
 			p.phone, 
 			COALESCE(p.role, 'customer') as role,
-			COUNT(o.id) as orders_count,
-			COALESCE(SUM(CASE WHEN o.status IN ('paid', 'processing', 'shipped', 'completed') THEN o.total ELSE 0 END), 0) as total_spent,
-			MAX(o.created_at) as last_order_at,
+			(SELECT COUNT(*) FROM orders WHERE user_id = u.id) as orders_count,
+			(SELECT COALESCE(SUM(total), 0) FROM orders WHERE user_id = u.id AND status IN ('paid', 'processing', 'shipped', 'completed')) as total_spent,
+			(SELECT MAX(created_at) FROM orders WHERE user_id = u.id) as last_order_at,
 			u.created_at
 		`).
 		Joins("LEFT JOIN profiles p ON p.id = u.id").
-		Joins("LEFT JOIN orders o ON o.user_id = u.id").
-		Where("u.id = ?", id).
-		Group("u.id, u.email, p.full_name, p.phone, p.role, u.created_at")
+		Where("u.id = ?", id)
 
 	if err := query.First(&item).Error; err != nil {
 		return nil, err

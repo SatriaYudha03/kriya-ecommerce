@@ -17,56 +17,22 @@ func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
 		RecentOrders: []RecentOrder{},
 	}
 
-	if err := r.db.Table("orders").Count(&stats.TotalOrders).Error; err != nil {
+	const aggregateSQL = `
+		SELECT
+			(SELECT COUNT(*) FROM orders) AS total_orders,
+			(SELECT COALESCE(SUM(total), 0) FROM orders WHERE status IN ('paid','processing','shipped','completed')) AS revenue,
+			(SELECT COUNT(*) FROM products) AS active_products,
+			(SELECT COALESCE(SUM(total), 0) FROM orders WHERE status IN ('paid','processing','shipped','completed') AND created_at >= CURRENT_DATE) AS today_revenue,
+			(SELECT COUNT(*) FROM orders WHERE created_at >= CURRENT_DATE) AS today_orders,
+			(SELECT COUNT(*) FROM orders WHERE status = 'pending_payment') AS pending_payment_count,
+			(SELECT COUNT(*) FROM orders WHERE status = 'processing') AS to_ship_count,
+			COALESCE((SELECT COUNT(*) FROM product_variants WHERE stock <= 5), 0) AS low_stock_count,
+			COALESCE((SELECT COUNT(*) FROM product_reviews WHERE status = 'pending'), 0) AS pending_reviews_count,
+			COALESCE((SELECT COUNT(*) FROM return_requests WHERE status IN ('requested','approved','received')), 0) AS open_returns_count
+	`
+
+	if err := r.db.Raw(aggregateSQL).Scan(stats).Error; err != nil {
 		return nil, err
-	}
-
-	if err := r.db.Table("orders").
-		Where("status IN ?", []string{"paid", "processing", "shipped", "completed"}).
-		Select("COALESCE(SUM(total), 0)").Scan(&stats.Revenue).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Table("products").Count(&stats.ActiveProducts).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Table("orders").
-		Where("status IN ?", []string{"paid", "processing", "shipped", "completed"}).
-		Where("created_at >= CURRENT_DATE").
-		Select("COALESCE(SUM(total), 0)").Scan(&stats.TodayRevenue).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Table("orders").
-		Where("created_at >= CURRENT_DATE").Count(&stats.TodayOrders).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Table("orders").
-		Where("status = ?", "pending_payment").Count(&stats.PendingPaymentCount).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Table("orders").
-		Where("status = ?", "processing").Count(&stats.ToShipCount).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Table("product_variants").
-		Where("stock <= ?", 5).Count(&stats.LowStockCount).Error; err != nil {
-		// Ignore if table not found yet, return 0
-		stats.LowStockCount = 0
-	}
-
-	if err := r.db.Table("product_reviews").
-		Where("status = ?", "pending").Count(&stats.PendingReviewsCount).Error; err != nil {
-		stats.PendingReviewsCount = 0
-	}
-
-	if err := r.db.Table("return_requests").
-		Where("status IN ?", []string{"requested", "approved", "received"}).Count(&stats.OpenReturnsCount).Error; err != nil {
-		stats.OpenReturnsCount = 0
 	}
 
 	if err := r.db.Table("orders").
@@ -82,33 +48,35 @@ func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
 func (r *AdminRepository) ReportSummary(from, to string) (*ReportSummaryResponse, error) {
 	var summary ReportSummaryResponse
 	
-	// Query to get summary
-	// from and to are "YYYY-MM-DD"
-	// WIB timezone handling
 	query := `
+		WITH filtered_orders AS (
+			SELECT id, user_id, subtotal, discount_total, shipping_cost
+			FROM orders
+			WHERE status IN ('paid','processing','shipped','completed','refunded')
+			  AND paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' 
+			  AND paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+		)
 		SELECT 
-			COALESCE(SUM(o.subtotal), 0) as gross_sales,
-			COALESCE(SUM(o.discount_total), 0) as discount_total,
-			COALESCE(SUM(o.shipping_cost), 0) as shipping_total,
-			COUNT(o.id) as orders_count,
-			COALESCE((SELECT SUM(oi.qty) FROM order_items oi JOIN orders o2 ON oi.order_id = o2.id WHERE o2.status IN ('paid','processing','shipped','completed','refunded') AND o2.paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND o2.paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')), 0) as items_sold
-		FROM orders o
-		WHERE o.status IN ('paid','processing','shipped','completed','refunded')
-		  AND o.paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND o.paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+			COALESCE(SUM(subtotal), 0) as gross_sales,
+			COALESCE(SUM(discount_total), 0) as discount_total,
+			COALESCE(SUM(shipping_cost), 0) as shipping_total,
+			COUNT(id) as orders_count,
+			COALESCE((SELECT SUM(qty) FROM order_items WHERE order_id IN (SELECT id FROM filtered_orders)), 0) as items_sold,
+			COALESCE((SELECT SUM(amount) FROM refunds WHERE order_id IN (SELECT id FROM filtered_orders)), 0) as refunded_total,
+			COALESCE((
+				SELECT COUNT(DISTINCT fo.user_id) 
+				FROM filtered_orders fo
+				WHERE NOT EXISTS (
+					SELECT 1 FROM orders o2 
+					WHERE o2.user_id = fo.user_id 
+					  AND o2.status IN ('paid','processing','shipped','completed','refunded')
+					  AND o2.paid_at < ?::timestamptz AT TIME ZONE 'Asia/Jakarta'
+				)
+			), 0) as new_customers
+		FROM filtered_orders
 	`
 	
-	err := r.db.Raw(query, from, to, from, to).Scan(&summary).Error
-	if err != nil {
-		return nil, err
-	}
-	
-	refundQuery := `
-		SELECT COALESCE(SUM(amount), 0) as refunded_total 
-		FROM refunds r JOIN orders o ON r.order_id = o.id 
-		WHERE o.status IN ('paid','processing','shipped','completed','refunded')
-		AND o.paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND o.paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
-	`
-	err = r.db.Raw(refundQuery, from, to).Scan(&summary.RefundedTotal).Error
+	err := r.db.Raw(query, from, to, from).Scan(&summary).Error
 	if err != nil {
 		return nil, err
 	}
@@ -117,19 +85,6 @@ func (r *AdminRepository) ReportSummary(from, to string) (*ReportSummaryResponse
 	if summary.OrdersCount > 0 {
 		summary.AvgOrderValue = float64(summary.NetSales) / float64(summary.OrdersCount)
 	}
-	
-	newCustQuery := `
-		SELECT COUNT(DISTINCT user_id) 
-		FROM orders 
-		WHERE status IN ('paid','processing','shipped','completed','refunded')
-		AND paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
-		AND user_id NOT IN (
-			SELECT user_id FROM orders 
-			WHERE status IN ('paid','processing','shipped','completed','refunded')
-			AND paid_at < ?::timestamptz AT TIME ZONE 'Asia/Jakarta'
-		)
-	`
-	err = r.db.Raw(newCustQuery, from, to, from).Scan(&summary.NewCustomers).Error
 	
 	return &summary, err
 }

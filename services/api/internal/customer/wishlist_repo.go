@@ -41,6 +41,7 @@ func (r *WishlistRepository) GetWishlist(userID string) ([]ProductListResponse, 
 		Where("w.user_id = ?", userID).
 		Group("p.id, p.slug, p.name, p.category_slug, w.created_at").
 		Order("w.created_at DESC").
+		Limit(100).
 		Scan(&items).Error
 
 	if err != nil {

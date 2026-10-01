@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -117,17 +118,25 @@ func (r *CouponRepository) Create(ctx context.Context, req *CouponRequest, creat
 			return err
 		}
 
-		if req.AppliesTo == "products" {
+		if req.AppliesTo == "products" && len(req.Products) > 0 {
+			var vals []string
+			var args []interface{}
 			for _, pid := range req.Products {
-				if err := tx.Exec("INSERT INTO coupon_products (coupon_id, product_id) VALUES (?, ?)", id, pid).Error; err != nil {
-					return err
-				}
+				vals = append(vals, "(?, ?)")
+				args = append(args, id, pid)
 			}
-		} else if req.AppliesTo == "categories" {
+			if err := tx.Exec("INSERT INTO coupon_products (coupon_id, product_id) VALUES "+strings.Join(vals, ", "), args...).Error; err != nil {
+				return err
+			}
+		} else if req.AppliesTo == "categories" && len(req.Categories) > 0 {
+			var vals []string
+			var args []interface{}
 			for _, cid := range req.Categories {
-				if err := tx.Exec("INSERT INTO coupon_categories (coupon_id, category_id) VALUES (?, ?)", id, cid).Error; err != nil {
-					return err
-				}
+				vals = append(vals, "(?, ?)")
+				args = append(args, id, cid)
+			}
+			if err := tx.Exec("INSERT INTO coupon_categories (coupon_id, category_id) VALUES "+strings.Join(vals, ", "), args...).Error; err != nil {
+				return err
 			}
 		}
 
@@ -174,17 +183,25 @@ func (r *CouponRepository) Update(ctx context.Context, id string, req *CouponReq
 			return err
 		}
 
-		if req.AppliesTo == "products" {
+		if req.AppliesTo == "products" && len(req.Products) > 0 {
+			var vals []string
+			var args []interface{}
 			for _, pid := range req.Products {
-				if err := tx.Exec("INSERT INTO coupon_products (coupon_id, product_id) VALUES (?, ?)", id, pid).Error; err != nil {
-					return err
-				}
+				vals = append(vals, "(?, ?)")
+				args = append(args, id, pid)
 			}
-		} else if req.AppliesTo == "categories" {
+			if err := tx.Exec("INSERT INTO coupon_products (coupon_id, product_id) VALUES "+strings.Join(vals, ", "), args...).Error; err != nil {
+				return err
+			}
+		} else if req.AppliesTo == "categories" && len(req.Categories) > 0 {
+			var vals []string
+			var args []interface{}
 			for _, cid := range req.Categories {
-				if err := tx.Exec("INSERT INTO coupon_categories (coupon_id, category_id) VALUES (?, ?)", id, cid).Error; err != nil {
-					return err
-				}
+				vals = append(vals, "(?, ?)")
+				args = append(args, id, cid)
+			}
+			if err := tx.Exec("INSERT INTO coupon_categories (coupon_id, category_id) VALUES "+strings.Join(vals, ", "), args...).Error; err != nil {
+				return err
 			}
 		}
 
@@ -259,7 +276,7 @@ func (r *CouponRepository) ListPublic(ctx context.Context) ([]Coupon, error) {
 		Where("is_public = ? AND is_active = ?", true, true).
 		Where("starts_at IS NULL OR starts_at <= CURRENT_TIMESTAMP").
 		Where("ends_at IS NULL OR ends_at >= CURRENT_TIMESTAMP").
-		Order("created_at DESC")
+		Order("created_at DESC").Limit(50)
 	
 	err := query.Find(&items).Error
 	if err != nil {

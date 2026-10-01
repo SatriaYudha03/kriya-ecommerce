@@ -105,15 +105,19 @@ func (r *AdminRepository) UpdateOrderStatus(id string, status string, courier, t
 
 		oldStatus := order.Status
 		if (status == "cancelled" || status == "expired") && (oldStatus != "cancelled" && oldStatus != "expired") {
-			var items []OrderItem
-			if err := tx.Where("order_id = ?", id).Find(&items).Error; err != nil {
+			query := `
+				UPDATE product_variants pv 
+				SET stock = pv.stock + agg.qty
+				FROM (
+					SELECT variant_id, SUM(qty) as qty 
+					FROM order_items 
+					WHERE order_id = ? 
+					GROUP BY variant_id
+				) agg
+				WHERE pv.id = agg.variant_id
+			`
+			if err := tx.Exec(query, id).Error; err != nil {
 				return err
-			}
-			for _, it := range items {
-				if err := tx.Table("product_variants").Where("id = ?", it.VariantID).
-					Update("stock", gorm.Expr("stock + ?", it.Qty)).Error; err != nil {
-					return err
-				}
 			}
 		}
 
