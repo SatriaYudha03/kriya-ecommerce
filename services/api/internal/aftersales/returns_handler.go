@@ -359,7 +359,7 @@ func mapReturnRequestResponse(rr ReturnRequest) ReturnRequestResponse {
 		var productName, productSlug, thumbnail string
 		if it.ProductName != nil { productName = *it.ProductName }
 		if it.ProductSlug != nil { productSlug = *it.ProductSlug }
-		if it.ThumbnailURL != nil { thumbnail = *it.ThumbnailURL }
+		thumbnail = thumbnailURL(it.ThumbnailURL)
 		
 		items = append(items, ReturnRequestItemResponse{
 			OrderItemID:  it.OrderItemID,

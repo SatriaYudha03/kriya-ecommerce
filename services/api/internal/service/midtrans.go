@@ -16,20 +16,27 @@ import (
 // snapSandboxURL — KRIYA-MASTER.md Bagian 2: Midtrans Snap mode Sandbox (bukan konfigurasi, fixed).
 const snapSandboxURL = "https://app.sandbox.midtrans.com/snap/v1/transactions"
 const midtransCancelSandboxURL = "https://api.sandbox.midtrans.com/v2/%s/cancel"
+const midtransCoreSandboxBaseURL = "https://api.sandbox.midtrans.com"
 
 const orderIDCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
+// ErrTransactionNotFound — Midtrans belum mengenal order_id ini (mis. popup Snap
+// dibuka tapi pembeli belum memilih metode bayar).
+var ErrTransactionNotFound = errors.New("midtrans: transaksi tidak ditemukan")
+
 type MidtransService struct {
-	serverKey string
-	clientKey string
-	client    *http.Client
+	serverKey   string
+	clientKey   string
+	client      *http.Client
+	coreBaseURL string
 }
 
 func NewMidtransService(serverKey, clientKey string) *MidtransService {
 	return &MidtransService{
-		serverKey: serverKey,
-		clientKey: clientKey,
-		client:    &http.Client{Timeout: 15 * time.Second},
+		serverKey:   serverKey,
+		clientKey:   clientKey,
+		client:      &http.Client{Timeout: 15 * time.Second},
+		coreBaseURL: midtransCoreSandboxBaseURL,
 	}
 }
 
@@ -154,6 +161,52 @@ func (s *MidtransService) CancelTransaction(midtransOrderID string) error {
 		return errors.New("midtrans cancel error: " + string(respBody))
 	}
 	return nil
+}
+
+// TransactionStatus — subset respons GET /v2/{order_id}/status yang dipakai KRIYA.
+type TransactionStatus struct {
+	OrderID           string `json:"order_id"`
+	StatusCode        string `json:"status_code"`
+	TransactionStatus string `json:"transaction_status"`
+}
+
+// GetTransactionStatus menanyakan status transaksi langsung ke Midtrans (pull),
+// sebagai cadangan webhook yang tidak sampai (mis. dev di localhost). Midtrans
+// mengembalikan HTTP 200 dengan status_code "404" untuk order_id yang belum ada.
+func (s *MidtransService) GetTransactionStatus(midtransOrderID string) (*TransactionStatus, error) {
+	url := fmt.Sprintf("%s/v2/%s/status", s.coreBaseURL, midtransOrderID)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(s.serverKey, "")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrTransactionNotFound
+	}
+	if resp.StatusCode >= 300 {
+		return nil, errors.New("midtrans status error: " + string(respBody))
+	}
+
+	var st TransactionStatus
+	if err := json.Unmarshal(respBody, &st); err != nil {
+		return nil, err
+	}
+	if st.StatusCode == "404" {
+		return nil, ErrTransactionNotFound
+	}
+	return &st, nil
 }
 
 // VerifySignature memverifikasi signature_key webhook Midtrans:

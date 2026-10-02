@@ -5,6 +5,8 @@ import (
 )
 
 func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
+	supabaseURL = deps.SupabaseURL
+
 	orderRepo := NewOrderRepository(deps.DB)
 	orderHandler := NewOrderHandler(orderRepo, deps.Midtrans, deps.Ports)
 

@@ -123,7 +123,7 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 			ID:             it.ID,
 			VariantID:      it.VariantID,
 			ProductSlug:    ptrStr(it.ProductSlug),
-			ThumbnailURL:   ptrStr(it.ThumbnailURL),
+			ThumbnailURL:   thumbnailURL(it.ThumbnailURL),
 			Name:           it.Name,
 			SKU:            it.SKU,
 			Color:          it.Color,

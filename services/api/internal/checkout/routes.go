@@ -19,5 +19,6 @@ func RegisterRoutes(db *gorm.DB, midtrans *service.MidtransService, ports Ports,
 
 	authed.POST("/checkout/quote", quoteHandler.Quote)
 	authed.POST("/orders", orderHandler.CreateOrder)
+	authed.POST("/orders/:id/payment/sync", paymentHandler.SyncPayment)
 	public.POST("/payments/midtrans/notification", paymentHandler.MidtransNotification)
 }
