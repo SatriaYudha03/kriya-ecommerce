@@ -34,7 +34,8 @@ export const coreId = {
   "chat.greeting": "Halo! Saya asisten KRIYA. Ada yang bisa saya bantu terkait produk, perakitan, atau pesanan?",
   "chat.placeholder": "Ketik pesan...",
   "chat.error": "Maaf, terjadi kesalahan saat menghubungi server chat.",
-  "chat.offline": "Maaf, fitur chat belum sepenuhnya terhubung ke AI (M4 webhook belum siap). Tapi antarmukanya sudah siap!",
+  "chat.offline": "Maaf, fitur chat belum dikonfigurasi di lingkungan ini.",
+  "chat.empty": "Maaf, saya tidak mengerti.",
   
   // Cart
   "cart.empty.title": "Keranjang Kosong",

@@ -31,3 +31,7 @@ e2e/node_modules/
 .DS_Store
 # Claude instructions
 CLAUDE.md
+
+# n8n lokal (data runtime, berisi kredensial terenkripsi)
+automation/n8n/data/
+data/eval/results/

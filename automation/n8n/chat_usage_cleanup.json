@@ -1,0 +1,66 @@
+[
+  {
+    "id": "kriyaCleanup0001",
+    "name": "KRIYA chat usage cleanup",
+    "nodes": [
+      {
+        "id": "394cef02-a399-4031-abb7-e62a770a8cd9",
+        "name": "Harian 03:00",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "days",
+                "triggerAtHour": 3
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "f9ac652b-f255-449c-bfcb-fcd37bc01f8a",
+        "name": "Hapus chat_usage lama",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          260,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "DELETE FROM chat_usage WHERE window_start < now() - interval '7 days';",
+          "options": {}
+        },
+        "credentials": {
+          "postgres": {
+            "id": "04EJOz6tN8IJU4vU",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Harian 03:00": {
+        "main": [
+          [
+            {
+              "node": "Hapus chat_usage lama",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "timezone": "Asia/Jakarta"
+    }
+  }
+]

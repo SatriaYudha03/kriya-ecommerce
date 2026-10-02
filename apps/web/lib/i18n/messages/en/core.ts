@@ -35,7 +35,8 @@ export const coreEn: typeof coreId = {
   "chat.greeting": "Hello! I'm KRIYA's assistant. How can I help you with products, assembly, or orders?",
   "chat.placeholder": "Type a message...",
   "chat.error": "Sorry, an error occurred while connecting to the chat server.",
-  "chat.offline": "Sorry, the chat feature is not fully connected to AI yet (M4 webhook not ready). But the interface is ready!",
+  "chat.offline": "Sorry, the chat feature is not configured in this environment.",
+  "chat.empty": "Sorry, I didn't understand that.",
   
   // Cart
   "cart.empty.title": "Cart is Empty",

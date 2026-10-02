@@ -1,5 +1,5 @@
 # KRIYA — Docker Compose dev (KRIYA-MASTER.md Bagian 4).
-# Data (Postgres + Auth + Storage + pgvector) memakai Supabase managed — bukan container lokal.
+# Data (Postgres + Auth + Storage) memakai Supabase managed — bukan container lokal.
 # web (Next.js) dijalankan lokal via `npm run dev` di apps/web saat pengembangan.
 
 services:
@@ -12,24 +12,35 @@ services:
       PORT: "8080"
     restart: unless-stopped
 
-  ai:
-    build: ./services/ai
-    ports:
-      - "8000:8000"
-    env_file: .env
+  # Proxy 9router -> memaksa stream:false (lihat automation/llm-proxy/server.mjs).
+  llm-proxy:
+    image: node:22-alpine
+    command: ["node", "/app/server.mjs"]
+    environment:
+      - UPSTREAM=http://host.docker.internal:20128
+    volumes:
+      - ./automation/llm-proxy:/app:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:2.41.6
     ports:
-      - "5678:5678"
+      - "127.0.0.1:5678:5678"
     environment:
       - N8N_PORT=5678
       - N8N_HOST=localhost
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=Asia/Jakarta
+      - TZ=Asia/Jakarta
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:?isi N8N_ENCRYPTION_KEY di .env}
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      - N8N_PERSONALIZATION_ENABLED=false
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
     volumes:
-      - n8n_data:/home/node/.n8n
+      - ./automation/n8n/data:/home/node/.n8n
     restart: unless-stopped
-
-volumes:
-  n8n_data:

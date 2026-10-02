@@ -1,14 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { MessageCircle, Send, Minus } from "lucide-react";
-import { useAuth } from "./auth-provider";
 import { useLanguage } from "./language-provider";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+
+// Sejalan dengan validasi workflow n8n (message 1-1000 karakter).
+const MAX_MESSAGE_LENGTH = 1000;
+const CHAT_TIMEOUT_MS = 30_000;
 
 interface Source {
   type: "product" | "guide" | "faq" | "policy";
   ref: string;
+}
+
+interface ChatResponse {
+  reply?: string;
+  sources?: Source[];
 }
 
 interface Message {
@@ -19,8 +29,7 @@ interface Message {
 }
 
 export function ChatWidget() {
-  const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -32,8 +41,7 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   
-  // simple session id generator
-  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 15));
+  const [sessionId] = useState(() => crypto.randomUUID());
   
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -57,45 +65,48 @@ export function ChatWidget() {
     
     setLoading(true);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
+
     try {
       const webhookUrl = process.env.NEXT_PUBLIC_CHAT_WEBHOOK_URL;
-      
-      if (!webhookUrl || webhookUrl.includes("localhost:5678")) {
-        // Mock if webhook is not really ready
-        setTimeout(() => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              role: "bot",
-              content: t("chat.offline"),
-            }
-          ]);
-          setLoading(false);
-        }, 1000);
+
+      if (!webhookUrl) {
+        setMessages((prev) => [
+          ...prev,
+          { id: Date.now().toString(), role: "bot", content: t("chat.offline") },
+        ]);
         return;
       }
 
+      // Identitas dikirim lewat JWT (diverifikasi n8n), bukan email di body.
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token ?? null;
+
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
         body: JSON.stringify({
           session_id: sessionId,
           message: userMsg,
-          user: user ? { email: user.email } : null,
+          locale,
         }),
+        signal: controller.signal,
       });
 
       if (!res.ok) throw new Error("Gagal mengirim pesan");
-      
-      const data = await res.json();
-      
+
+      const data: ChatResponse = await res.json();
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
           role: "bot",
-          content: data.reply || "Maaf, saya tidak mengerti.",
+          content: data.reply || t("chat.empty"),
           sources: data.sources,
         },
       ]);
@@ -109,6 +120,7 @@ export function ChatWidget() {
         },
       ]);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
@@ -155,7 +167,7 @@ export function ChatWidget() {
             >
               <div
                 className={cn(
-                  "rounded-2xl px-4 py-2.5 text-sm",
+                  "rounded-2xl px-4 py-2.5 text-sm whitespace-pre-line break-words leading-relaxed",
                   msg.role === "user"
                     ? "bg-brand-strong text-white rounded-br-none"
                     : "bg-white border border-neutral-200 text-neutral-800 rounded-bl-none shadow-sm"
@@ -165,14 +177,24 @@ export function ChatWidget() {
               </div>
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-1.5 flex flex-wrap gap-1">
-                  {msg.sources.map((src, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex rounded border border-neutral-200 bg-white px-1.5 py-0.5 text-[10px] text-neutral-500"
-                    >
-                      {src.type}: {src.ref}
-                    </span>
-                  ))}
+                  {msg.sources.map((src, i) =>
+                    src.type === "product" ? (
+                      <Link
+                        key={i}
+                        href={`/products/${encodeURIComponent(src.ref)}`}
+                        className="inline-flex rounded border border-brand/40 bg-white px-1.5 py-0.5 text-[10px] text-brand-strong underline-offset-2 transition-colors hover:bg-brand/10 hover:underline"
+                      >
+                        {src.type}: {src.ref}
+                      </Link>
+                    ) : (
+                      <span
+                        key={i}
+                        className="inline-flex rounded border border-neutral-200 bg-white px-1.5 py-0.5 text-[10px] text-neutral-500"
+                      >
+                        {src.type}: {src.ref}
+                      </span>
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -199,6 +221,7 @@ export function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("chat.placeholder")}
+              maxLength={MAX_MESSAGE_LENGTH}
               className="w-full rounded-full border border-neutral-300 bg-neutral-50 py-2.5 pl-4 pr-12 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
               disabled={loading}
             />
