@@ -1,5 +1,5 @@
 import type { PutCartPayloadItem } from "../customer/types";
-import type { Order } from "../aftersales/types";
+import type { Order, OrderStatus } from "../aftersales/types";
 
 export interface CheckoutQuoteRequest {
   items: PutCartPayloadItem[];
@@ -21,6 +21,11 @@ export interface CreateOrderResponse {
   order: Order;
   snap_token: string;
   midtrans_client_key: string;
+}
+
+// POST /orders/:id/payment/sync — status order setelah ditarik dari Midtrans.
+export interface SyncPaymentResponse {
+  status: OrderStatus;
 }
 
 export interface QuoteShippingOption {

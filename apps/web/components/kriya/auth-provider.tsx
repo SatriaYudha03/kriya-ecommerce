@@ -27,16 +27,19 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// Dipasang di level modul, BUKAN di useEffect: effect anak jalan lebih dulu daripada
+// effect parent, jadi query ber-auth di halaman (mis. /orders saat di-refresh) sempat
+// menembak API tanpa token -> 401 "silakan login" padahal sesi valid.
+setAccessTokenGetter(async () => {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+});
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setAccessTokenGetter(async () => {
-      const { data } = await supabase.auth.getSession();
-      return data.session?.access_token ?? null;
-    });
-
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
       setLoading(false);

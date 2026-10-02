@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { continuePayment } from "@/lib/customer/api";
+import { syncPayment } from "@/lib/checkout/api";
 import { ApiError } from "@/lib/http";
 import { loadSnap, paySnap } from "@/lib/snap";
 import { toast } from "sonner";
@@ -28,11 +29,10 @@ export function ContinuePaymentButton({ orderId, size = "md", onSettled }: Conti
       
       if (result === "error") {
         toast.error(t("customer.continuePayment.error"));
-      } else if (result === "success" || result === "pending") {
-        // success/pending normally handled by webhook, but we trigger invalidate locally
-        onSettled?.();
       } else {
-        // closed - user closed popup, invalidate to sync status
+        // Jangan hanya mengandalkan webhook (tidak sampai di localhost): tarik status
+        // dari Midtrans dulu, baru refresh data. Gagal sync tidak fatal.
+        await syncPayment(orderId).catch(() => undefined);
         onSettled?.();
       }
     } catch (err) {

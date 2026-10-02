@@ -1,6 +1,12 @@
 import { request, USE_FIXTURES } from "../http";
 import type { Envelope } from "../http";
-import type { CheckoutQuote, CheckoutQuoteRequest, CreateOrderPayload, CreateOrderResponse } from "./types";
+import type {
+  CheckoutQuote,
+  CheckoutQuoteRequest,
+  CreateOrderPayload,
+  CreateOrderResponse,
+  SyncPaymentResponse,
+} from "./types";
 import { fixtures } from "./fixtures";
 
 export async function getCheckoutQuote(payload: CheckoutQuoteRequest): Promise<CheckoutQuote> {
@@ -22,6 +28,16 @@ export async function createOrder(payload: CreateOrderPayload): Promise<CreateOr
   const { data } = await request<Envelope<CreateOrderResponse>>("/api/v1/orders", {
     method: "POST",
     body: payload,
+    auth: true,
+  });
+  return data;
+}
+
+// Cadangan webhook Midtrans: BE menanyakan status transaksi langsung ke Midtrans lalu
+// memperbarui order. Aman dipanggil berulang (idempoten di BE).
+export async function syncPayment(orderId: string): Promise<SyncPaymentResponse> {
+  const { data } = await request<Envelope<SyncPaymentResponse>>(`/api/v1/orders/${orderId}/payment/sync`, {
+    method: "POST",
     auth: true,
   });
   return data;

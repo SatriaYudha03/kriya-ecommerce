@@ -139,7 +139,7 @@ export default function OrdersPage() {
                   <div className="flex gap-3 items-center">
                     {order.payment?.can_continue && (
                       <Link
-                        href={`/checkout?order_id=${order.id}`}
+                        href={`/orders/${order.id}/pay`}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:text-brand-strong"
                       >
                         {t("after.orders.card.pay" as MessageKey)}

@@ -1,6 +1,8 @@
 "use client";
 
+import { use } from "react";
 import { useOrder } from "@/lib/aftersales/queries";
+import { usePaymentSync } from "@/lib/checkout/queries";
 import type { OrderStatus } from "@/lib/aftersales/types";
 import { formatRupiah } from "@/lib/format";
 import Link from "next/link";
@@ -10,9 +12,11 @@ import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-bad
 import { CancelOrderDialog } from "@/components/kriya/aftersales/cancel-order-dialog";
 import { ReturnOrderDialog } from "@/components/kriya/aftersales/return-order-dialog";
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
+export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { t, locale } = useLanguage();
-  const { data: order, isLoading, isError } = useOrder(params.id);
+  const { data: order, isLoading, isError } = useOrder(id);
+  usePaymentSync(id, order?.status);
 
   if (isLoading) return <div className="p-20 text-center text-neutral-500">{t("after.orders.loading")}</div>;
   if (isError || !order) return <div className="p-20 text-center text-red-500">{t("error.orderNotFound")}</div>;
@@ -58,7 +62,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
               )}
               {order.payment?.can_continue && (
                 <Link 
-                  href={`/checkout?order_id=${order.id}`}
+                  href={`/orders/${order.id}/pay`}
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-neutral-900 text-neutral-50 hover:bg-neutral-900/90 h-10 px-4 py-2"
                 >
                   {t("after.orders.card.pay")}

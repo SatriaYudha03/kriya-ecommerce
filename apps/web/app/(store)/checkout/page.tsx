@@ -20,7 +20,6 @@ import type { Address } from "@/lib/customer/types";
 import type { QuoteCoupon } from "@/lib/types";
 import { customerKeys } from "@/lib/customer/queries";
 import { afterKeys } from "@/lib/aftersales/queries";
-import { loadSnap, paySnap } from "@/lib/snap";
 import { formatRupiah } from "@/lib/format";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -54,11 +53,6 @@ export default function CheckoutPage() {
       router.push("/cart");
     }
   }, [user, authLoading, items.length, router, submitting, t]);
-
-  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "SB-Mid-client-XXXXX";
-  useEffect(() => {
-    loadSnap(clientKey).catch(console.error);
-  }, [clientKey]);
 
   const lineItems = useMemo(
     () => items.map((i) => ({ variant_id: i.variant_id, qty: i.qty })),
@@ -110,28 +104,11 @@ export default function CheckoutPage() {
       queryClient.invalidateQueries({ queryKey: afterKeys.all });
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
 
-      if (!res.snap_token) {
-        throw new Error(t("checkoutV2.orderFailed"));
-      }
-
-      const snapResult = await paySnap(res.snap_token);
-
-      if (snapResult === "success") {
-        await clearCart();
-        toast.success(t("checkoutV2.paymentSuccess"));
-        router.push(`/orders/${res.order.id}`);
-      } else if (snapResult === "pending") {
-        await clearCart();
-        toast.success(t("checkoutV2.paymentPending"));
-        router.push(`/orders/${res.order.id}`);
-      } else if (snapResult === "closed") {
-        await clearCart();
-        toast.info(t("checkoutV2.paymentClosed"));
-        router.push(`/orders/${res.order.id}`);
-      } else {
-        toast.error(t("checkoutV2.paymentError"));
-        setSubmitting(false);
-      }
+      // Order sudah tercipta (stok & kupon sudah direservasi): kosongkan keranjang lalu
+      // pindah ke halaman bayar terpisah. `submitting` sengaja tidak di-reset agar effect
+      // "keranjang kosong -> /cart" tidak menyerobot navigasi ini.
+      await clearCart();
+      router.replace(`/orders/${res.order.id}/pay`);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : t("checkoutV2.orderFailed"));
       setSubmitting(false);
