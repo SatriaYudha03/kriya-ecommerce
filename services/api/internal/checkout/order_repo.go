@@ -12,7 +12,7 @@ import (
 
 type Order struct {
 	ID                 string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	OrderNumber        string     `gorm:"column:order_number"`
+	OrderNumber        string     `gorm:"column:order_number;default:(-)"` // DEFAULT kriya_next_order_number() di DB; jangan kirim '' saat INSERT
 	UserID             string     `gorm:"column:user_id;type:uuid"`
 	Status             string     `gorm:"column:status"`
 	ShippingZone       string     `gorm:"column:shipping_zone"` // kolom M2, NOT NULL — belum di-drop; diisi ZoneCode metode v2
