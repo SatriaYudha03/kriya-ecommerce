@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminOrder, updateAdminOrderStatus, addAdminOrderNote } from "@/lib/aftersales/api";
 import { formatRupiah } from "@/lib/format";
@@ -10,7 +10,8 @@ import Link from "next/link";
 import { ArrowLeft, Package, Loader2 } from "lucide-react";
 import { RefundOrderDialog } from "@/components/kriya/aftersales/refund-order-dialog";
 
-export default function AdminOrderDetailPage({ params }: { params: { id: string } }) {
+export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const queryClient = useQueryClient();
   const [statusInput, setStatusInput] = useState<OrderStatus | "">("");
   const [courier, setCourier] = useState("");
@@ -20,12 +21,12 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   const [isCustomerVisible, setIsCustomerVisible] = useState(false);
 
   const { data: order, isLoading, isError } = useQuery({
-    queryKey: ["admin_orders", params.id],
-    queryFn: () => getAdminOrder(params.id),
+    queryKey: ["admin_orders", id],
+    queryFn: () => getAdminOrder(id),
   });
 
   const statusMut = useMutation({
-    mutationFn: () => updateAdminOrderStatus(params.id, statusInput as OrderStatus, undefined, courier || undefined, trackingNumber || undefined),
+    mutationFn: () => updateAdminOrderStatus(id, statusInput as OrderStatus, undefined, courier || undefined, trackingNumber || undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin_orders"] });
       setStatusInput("");
@@ -35,9 +36,9 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   });
 
   const noteMut = useMutation({
-    mutationFn: () => addAdminOrderNote(params.id, noteBody, isCustomerVisible),
+    mutationFn: () => addAdminOrderNote(id, noteBody, isCustomerVisible),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin_orders", params.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin_orders", id] });
       setNoteBody("");
       setIsCustomerVisible(false);
     }
@@ -141,13 +142,13 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
               
               {statusInput === "shipped" && (
                 <div className="space-y-2 pt-2">
-                  <input type="text" placeholder="Kurir (mis. JNE, Gojek)" className="w-full border rounded p-2 text-sm" value={courier} onChange={e => setCourier(e.target.value)} />
-                  <input type="text" placeholder="Nomor Resi" className="w-full border rounded p-2 text-sm" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
+                  <input type="text" placeholder="Kurir (mis. JNE, Gojek) — wajib" required className="w-full border rounded p-2 text-sm" value={courier} onChange={e => setCourier(e.target.value)} />
+                  <input type="text" placeholder="Nomor Resi — wajib" required className="w-full border rounded p-2 text-sm" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
                 </div>
               )}
 
               <button 
-                disabled={!statusInput || statusMut.isPending}
+                disabled={!statusInput || statusMut.isPending || (statusInput === "shipped" && (!courier.trim() || !trackingNumber.trim()))}
                 onClick={() => statusMut.mutate()}
                 className="w-full bg-blue-600 text-white rounded p-2 text-sm font-medium disabled:opacity-50"
               >

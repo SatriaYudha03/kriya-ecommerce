@@ -141,9 +141,14 @@ func (h *CouponHandler) ListRedemptions(c *gin.Context) {
 	})
 }
 
+type ValidateLine struct {
+	VariantID string `json:"variant_id" binding:"required,uuid"`
+	Qty       int    `json:"qty" binding:"required,min=1"`
+}
+
 type ValidateRequest struct {
-	Code  string               `json:"code" binding:"required"`
-	Lines []checkout.LineInput `json:"lines" binding:"required"`
+	Code  string         `json:"code" binding:"required"`
+	Lines []ValidateLine `json:"lines" binding:"required,min=1,dive"`
 }
 
 func (h *CouponHandler) GetPublicCoupons(c *gin.Context) {
@@ -171,7 +176,11 @@ func (h *CouponHandler) ValidateCoupon(c *gin.Context) {
 	}
 	
 	// We run stateless Evaluate without DB lock
-	pricedLines, problems, err := checkout.PriceLines(c.Request.Context(), h.db, req.Lines, locale, false)
+	lines := make([]checkout.LineInput, len(req.Lines))
+	for i, l := range req.Lines {
+		lines[i] = checkout.LineInput{VariantID: l.VariantID, Qty: l.Qty}
+	}
+	pricedLines, problems, err := checkout.PriceLines(c.Request.Context(), h.db, lines, locale, false)
 	if err != nil {
 		httpx.RespondError(c, http.StatusInternalServerError, "internal", "Gagal menghitung harga barang")
 		return

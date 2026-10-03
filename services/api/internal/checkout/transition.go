@@ -27,7 +27,7 @@ func (e *InvalidTransitionError) Error() string {
 
 type MissingShipmentInfoError struct{}
 
-func (e *MissingShipmentInfoError) Error() string { return "courier dan tracking_number wajib diisi" }
+func (e *MissingShipmentInfoError) Error() string { return "Kurir dan nomor resi wajib diisi saat mengubah status menjadi Dikirim" }
 
 type orderStatusRow struct {
 	ID     string

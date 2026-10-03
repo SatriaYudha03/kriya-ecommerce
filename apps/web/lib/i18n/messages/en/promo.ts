@@ -10,7 +10,7 @@ export const promoEn: typeof promoId = {
   "promo.errors.user_limit_reached": "You have reached your usage limit for this coupon",
   "promo.errors.not_applicable": "Coupon is not applicable to items in your cart",
   "promo.errors.min_subtotal_not_met": "Minimum subtotal not met to use this coupon",
-  "promo.errors.internal": "An error occurred while validating the coupon",
+  "promo.errors.internal": "We couldn't check this coupon right now. Please try again in a moment.",
   "promo.apply": "Apply",
   "promo.applying": "Validating...",
   "promo.remove": "Remove",

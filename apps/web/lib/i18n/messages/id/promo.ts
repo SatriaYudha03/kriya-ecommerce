@@ -8,7 +8,7 @@ export const promoId = {
   "promo.errors.user_limit_reached": "Anda sudah mencapai batas pemakaian kupon ini",
   "promo.errors.not_applicable": "Kupon tidak berlaku untuk produk di keranjang Anda",
   "promo.errors.min_subtotal_not_met": "Total belanja belum mencapai minimum pemakaian kupon",
-  "promo.errors.internal": "Terjadi kesalahan saat memvalidasi kupon",
+  "promo.errors.internal": "Kupon belum bisa diperiksa saat ini. Silakan coba lagi sebentar lagi.",
   "promo.apply": "Gunakan",
   "promo.applying": "Memvalidasi...",
   "promo.remove": "Hapus",
