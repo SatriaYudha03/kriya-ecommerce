@@ -28,3 +28,14 @@
 Restart API, coba ulang kupon di checkout dan ubah status ke Dikirim di admin.
 Pola yang sama (struct dengan tanpa tag JSON dipakai sebagai request body) perlu dicek di handler lain yang
 memakai `checkout.LineInput` langsung.
+
+## Tambahan: modal kirim di daftar pesanan + error mengikuti bahasa
+
+- **Penyebab "tidak ada modal"**: dropdown status di `/admin/orders` (daftar) langsung memanggil API saat dipilih;
+  form kurir/resi hanya ada di halaman detail. Kini memilih "Dikirim" di daftar membuka dialog kurir + resi
+  (`admin/orders/page.tsx`, tombol submit nonaktif sampai keduanya terisi).
+- **Error mengikuti bahasa**: BE (`aftersales/admin_handler.go`) kini memakai kode `shipment_info_required`
+  (409) untuk kurir/resi kosong, terpisah dari `invalid_transition`. `useUpdateOrderStatus`
+  (`lib/aftersales/queries.ts`) menerjemahkan berdasarkan kode lewat key `after.admin.orders.*` (id + en),
+  tidak lagi menampilkan teks Indonesia dari BE. Toast sukses/gagal umum juga ikut bahasa.
+- `go build` dan `tsc --noEmit` hijau; belum diuji di browser. Belum di-commit.

@@ -128,7 +128,13 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 	if err != nil {
 		var invalidErr *orderflow.InvalidTransitionError
 		var missingShipmentErr *orderflow.MissingShipmentInfoError
-		if errors.As(err, &invalidErr) || errors.As(err, &missingShipmentErr) {
+		if errors.As(err, &missingShipmentErr) {
+			c.JSON(http.StatusConflict, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "shipment_info_required", Message: err.Error()},
+			})
+			return
+		}
+		if errors.As(err, &invalidErr) {
 			c.JSON(http.StatusConflict, httpx.ErrorResponse{
 				Error: httpx.ErrorDetail{Code: "invalid_transition", Message: err.Error()},
 			})

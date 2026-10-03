@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Package } from "lucide-react";
 import { useAdminOrders, useUpdateOrderStatus } from "@/lib/aftersales/queries";
 import { formatRupiah } from "@/lib/format";
@@ -42,6 +43,22 @@ export default function AdminOrdersPage() {
     limit: LIMIT,
   });
   const updateStatus = useUpdateOrderStatus();
+  const [shipOrderId, setShipOrderId] = useState<string | null>(null);
+  const [courier, setCourier] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+
+  const closeShipDialog = () => {
+    setShipOrderId(null);
+    setCourier("");
+    setTrackingNumber("");
+  };
+  const submitShipment = () => {
+    if (!shipOrderId) return;
+    updateStatus.mutate(
+      { id: shipOrderId, status: "shipped", courier: courier.trim(), trackingNumber: trackingNumber.trim() },
+      { onSuccess: closeShipDialog },
+    );
+  };
 
   const orders = data?.data ?? [];
   const total = data?.meta.total ?? 0;
@@ -126,11 +143,14 @@ export default function AdminOrdersPage() {
                         </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right">
                         <select
-                          value={o.status}
+                          value={(o.status as string) === "delivered" ? "completed" : (o.status as string) === "pending" || (o.status as string) === "awaiting_payment" ? "pending_payment" : o.status}
                           disabled={rowPending}
-                          onChange={(e) =>
-                            updateStatus.mutate({ id: o.id, status: e.target.value as OrderStatus })
-                          }
+                          onChange={(e) => {
+                            const next = e.target.value as OrderStatus;
+                            // "Dikirim" butuh kurir & resi: buka form dulu, jangan kirim langsung.
+                            if (next === "shipped") setShipOrderId(o.id);
+                            else updateStatus.mutate({ id: o.id, status: next });
+                          }}
                           className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-sm disabled:opacity-50"
                         >
                           {STATUS_KEYS.map((s) => (
@@ -170,6 +190,49 @@ export default function AdminOrdersPage() {
           </button>
         </div>
       )}
+      <Dialog open={shipOrderId !== null} onOpenChange={(open) => { if (!open) closeShipDialog(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("after.admin.orders.ship.title")}</DialogTitle>
+            <DialogDescription>{t("after.admin.orders.ship.desc")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-neutral-700">
+              {t("after.admin.orders.ship.courier")}
+              <input
+                type="text"
+                value={courier}
+                onChange={(e) => setCourier(e.target.value)}
+                placeholder={t("after.admin.orders.ship.courierPlaceholder")}
+                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm font-normal"
+              />
+            </label>
+            <label className="block text-sm font-medium text-neutral-700">
+              {t("after.admin.orders.ship.tracking")}
+              <input
+                type="text"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+                placeholder={t("after.admin.orders.ship.trackingPlaceholder")}
+                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm font-normal"
+              />
+            </label>
+          </div>
+          <DialogFooter>
+            <button type="button" onClick={closeShipDialog} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
+              {t("after.admin.orders.ship.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={submitShipment}
+              disabled={updateStatus.isPending || !courier.trim() || !trackingNumber.trim()}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {updateStatus.isPending ? t("after.admin.orders.ship.submitting") : t("after.admin.orders.ship.submit")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

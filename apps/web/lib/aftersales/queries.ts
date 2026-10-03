@@ -54,16 +54,22 @@ export function useAdminOrders(query: AdminOrdersQuery = {}) {
 
 export function useUpdateOrderStatus() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
-      updateAdminOrderStatus(id, status),
+    mutationFn: ({ id, status, courier, trackingNumber }: { id: string; status: OrderStatus; courier?: string; trackingNumber?: string }) =>
+      updateAdminOrderStatus(id, status, undefined, courier, trackingNumber),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: afterKeys.all });
       qc.invalidateQueries({ queryKey: promoKeys.stats() });
-      toast.success("Status pesanan diperbarui");
+      toast.success(t("after.admin.orders.statusUpdated"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Gagal memperbarui status");
+      // Pesan dari BE berbahasa Indonesia; terjemahkan berdasarkan kode error agar
+      // mengikuti bahasa pilihan pengguna.
+      const code = err instanceof ApiError ? err.code : "";
+      if (code === "shipment_info_required") toast.error(t("after.admin.orders.err.shipment_info_required"));
+      else if (code === "invalid_transition") toast.error(t("after.admin.orders.err.invalid_transition"));
+      else toast.error(t("after.admin.orders.statusUpdateFailed"));
     },
   });
 }
