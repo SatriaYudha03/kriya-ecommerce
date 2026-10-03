@@ -281,9 +281,3 @@ type AdminProductDetailResponse struct {
 	Variants         []VariantResponse    `json:"variants"`
 	Images           []AdminImageResponse `json:"images"`
 }
-
-type ContinuePaymentResponse struct {
-	SnapToken         string `json:"snap_token"`
-	MidtransClientKey string `json:"midtrans_client_key"`
-	ExpiresAt         string `json:"expires_at"`
-}

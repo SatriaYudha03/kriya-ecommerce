@@ -57,6 +57,9 @@ type transitionPlan struct {
 	ConfirmDiscounts bool
 	ReleaseInventory bool
 	ReleaseDiscounts bool
+	// CloseAttemptsAs: status akhir payment_attempts yang masih active/superseded saat
+	// order ditutup ("" = tidak disentuh) — supaya attempt lama tidak ditawarkan lagi.
+	CloseAttemptsAs string
 }
 
 func planTransition(from Status, in TransitionInput) (transitionPlan, error) {
@@ -87,9 +90,11 @@ func planTransition(from Status, in TransitionInput) (transitionPlan, error) {
 		plan.Update.CancelReason = in.CancelReason
 		plan.ReleaseInventory = true
 		plan.ReleaseDiscounts = true
+		plan.CloseAttemptsAs = "failed"
 	case StatusExpired:
 		plan.ReleaseInventory = true
 		plan.ReleaseDiscounts = true
+		plan.CloseAttemptsAs = "expired"
 	}
 
 	fromStr := string(from)
@@ -150,6 +155,13 @@ func Transition(ctx context.Context, tx *gorm.DB, p Ports, in TransitionInput) (
 	}
 	if plan.ReleaseDiscounts && p.Discounts != nil {
 		if err := p.Discounts.Release(ctx, tx, in.OrderID); err != nil {
+			return plan.From, err
+		}
+	}
+	if plan.CloseAttemptsAs != "" {
+		if err := tx.WithContext(ctx).Table("payment_attempts").
+			Where("order_id = ? AND status IN ?", in.OrderID, []string{"active", "superseded"}).
+			Update("status", plan.CloseAttemptsAs).Error; err != nil {
 			return plan.From, err
 		}
 	}

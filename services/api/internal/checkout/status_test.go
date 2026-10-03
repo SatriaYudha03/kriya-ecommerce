@@ -14,7 +14,7 @@ func TestCanTransition(t *testing.T) {
 	cells := []cell{
 		{StatusPendingPayment, StatusPaid, []ActorType{ActorPaymentGateway}},
 		{StatusPendingPayment, StatusCancelled, []ActorType{ActorCustomer, ActorAdmin, ActorPaymentGateway}},
-		{StatusPendingPayment, StatusExpired, []ActorType{ActorPaymentGateway}},
+		{StatusPendingPayment, StatusExpired, []ActorType{ActorPaymentGateway, ActorSystem}},
 		{StatusPaid, StatusProcessing, []ActorType{ActorAdmin}},
 		{StatusPaid, StatusShipped, []ActorType{ActorAdmin}},
 		{StatusPaid, StatusRefunded, []ActorType{ActorAdmin}},

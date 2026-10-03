@@ -33,7 +33,9 @@ func CanTransition(from, to Status, actor ActorType) bool {
 		case StatusCancelled:
 			return actor == ActorCustomer || actor == ActorAdmin || actor == ActorPaymentGateway
 		case StatusExpired:
-			return actor == ActorPaymentGateway
+			// ActorSystem = ExpirySweeper (RENCANA-PAYMENT-LIFECYCLE Fase 5): order yang
+			// melewati payment_due_at tanpa transaksi Midtrans tidak pernah dapat webhook expire.
+			return actor == ActorPaymentGateway || actor == ActorSystem
 		}
 	case StatusPaid:
 		switch to {

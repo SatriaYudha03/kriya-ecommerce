@@ -100,6 +100,7 @@ type Order struct {
 	TotalCount      int64      `gorm:"->;column:total_count"`
 	PaStatus        *string    `gorm:"->;column:pa_status"`
 	PaExpiresAt     *time.Time `gorm:"->;column:pa_expires_at"`
+	PaymentDueAt    *time.Time `gorm:"->;column:payment_due_at"` // tenggat bayar order (migrasi 017)
 	RefundableAmount int       `gorm:"->;column:refundable_amount"`
 }
 

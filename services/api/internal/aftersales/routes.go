@@ -1,6 +1,7 @@
 package aftersales
 
 import (
+	"github.com/kriya-commerce/api/internal/checkout"
 	"github.com/kriya-commerce/api/internal/platform"
 )
 
@@ -8,10 +9,11 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	supabaseURL = deps.SupabaseURL
 
 	orderRepo := NewOrderRepository(deps.DB)
-	orderHandler := NewOrderHandler(orderRepo, deps.Midtrans, deps.Ports)
+	paymentProcessor := checkout.NewPaymentProcessor(deps.DB, deps.Ports)
+	orderHandler := NewOrderHandler(orderRepo, deps.Midtrans, deps.Ports, paymentProcessor)
 
 	adminRepo := NewAdminRepository(deps.DB)
-	adminHandler := NewAdminHandler(adminRepo, orderRepo, deps.Ports)
+	adminHandler := NewAdminHandler(adminRepo, orderRepo, deps.Ports, deps.Midtrans, paymentProcessor)
 
 	reviewRepo := NewReviewRepository(deps.DB)
 	reviewHandler := NewReviewHandler(reviewRepo)

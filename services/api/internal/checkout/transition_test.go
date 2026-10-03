@@ -154,3 +154,26 @@ func TestPlanTransition_EventAlwaysNotifiesCustomer(t *testing.T) {
 		t.Fatal("to_status event tidak sesuai")
 	}
 }
+
+// RENCANA-PAYMENT-LIFECYCLE Fase 2: order yang ditutup ikut menutup attempt yang masih
+// terbuka; order yang lanjut (paid dst.) tidak menyentuh attempt.
+func TestPlanTransition_CloseAttempts(t *testing.T) {
+	cases := []struct {
+		from Status
+		in   TransitionInput
+		want string
+	}{
+		{StatusPendingPayment, TransitionInput{OrderID: "o1", To: StatusCancelled, Actor: ActorCustomer}, "failed"},
+		{StatusPendingPayment, TransitionInput{OrderID: "o1", To: StatusExpired, Actor: ActorSystem}, "expired"},
+		{StatusPendingPayment, TransitionInput{OrderID: "o1", To: StatusPaid, Actor: ActorPaymentGateway}, ""},
+	}
+	for _, c := range cases {
+		plan, err := planTransition(c.from, c.in)
+		if err != nil {
+			t.Fatalf("%s->%s: unexpected error: %v", c.from, c.in.To, err)
+		}
+		if plan.CloseAttemptsAs != c.want {
+			t.Errorf("%s->%s: CloseAttemptsAs = %q; want %q", c.from, c.in.To, plan.CloseAttemptsAs, c.want)
+		}
+	}
+}

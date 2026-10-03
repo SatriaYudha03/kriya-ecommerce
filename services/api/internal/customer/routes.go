@@ -35,10 +35,7 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 
 	r.Admin.GET("/shipping/zones", shippingHandler.GetAdminZones)
 	r.Admin.PUT("/shipping/methods/:id", shippingHandler.UpdateMethod)
-	paymentRepo := NewPaymentRepository(deps.DB)
-	paymentHandler := NewPaymentHandler(paymentRepo, deps.Midtrans, deps.Cfg.MidtransClientKey)
-
-	r.Authed.POST("/orders/:id/pay", paymentHandler.PayOrder)
+	// POST /orders/:id/pay pindah ke internal/checkout (RENCANA-PAYMENT-LIFECYCLE Fase 3).
 
 	settingsRepo := NewSettingsRepository(deps.DB)
 	settingsHandler := NewSettingsHandler(settingsRepo)

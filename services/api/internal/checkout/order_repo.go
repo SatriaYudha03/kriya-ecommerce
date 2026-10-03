@@ -36,6 +36,7 @@ type Order struct {
 	ShippedAt          *time.Time `gorm:"column:shipped_at"`
 	CompletedAt        *time.Time `gorm:"column:completed_at"`
 	CancelledAt        *time.Time `gorm:"column:cancelled_at"`
+	PaymentDueAt       *time.Time `gorm:"column:payment_due_at"` // tenggat bayar, tidak pernah diperpanjang (migrasi 017)
 	CreatedAt          time.Time  `gorm:"column:created_at"`
 	UpdatedAt          time.Time  `gorm:"column:updated_at"`
 }
@@ -177,6 +178,9 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, userID string, req Cr
 			return err
 		}
 
+		// Tenggat bayar order = expiry attempt pertama = expiry Snap (RENCANA-PAYMENT-LIFECYCLE
+		// Fase 2). /orders/:id/pay tidak pernah memperpanjangnya.
+		paymentDueAt := time.Now().Add(time.Duration(settings.PendingPaymentTTLMinutes) * time.Minute)
 		methodID, methodCode, methodName := chosen.MethodID, chosen.Code, chosen.Name
 		etaMin, etaMax := chosen.EtaMinDays, chosen.EtaMaxDays
 
@@ -187,6 +191,7 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, userID string, req Cr
 			ShippingMethodID: &methodID, ShippingMethodCode: &methodCode, ShippingMethodName: &methodName,
 			ShippingEtaMinDays: &etaMin, ShippingEtaMaxDays: &etaMax,
 			TotalWeightKg: &totalWeight, ShippingAddress: addrJSON, CustomerNote: req.CustomerNote,
+			PaymentDueAt: &paymentDueAt,
 		}
 		if err := tx.Create(&order).Error; err != nil {
 			return err
@@ -232,8 +237,7 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, userID string, req Cr
 		if err != nil {
 			return err
 		}
-		expiresAt := time.Now().Add(time.Duration(settings.PendingPaymentTTLMinutes) * time.Minute)
-		attempt := PaymentAttempt{OrderID: order.ID, MidtransOrderID: midtransOrderID, Status: "active", ExpiresAt: &expiresAt}
+		attempt := PaymentAttempt{OrderID: order.ID, MidtransOrderID: midtransOrderID, Status: "active", ExpiresAt: &paymentDueAt}
 		if err := tx.Create(&attempt).Error; err != nil {
 			return err
 		}

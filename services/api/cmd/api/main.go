@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kriya-commerce/api/internal/aftersales"
@@ -82,13 +88,61 @@ func main() {
 
 	catalog.RegisterRoutes(deps, routers)
 	customer.RegisterRoutes(deps, routers)
-	checkout.RegisterRoutes(deps.DB, deps.Midtrans, deps.Ports, routers.Public, routers.Authed)
+	paymentProcessor := checkout.NewPaymentProcessor(deps.DB, deps.Ports)
+	checkout.RegisterRoutes(deps.DB, deps.Midtrans, deps.Ports, paymentProcessor, routers.Public, routers.Authed, routers.Admin)
 	aftersales.RegisterRoutes(deps, routers)
 	promo.RegisterRoutes(deps, routers)
 	hero.RegisterRoutes(deps, routers)
 
-	log.Printf("api commerce mendengarkan di :%s", cfg.Port)
-	if err := r.Run(":" + cfg.Port); err != nil {
-		log.Fatal(err)
+	// Graceful shutdown (RENCANA-PAYMENT-LIFECYCLE Fase 5): SIGINT/SIGTERM menghentikan
+	// sweeper lalu menunggu request yang sedang berjalan (mis. CreateOrder yang sedang
+	// memanggil Snap) selesai, alih-alih memutusnya di tengah jalan.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	sweeper := checkout.NewExpirySweeper(deps.DB, deps.Midtrans, deps.Ports, paymentProcessor, checkout.SweeperConfig{
+		Interval: cfg.PaymentSweepInterval,
+		Grace:    cfg.PaymentSweepGrace,
+	})
+	sweeperDone := make(chan struct{})
+	go func() {
+		defer close(sweeperDone)
+		sweeper.Run(ctx)
+	}()
+
+	srv := &http.Server{
+		Addr:              ":" + cfg.Port,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second, // > timeout klien Midtrans (15s) + query DB
+		IdleTimeout:       120 * time.Second,
 	}
+	serveErr := make(chan error, 1)
+	go func() {
+		log.Printf("api commerce mendengarkan di :%s", cfg.Port)
+		serveErr <- srv.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serveErr:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	case <-ctx.Done():
+		log.Println("sinyal berhenti diterima, menutup server...")
+	}
+	stop()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("shutdown server tidak bersih: %v", err)
+	}
+	select {
+	case <-sweeperDone:
+	case <-shutdownCtx.Done():
+		log.Println("sweeper belum selesai saat batas waktu shutdown")
+	}
+	log.Println("api commerce berhenti")
 }

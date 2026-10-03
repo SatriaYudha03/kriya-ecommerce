@@ -3,6 +3,7 @@ package aftersales
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -20,13 +21,14 @@ const (
 )
 
 type OrderHandler struct {
-	repo     *OrderRepository
-	midtrans *service.MidtransService
-	ports    checkout.Ports
+	repo      *OrderRepository
+	midtrans  *service.MidtransService
+	ports     checkout.Ports
+	processor *checkout.PaymentProcessor
 }
 
-func NewOrderHandler(repo *OrderRepository, midtrans *service.MidtransService, ports checkout.Ports) *OrderHandler {
-	return &OrderHandler{repo: repo, midtrans: midtrans, ports: ports}
+func NewOrderHandler(repo *OrderRepository, midtrans *service.MidtransService, ports checkout.Ports, processor *checkout.PaymentProcessor) *OrderHandler {
+	return &OrderHandler{repo: repo, midtrans: midtrans, ports: ports, processor: processor}
 }
 
 func (h *OrderHandler) ListOrders(c *gin.Context) {
@@ -171,9 +173,15 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 		paymentStatus = *o.PaStatus
 	}
 
+	// Tenggat bayar order (payment_due_at, tidak pernah diperpanjang) lebih diutamakan
+	// daripada expiry attempt aktif — attempt bisa tidak ada (mis. Snap gagal).
+	deadline := o.PaExpiresAt
+	if o.PaymentDueAt != nil {
+		deadline = o.PaymentDueAt
+	}
 	canContinue := false
 	if o.Status == "pending_payment" && paymentStatus != "settled" && paymentStatus != "expired" {
-		if o.PaExpiresAt == nil || time.Now().Before(*o.PaExpiresAt) {
+		if deadline == nil || time.Now().Before(*deadline) {
 			canContinue = true
 		}
 	}
@@ -181,7 +189,7 @@ func ToOrderResponse(o Order, locale string) OrderResponse {
 	payment := PaymentResponse{
 		Status:      paymentStatus,
 		CanContinue: canContinue,
-		ExpiresAt:   o.PaExpiresAt,
+		ExpiresAt:   deadline,
 	}
 
 	timeline := make([]TimelineEvent, 0, len(o.Events))
@@ -279,6 +287,14 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 		return
 	}
 
+	// Batalkan di Midtrans DULU, baru order (RENCANA-PAYMENT-LIFECYCLE "celah 1"): kalau
+	// Midtrans belum bisa dipastikan batal, order tetap pending supaya uang yang mungkin
+	// masuk tidak jatuh ke order yang sudah ditutup.
+	if err := checkout.ClosePayableAttempts(c.Request.Context(), h.repo.db, h.midtrans, h.processor, id); err != nil {
+		respondClosePaymentError(c, id, err)
+		return
+	}
+
 	var newStatus orderflow.Status
 	err = h.repo.db.Transaction(func(tx *gorm.DB) error {
 		in := orderflow.TransitionInput{
@@ -312,12 +328,20 @@ func (h *OrderHandler) CancelOrder(c *gin.Context) {
 		return
 	}
 
-	// Best-effort membatalkan di Midtrans.
-	var activeAttempt PaymentAttempt
-	if attemptErr := h.repo.db.Where("order_id = ? AND status = 'active'", id).
-		Order("created_at DESC").First(&activeAttempt).Error; attemptErr == nil && activeAttempt.MidtransOrderID != "" {
-		_ = h.midtrans.CancelTransaction(activeAttempt.MidtransOrderID)
-	}
-
 	c.JSON(http.StatusOK, httpx.Response{Data: map[string]string{"status": string(newStatus)}})
+}
+
+// respondClosePaymentError memetakan kegagalan checkout.ClosePayableAttempts saat
+// membatalkan order pending (dipakai pembeli & admin).
+func respondClosePaymentError(c *gin.Context, orderID string, err error) {
+	switch {
+	case errors.Is(err, checkout.ErrOrderAlreadyPaid):
+		httpx.RespondError(c, http.StatusConflict, "invalid_status", "Pesanan sudah dibayar sehingga tidak dapat dibatalkan")
+	case errors.Is(err, checkout.ErrPaymentStillPayable):
+		log.Printf("cancel order %s: transaksi Midtrans belum bisa dipastikan batal: %v", orderID, err)
+		httpx.RespondError(c, http.StatusBadGateway, "payment_error", "Gagal membatalkan transaksi di payment gateway. Silakan coba lagi.")
+	default:
+		log.Printf("cancel order %s: %v", orderID, err)
+		httpx.RespondError(c, http.StatusInternalServerError, "internal", "Gagal membatalkan pesanan")
+	}
 }

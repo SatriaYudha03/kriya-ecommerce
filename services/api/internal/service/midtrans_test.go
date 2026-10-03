@@ -105,3 +105,40 @@ func TestGenerateOrderID(t *testing.T) {
 		t.Fatalf("order_id harus berawalan KRIYA-: %q", id)
 	}
 }
+
+// Midtrans membalas HTTP 200 dengan kegagalan di status_code body — CancelTransaction
+// hanya boleh mengembalikan nil bila transaksi benar-benar batal.
+func TestCancelTransaction(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s; want POST", r.Method)
+		}
+		switch r.URL.Path {
+		case "/v2/KRIYA-OK000001/cancel":
+			_, _ = w.Write([]byte(`{"status_code":"200","status_message":"Success, transaction is canceled","transaction_status":"cancel"}`))
+		case "/v2/KRIYA-NONE0001/cancel":
+			_, _ = w.Write([]byte(`{"status_code":"404","status_message":"The requested resource is not found"}`))
+		case "/v2/KRIYA-SETL0001/cancel":
+			_, _ = w.Write([]byte(`{"status_code":"412","status_message":"Merchant cannot modify the status of the transaction"}`))
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer srv.Close()
+
+	svc := NewMidtransService("SB-Mid-server-testkey", "SB-Mid-client-testkey")
+	svc.coreBaseURL = srv.URL
+
+	if err := svc.CancelTransaction("KRIYA-OK000001"); err != nil {
+		t.Fatalf("cancel sukses seharusnya nil, dapat %v", err)
+	}
+	if err := svc.CancelTransaction("KRIYA-NONE0001"); !errors.Is(err, ErrTransactionNotFound) {
+		t.Fatalf("status_code 404 seharusnya ErrTransactionNotFound, dapat %v", err)
+	}
+	if err := svc.CancelTransaction("KRIYA-SETL0001"); err == nil || errors.Is(err, ErrTransactionNotFound) {
+		t.Fatalf("status_code 412 seharusnya error biasa, dapat %v", err)
+	}
+	if err := svc.CancelTransaction("KRIYA-FAIL0001"); err == nil || errors.Is(err, ErrTransactionNotFound) {
+		t.Fatalf("HTTP 500 seharusnya error biasa, dapat %v", err)
+	}
+}

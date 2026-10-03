@@ -9,6 +9,7 @@ import (
 	"github.com/kriya-commerce/api/internal/checkout"
 	"github.com/kriya-commerce/api/internal/httpx"
 	"github.com/kriya-commerce/api/internal/orderflow"
+	"github.com/kriya-commerce/api/internal/service"
 	"gorm.io/gorm"
 )
 
@@ -16,10 +17,12 @@ type AdminHandler struct {
 	repo      *AdminRepository
 	orderRepo *OrderRepository
 	ports     checkout.Ports
+	midtrans  *service.MidtransService
+	processor *checkout.PaymentProcessor
 }
 
-func NewAdminHandler(repo *AdminRepository, orderRepo *OrderRepository, ports checkout.Ports) *AdminHandler {
-	return &AdminHandler{repo: repo, orderRepo: orderRepo, ports: ports}
+func NewAdminHandler(repo *AdminRepository, orderRepo *OrderRepository, ports checkout.Ports, midtrans *service.MidtransService, processor *checkout.PaymentProcessor) *AdminHandler {
+	return &AdminHandler{repo: repo, orderRepo: orderRepo, ports: ports, midtrans: midtrans, processor: processor}
 }
 
 // ListOrders mengambil semua pesanan dari DB dengan pagination & filter status.
@@ -84,6 +87,22 @@ func (h *AdminHandler) UpdateOrderStatus(c *gin.Context) {
 	}
 
 	adminID := c.GetString("user_id")
+
+	// Admin membatalkan order pending: pastikan tidak ada lagi yang bisa dibayar di Midtrans
+	// sebelum order ditutup (sama dengan pembatalan oleh pembeli).
+	if orderflow.Status(req.Status) == orderflow.StatusCancelled {
+		var current string
+		if err := h.repo.DB.Table("orders").Select("status").Where("id = ?", id).Scan(&current).Error; err != nil {
+			httpx.RespondError(c, http.StatusInternalServerError, "internal", "Gagal mengambil pesanan")
+			return
+		}
+		if orderflow.Status(current) == orderflow.StatusPendingPayment {
+			if err := checkout.ClosePayableAttempts(c.Request.Context(), h.repo.DB, h.midtrans, h.processor, id); err != nil {
+				respondClosePaymentError(c, id, err)
+				return
+			}
+		}
+	}
 
 	var newStatus orderflow.Status
 	err := h.repo.DB.Transaction(func(tx *gorm.DB) error {

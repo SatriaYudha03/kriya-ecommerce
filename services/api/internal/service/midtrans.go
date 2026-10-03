@@ -15,7 +15,6 @@ import (
 
 // snapSandboxURL — KRIYA-MASTER.md Bagian 2: Midtrans Snap mode Sandbox (bukan konfigurasi, fixed).
 const snapSandboxURL = "https://app.sandbox.midtrans.com/snap/v1/transactions"
-const midtransCancelSandboxURL = "https://api.sandbox.midtrans.com/v2/%s/cancel"
 const midtransCoreSandboxBaseURL = "https://api.sandbox.midtrans.com"
 
 const orderIDCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -136,31 +135,53 @@ func (s *MidtransService) doCreateSnapTransaction(midtransOrderID string, grossA
 	return snapResp.Token, nil
 }
 
-// CancelTransaction membatalkan transaksi Midtrans (dipakai D3, best-effort — dipanggil
-// di luar transaksi DB, kegagalannya tidak boleh menggagalkan pembatalan order).
+// midtransCoreResponse — field minimum respons Core API. Midtrans sering membalas HTTP 200
+// dengan kegagalan di status_code body (mis. "404" tidak ditemukan, "412" status tidak
+// bisa diubah karena sudah settlement), jadi status HTTP saja tidak cukup.
+type midtransCoreResponse struct {
+	StatusCode    string `json:"status_code"`
+	StatusMessage string `json:"status_message"`
+}
+
+// CancelTransaction membatalkan transaksi Midtrans. nil = transaksi kini batal;
+// ErrTransactionNotFound = Midtrans tidak mengenal order_id ini (pembeli belum memilih
+// metode bayar) sehingga memang tidak ada yang bisa dibayar; error lain = transaksi
+// BELUM tentu batal (pemanggil wajib menganggapnya masih bisa dibayar).
 func (s *MidtransService) CancelTransaction(midtransOrderID string) error {
-	url := fmt.Sprintf(midtransCancelSandboxURL, midtransOrderID)
+	url := fmt.Sprintf("%s/v2/%s/cancel", s.coreBaseURL, midtransOrderID)
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return err
 	}
 	req.SetBasicAuth(s.serverKey, "")
 	req.Header.Set("Accept", "application/json")
-
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
+	if resp.StatusCode == http.StatusNotFound {
+		return ErrTransactionNotFound
+	}
 	if resp.StatusCode >= 300 {
 		return errors.New("midtrans cancel error: " + string(respBody))
 	}
-	return nil
+	var body midtransCoreResponse
+	if err := json.Unmarshal(respBody, &body); err != nil {
+		return err
+	}
+	switch body.StatusCode {
+	case "200":
+		return nil
+	case "404":
+		return ErrTransactionNotFound
+	default:
+		return errors.New("midtrans cancel ditolak (" + body.StatusCode + "): " + body.StatusMessage)
+	}
 }
 
 // TransactionStatus — subset respons GET /v2/{order_id}/status yang dipakai KRIYA.
@@ -168,6 +189,7 @@ type TransactionStatus struct {
 	OrderID           string `json:"order_id"`
 	StatusCode        string `json:"status_code"`
 	TransactionStatus string `json:"transaction_status"`
+	GrossAmount       string `json:"gross_amount"`
 }
 
 // GetTransactionStatus menanyakan status transaksi langsung ke Midtrans (pull),
