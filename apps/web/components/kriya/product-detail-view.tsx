@@ -18,7 +18,6 @@ import { ProductCard } from "./product-card";
 import { PriceTag } from "./catalog/price-tag";
 import { RatingStars } from "./catalog/rating-stars";
 import { useLanguage } from "./language-provider";
-import { WishlistButton } from "@/components/kriya/customer/wishlist-button";
 import { ProductReviews } from "@/components/kriya/aftersales/product-reviews";
 
 function RelatedProducts({ slug, type, title }: { slug: string; type: "upsell" | "cross_sell"; title: string }) {
@@ -230,7 +229,6 @@ export function ProductDetailView({
               <ShoppingBag className="h-4 w-4" />
               {stock > 0 ? (loading ? t("catalog.pdp.processing") : t("catalog.pdp.addToCart")) : t("catalog.pdp.stockEmpty")}
             </button>
-            <WishlistButton productId={product.id} variant="full" />
           </div>
 
           <ul className="mt-8 space-y-2.5 border-t border-neutral-200 pt-6 text-sm text-neutral-600">

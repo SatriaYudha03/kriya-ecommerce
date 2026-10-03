@@ -48,16 +48,6 @@ export const customerEn: typeof customerId = {
   "customer.addresses.loadError": "Failed to load addresses.",
   "customer.addresses.closeModal": "Close",
 
-  // Wishlist
-  "customer.wishlist.title": "My Wishlist",
-  "customer.wishlist.loading": "Loading wishlist...",
-  "customer.wishlist.emptyTitle": "Wishlist is Empty",
-  "customer.wishlist.emptyHint": "You haven't added any products to your wishlist yet.",
-  "customer.wishlist.startShopping": "Start Shopping",
-  "customer.wishlist.add": "Add to Wishlist",
-  "customer.wishlist.remove": "Remove from Wishlist",
-  "customer.wishlist.loadError": "Failed to load wishlist.",
-  "customer.wishlist.badge": "Wishlist",
 
   // Address & Shipping pickers
   "customer.addressPicker.empty": "No shipping addresses yet.",
