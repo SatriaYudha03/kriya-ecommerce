@@ -8,7 +8,7 @@ import { useLanguage } from "./language-provider";
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
   const { t } = useLanguage();
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8">
+    <section id="collections" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-8">
       <SectionHeading
         title={t("home.showcase.title")}
         subtitle={t("home.showcase.subtitle")}
