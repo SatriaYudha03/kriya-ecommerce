@@ -10,6 +10,7 @@ import (
 	"github.com/kriya-commerce/api/internal/checkout"
 	"github.com/kriya-commerce/api/internal/config"
 	"github.com/kriya-commerce/api/internal/customer"
+	"github.com/kriya-commerce/api/internal/hero"
 	"github.com/kriya-commerce/api/internal/db"
 	"github.com/kriya-commerce/api/internal/httpx"
 	"github.com/kriya-commerce/api/internal/middleware"
@@ -84,6 +85,7 @@ func main() {
 	checkout.RegisterRoutes(deps.DB, deps.Midtrans, deps.Ports, routers.Public, routers.Authed)
 	aftersales.RegisterRoutes(deps, routers)
 	promo.RegisterRoutes(deps, routers)
+	hero.RegisterRoutes(deps, routers)
 
 	log.Printf("api commerce mendengarkan di :%s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
