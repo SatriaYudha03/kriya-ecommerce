@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, Package, ShoppingCart, LogOut, Store, 
   Users, Truck, Settings, Ticket, BarChart3, MessageSquare, Undo2,
-  Tags, ListTree, Archive, CheckSquare, Image as ImageIcon, ShieldAlert
+  Tags, ListTree, Archive, CheckSquare, Image as ImageIcon
 } from "lucide-react";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { AdminGuard } from "@/components/kriya/admin/admin-guard";
@@ -19,7 +19,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const NAV = [
     { href: "/admin", label: t("nav.admin.dashboard"), icon: LayoutDashboard, exact: true },
     { href: "/admin/orders", label: t("nav.admin.orders"), icon: ShoppingCart, exact: true },
-    { href: "/admin/payment-anomalies", label: t("nav.admin.paymentAnomalies"), icon: ShieldAlert, exact: false },
     { href: "/admin/products", label: t("nav.admin.products"), icon: Package, exact: false },
     { href: "/admin/catalog/categories", label: t("nav.admin.categories"), icon: ListTree, exact: false },
     { href: "/admin/catalog/tags", label: t("nav.admin.tags"), icon: Tags, exact: false },
