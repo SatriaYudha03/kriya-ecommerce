@@ -8,8 +8,20 @@ import { toast } from "sonner";
 import { useCartStore } from "@/stores/cart-store";
 import { SocialLoginButtons } from "@/components/kriya/social-login-buttons";
 import { useLanguage } from "@/components/kriya/language-provider";
+import { applySignupProfile } from "@/lib/customer/signup-profile";
+import {
+  AuthCard,
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from "@/components/kriya/auth-card";
+
+// Sama dengan validasi telepon di BE (customer/address_handler.go).
+const PHONE_PATTERN = "(\\+62|0)8[0-9]{7,12}";
 
 function RegisterForm() {
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,16 +34,20 @@ function RegisterForm() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { full_name: fullName.trim(), phone: phone.trim() },
+        },
       });
 
       if (error) throw error;
-      
+
       if (data.session) {
+        await applySignupProfile(data.session.user);
         await syncFromServer();
         toast.success(t("auth.register.success"));
         router.push(next);
@@ -47,10 +63,99 @@ function RegisterForm() {
   };
 
   return (
-    <>
-      <div className="mt-8">
-        <SocialLoginButtons next={next} />
-      </div>
+    <AuthCard
+      image="signup"
+      footer={
+        <>
+          {t("auth.register.hasAccount")}{" "}
+          <Link
+            href={`/login?next=${encodeURIComponent(next)}`}
+            className="ml-1 font-semibold text-neutral-900 hover:text-brand-strong"
+          >
+            {t("auth.register.loginHere")}
+          </Link>
+        </>
+      }
+    >
+      <h1 className="sr-only">{t("auth.register.title")}</h1>
+      <form onSubmit={handleRegister} className="space-y-6">
+        <div>
+          <label htmlFor="register-name" className={authLabelClass}>
+            {t("auth.register.name")} *
+          </label>
+          <input
+            id="register-name"
+            type="text"
+            autoComplete="name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder={t("auth.register.namePlaceholder")}
+            required
+            maxLength={100}
+            className={authInputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="register-phone" className={authLabelClass}>
+            {t("auth.register.phone")} *
+          </label>
+          <input
+            id="register-phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/[\s-]/g, ""))}
+            placeholder={t("auth.register.phonePlaceholder")}
+            required
+            pattern={PHONE_PATTERN}
+            title={t("auth.register.phoneHint")}
+            aria-describedby="register-phone-hint"
+            className={authInputClass}
+          />
+          <p id="register-phone-hint" className="mt-1.5 text-xs text-neutral-500">
+            {t("auth.register.phoneHint")}
+          </p>
+        </div>
+        <div>
+          <label htmlFor="register-email" className={authLabelClass}>
+            {t("auth.login.email")} *
+          </label>
+          <input
+            id="register-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("auth.login.emailPlaceholder")}
+            required
+            className={authInputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="register-password" className={authLabelClass}>
+            {t("auth.login.password")} *
+          </label>
+          <input
+            id="register-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("auth.login.passwordPlaceholder")}
+            required
+            minLength={6}
+            aria-describedby="register-password-hint"
+            className={authInputClass}
+          />
+          <p id="register-password-hint" className="mt-1.5 text-xs text-neutral-500">
+            {t("auth.register.passwordHint")}
+          </p>
+        </div>
+        <button type="submit" disabled={loading} className={authSubmitClass}>
+          {loading ? t("auth.login.processing") : t("auth.register.submit")}
+        </button>
+      </form>
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
@@ -61,58 +166,16 @@ function RegisterForm() {
         </div>
       </div>
 
-      <form onSubmit={handleRegister} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.email")}</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.password")}</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-        >
-          {loading ? t("auth.login.processing") : t("auth.register.submit")}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-neutral-600">
-        {t("auth.register.hasAccount")}{" "}
-        <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-medium text-brand-strong hover:underline">
-          {t("auth.register.loginHere")}
-        </Link>
-      </p>
-    </>
+      <SocialLoginButtons next={next} />
+    </AuthCard>
   );
 }
 
 export default function RegisterPage() {
   const { t } = useLanguage();
   return (
-    <div>
-      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{t("auth.register.title")}</h1>
-      <p className="mt-2 text-sm text-neutral-500">
-        {t("auth.register.subtitle")}
-      </p>
-      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">{t("auth.loading")}</div>}>
-        <RegisterForm />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="py-24 text-center text-sm text-neutral-500">{t("auth.loading")}</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

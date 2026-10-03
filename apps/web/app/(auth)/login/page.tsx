@@ -8,6 +8,13 @@ import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
 import { SocialLoginButtons } from "@/components/kriya/social-login-buttons";
 import { useLanguage } from "@/components/kriya/language-provider";
+import { applySignupProfile } from "@/lib/customer/signup-profile";
+import {
+  AuthCard,
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from "@/components/kriya/auth-card";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -22,7 +29,7 @@ function LoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -30,8 +37,9 @@ function LoginForm() {
       });
 
       if (error) throw error;
-      
+
       if (data.session) {
+        await applySignupProfile(data.session.user);
         await syncFromServer(); // Sync cart from server
         toast.success(t("auth.login.success"));
         router.push(next);
@@ -44,10 +52,55 @@ function LoginForm() {
   };
 
   return (
-    <>
-      <div className="mt-8">
-        <SocialLoginButtons next={next} />
-      </div>
+    <AuthCard
+      footer={
+        <>
+          {t("auth.login.noAccount")}{" "}
+          <Link
+            href={`/register?next=${encodeURIComponent(next)}`}
+            className="ml-1 font-semibold text-neutral-900 hover:text-brand-strong"
+          >
+            {t("auth.login.registerNow")}
+          </Link>
+        </>
+      }
+    >
+      <h1 className="sr-only">{t("auth.login.title2")}</h1>
+      <form onSubmit={handleLogin} className="space-y-6">
+        <div>
+          <label htmlFor="login-email" className={authLabelClass}>
+            {t("auth.login.email")} *
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("auth.login.emailPlaceholder")}
+            required
+            className={authInputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="login-password" className={authLabelClass}>
+            {t("auth.login.password")} *
+          </label>
+          <input
+            id="login-password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("auth.login.passwordPlaceholder")}
+            required
+            className={authInputClass}
+          />
+        </div>
+        <button type="submit" disabled={loading} className={authSubmitClass}>
+          {loading ? t("auth.login.processing") : t("auth.login.submit")}
+        </button>
+      </form>
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
@@ -58,57 +111,16 @@ function LoginForm() {
         </div>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.email")}</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">{t("auth.login.password")}</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-        >
-          {loading ? t("auth.login.processing") : t("auth.login.submit")}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-neutral-600">
-        {t("auth.login.noAccount")}{" "}
-        <Link href={`/register?next=${encodeURIComponent(next)}`} className="font-medium text-brand-strong hover:underline">
-          {t("auth.login.registerNow")}
-        </Link>
-      </p>
-    </>
+      <SocialLoginButtons next={next} />
+    </AuthCard>
   );
 }
 
 export default function LoginPage() {
   const { t } = useLanguage();
   return (
-    <div>
-      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{t("auth.login.title2")}</h1>
-      <p className="mt-2 text-sm text-neutral-500">
-        {t("auth.login.subtitle")}
-      </p>
-      <Suspense fallback={<div className="mt-8 text-center text-sm text-neutral-500">{t("auth.loading")}</div>}>
-        <LoginForm />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="py-24 text-center text-sm text-neutral-500">{t("auth.loading")}</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
