@@ -6,7 +6,6 @@ import { ProductMedia } from "./product-media";
 import { useLanguage } from "./language-provider";
 import { PriceTag } from "./catalog/price-tag";
 import { RatingStars } from "./catalog/rating-stars";
-import { WishlistButton } from "@/components/kriya/customer/wishlist-button";
 
 // Kartu produk katalog. Rasio media 4:5 (AGENT-FE). Presentasional ?" dipakai
 // baik di server maupun client component.
@@ -20,9 +19,6 @@ export function ProductCard({ product }: { product: ProductListItem }) {
             {t("catalog.sale.badge")}
           </div>
         )}
-        <div className="absolute right-2 top-2 z-10">
-          <WishlistButton productId={product.id} variant="icon" />
-        </div>
         <ProductMedia
           name={product.name}
           src={product.thumbnail_url}

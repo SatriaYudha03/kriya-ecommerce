@@ -102,7 +102,6 @@ B apps/web/components/kriya/customer/**
 B apps/web/app/(store)/cart/**
 B apps/web/app/(store)/profile/**
 B apps/web/app/(store)/account/addresses/**
-B apps/web/app/(store)/account/wishlist/**
 B apps/web/app/(admin)/admin/customers/**
 B apps/web/app/(admin)/admin/shipping/**
 B apps/web/app/(admin)/admin/settings/**

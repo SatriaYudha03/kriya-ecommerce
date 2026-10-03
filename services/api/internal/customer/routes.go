@@ -14,8 +14,6 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	addressRepo := NewAddressRepository(deps.DB)
 	addressHandler := NewAddressHandler(addressRepo)
 
-	wishlistRepo := NewWishlistRepository(deps.DB)
-	wishlistHandler := NewWishlistHandler(wishlistRepo, deps.SupabaseURL)
 
 	shippingHandler := NewShippingHandler(deps.DB)
 
@@ -34,9 +32,6 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Authed.PUT("/cart", cartHandler.PutCart)
 	r.Authed.POST("/cart/merge", cartHandler.MergeCart)
 
-	r.Authed.GET("/wishlist", wishlistHandler.GetWishlist)
-	r.Authed.PUT("/wishlist", wishlistHandler.PutWishlist)
-	r.Authed.DELETE("/wishlist", wishlistHandler.DeleteWishlist)
 
 	r.Admin.GET("/shipping/zones", shippingHandler.GetAdminZones)
 	r.Admin.PUT("/shipping/methods/:id", shippingHandler.UpdateMethod)

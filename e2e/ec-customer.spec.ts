@@ -68,14 +68,6 @@ interface ProvinceDto {
   zone_code: string;
 }
 
-interface WishlistItemDto {
-  id: string;
-  slug: string;
-  name: string;
-  price_min: number;
-  thumbnail_url: string;
-}
-
 interface ContinuePaymentDto {
   snap_token: string;
   midtrans_client_key: string;
@@ -183,7 +175,7 @@ test.beforeAll(async ({ request }) => {
   customerJwt = mintJwt(customerUserId, 'ec-b@kriya.test');
   adminJwt = mintJwt(adminUserId, 'admin@kriya.com');
 
-  // Get sample product and variant for testing cart and wishlist
+  // Get sample product and variant for testing cart
   const variants = await restSelect(request, 'product_variants', 'id,product_id', 'limit=1');
   if (variants[0]) {
     testVariantId = variants[0].id;
@@ -373,43 +365,6 @@ test.describe('B7 - E2E Customer & Checkout', () => {
     });
   });
 
-  test('3. Wishlist Customer (PUT, GET, DELETE)', async ({ request }) => {
-    const headers = { Authorization: `Bearer ${customerJwt}` };
-    expect(testProductId).toBeTruthy();
-
-    // 3.1 Clean up any prior wishlist for this product
-    await request.delete(`${API_URL}/api/v1/wishlist`, {
-      headers,
-      data: { product_id: testProductId },
-    });
-
-    // 3.2 Add product to wishlist
-    const addRes = await request.put(`${API_URL}/api/v1/wishlist`, {
-      headers,
-      data: { product_id: testProductId },
-    });
-    expect(addRes.status()).toBe(200);
-
-    // 3.3 Get wishlist and verify item exists
-    const getRes = await request.get(`${API_URL}/api/v1/wishlist`, { headers });
-    expect(getRes.status()).toBe(200);
-    const wishlist = ((await getRes.json()) as { data: { items: WishlistItemDto[] } }).data;
-    const foundProduct = wishlist.items.find((item) => item.id === testProductId);
-    expect(foundProduct).toBeDefined();
-
-    // 3.4 Delete product from wishlist
-    const delRes = await request.delete(`${API_URL}/api/v1/wishlist`, {
-      headers,
-      data: { product_id: testProductId },
-    });
-    expect(delRes.status()).toBe(200);
-
-    // 3.5 Verify product is removed
-    const verifyGetRes = await request.get(`${API_URL}/api/v1/wishlist`, { headers });
-    const verifyWishlist = ((await verifyGetRes.json()) as { data: { items: WishlistItemDto[] } }).data;
-    expect(verifyWishlist.items.find((item) => item.id === testProductId)).toBeUndefined();
-  });
-
   test('4. Ongkir per Provinsi & Admin Shipping Zones', async ({ request }) => {
     // 4.1 Public GET /shipping/provinces returns 38 provinces
     const provincesRes = await request.get(`${API_URL}/api/v1/shipping/provinces`);
@@ -515,8 +470,6 @@ test.describe('B7 - E2E Customer & Checkout', () => {
     await expect(page.locator('h1').filter({ hasText: /alamat|address/i }).first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('button').filter({ hasText: /tambah|add/i }).first()).toBeVisible({ timeout: 15000 });
 
-    await page.goto('/account/wishlist');
-    await expect(page.locator('h1, div').filter({ hasText: /wishlist/i }).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('7. UI Halaman Admin Pelanggan, Pengiriman, Pengaturan', async ({ page }) => {

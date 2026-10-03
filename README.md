@@ -108,7 +108,6 @@ cd ../..
 *   `GET/POST/PUT/DELETE /api/v1/addresses`: Address book management and default address selection.
 *   `GET/PUT /api/v1/cart`: Relational shopping cart (`cart_items`) with server-calculated totals.
 *   `POST /api/v1/cart/merge`: Sync and merge guest cart into customer account upon sign-in.
-*   `GET/PUT/DELETE /api/v1/wishlist`: Customer wishlist management.
 *   `POST /api/v1/checkout/quote`: Deterministic checkout quote (subtotal, weighted shipping, discounts).
 *   `POST /api/v1/orders`: Order creation v2 with inventory ledger reservation & payment token generation.
 *   `GET /api/v1/orders` & `GET /api/v1/orders/:id`: Customer order history and order tracking.

@@ -46,16 +46,6 @@ export const customerId = {
   "customer.addresses.loadError": "Gagal memuat alamat.",
   "customer.addresses.closeModal": "Tutup",
 
-  // Wishlist
-  "customer.wishlist.title": "Wishlist Saya",
-  "customer.wishlist.loading": "Memuat wishlist...",
-  "customer.wishlist.emptyTitle": "Wishlist Kosong",
-  "customer.wishlist.emptyHint": "Anda belum menambahkan produk apa pun ke wishlist.",
-  "customer.wishlist.startShopping": "Mulai Belanja",
-  "customer.wishlist.add": "Tambah ke Wishlist",
-  "customer.wishlist.remove": "Hapus dari Wishlist",
-  "customer.wishlist.loadError": "Gagal memuat wishlist.",
-  "customer.wishlist.badge": "Wishlist",
 
   // Address & Shipping pickers
   "customer.addressPicker.empty": "Belum ada alamat pengiriman.",

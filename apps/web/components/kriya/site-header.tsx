@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "./auth-provider";
 import { useLanguage } from "./language-provider";
 import { useCartStore } from "@/stores/cart-store";
-import { WishlistNavButton } from "./customer/wishlist-nav-button";
 import { NotificationBell } from "./aftersales/notification-bell";
 
 export function SiteHeader({ categories }: { categories: Category[] }) {
@@ -119,7 +118,6 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
               </button>
             </div>
 
-            <WishlistNavButton />
             <NotificationBell />
 
             <Link

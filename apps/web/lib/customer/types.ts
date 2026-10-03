@@ -69,10 +69,6 @@ export interface Province {
   zone_code: string;
 }
 
-export interface Wishlist {
-  items: ProductListItem[];
-}
-
 
 export interface ContinuePaymentResponse {
   snap_token: string;
