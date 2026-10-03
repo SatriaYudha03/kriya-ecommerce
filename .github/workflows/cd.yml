@@ -13,7 +13,6 @@ jobs:
     outputs:
       web: ${{ steps.filter.outputs.web }}
       api: ${{ steps.filter.outputs.api }}
-      ai: ${{ steps.filter.outputs.ai }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,8 +26,6 @@ jobs:
               - 'apps/web/**'
             api:
               - 'services/api/**'
-            ai:
-              - 'services/ai/**'
 
   # Build & Deploy job matrix
   build-and-deploy:
@@ -37,28 +34,25 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [web, api, ai]
+        service: [web, api]
     steps:
       # Jalankan langkah ini hanya jika service memiliki perubahan
       - name: Checkout repository
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry (GHCR)
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -69,8 +63,7 @@ jobs:
         id: paths
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         run: |
           if [ "${{ matrix.service }}" = "web" ]; then
             echo "context=apps/web" >> $GITHUB_OUTPUT
@@ -78,16 +71,12 @@ jobs:
           elif [ "${{ matrix.service }}" = "api" ]; then
             echo "context=services/api" >> $GITHUB_OUTPUT
             echo "image=anomalyco/kriya-api" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.service }}" = "ai" ]; then
-            echo "context=services/ai" >> $GITHUB_OUTPUT
-            echo "image=anomalyco/kriya-ai" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Docker image locally (for scan)
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: docker/build-push-action@v5
         with:
           context: ${{ steps.paths.outputs.context }}
@@ -97,8 +86,7 @@ jobs:
       - name: Run Trivy vulnerability scanner on Image
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ steps.paths.outputs.image }}:local
@@ -110,8 +98,7 @@ jobs:
       - name: Push image to GHCR
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: docker/build-push-action@v5
         with:
           context: ${{ steps.paths.outputs.context }}
@@ -123,8 +110,7 @@ jobs:
       - name: Install kubectl & Helm
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         uses: azure/setup-helm@v4
         with:
           version: 'v3.12.0'
@@ -132,8 +118,7 @@ jobs:
       - name: Deploy to K3s via Helm
         if: |
           (matrix.service == 'web' && needs.changes.outputs.web == 'true') ||
-          (matrix.service == 'api' && needs.changes.outputs.api == 'true') ||
-          (matrix.service == 'ai' && needs.changes.outputs.ai == 'true')
+          (matrix.service == 'api' && needs.changes.outputs.api == 'true')
         env:
           KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
         run: |
@@ -148,7 +133,4 @@ jobs:
             --set api.secrets.MIDTRANS_SERVER_KEY="${{ secrets.MIDTRANS_SERVER_KEY }}" \
             --set api.secrets.MIDTRANS_CLIENT_KEY="${{ secrets.MIDTRANS_CLIENT_KEY }}" \
             --set api.secrets.INTERNAL_API_KEY="${{ secrets.INTERNAL_API_KEY }}" \
-            --set ai.secrets.SUPABASE_DB_URL="${{ secrets.SUPABASE_DB_URL }}" \
-            --set ai.secrets.GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-            --set ai.secrets.INTERNAL_API_KEY="${{ secrets.INTERNAL_API_KEY }}" \
             --reuse-values

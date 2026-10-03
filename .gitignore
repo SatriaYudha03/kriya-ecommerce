@@ -17,10 +17,6 @@ next-env.d.ts
 services/api/api
 services/api/*.exe
 
-# Python (services/ai)
-.venv/
-__pycache__/
-*.pyc
 
 # Playwright (e2e)
 e2e/playwright-report/

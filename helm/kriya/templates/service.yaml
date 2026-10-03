@@ -1,4 +1,4 @@
-{{- range $serviceName := list "web" "api" "ai" }}
+{{- range $serviceName := list "web" "api" }}
 {{- $serviceValues := index $.Values $serviceName }}
 apiVersion: v1
 kind: Service

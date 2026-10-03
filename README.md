@@ -16,8 +16,8 @@ The project is structured as a microservices architecture coordinated via Docker
                   ┌───────────────┼───────────────┐
                   ▼                               ▼
          ┌─────────────────┐             ┌─────────────────┐
-         │     Go API      │             │    FastAPI AI   │ (Backend, Port 8000)
-         │  (Commerce,8080)│             │ (Semantic, 8000)│
+         │     Go API      │             │   n8n Chatbot   │ (Automation,5678)
+         │  (Commerce,8080)│             │  (RAG, Gemini)  │
          └────────┬────────┘             └────────┬────────┘
                   │                               │
                   └───────────────┬───────────────┘
@@ -36,9 +36,8 @@ The project is structured as a microservices architecture coordinated via Docker
 
 *   **Frontend (`apps/web`)**: Next.js 16 (App Router) client application with TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, and Zustand. Structured modularly per domain (`lib/{catalog,customer,promo,aftersales,checkout}`) with bilingual support (ID/EN) and accessible UI components.
 *   **Commerce Backend (`services/api`)**: Go Gin REST API organized cleanly into domain packages (`internal/{catalog,customer,promo,aftersales,checkout,orderflow,httpx,platform}`). Handles hierarchical categories, facet filtering, inventory ledger, address books, relational carts, table-based shipping rates, promotional coupon engine, order status transitions, product reviews, returns/refunds, and Midtrans Sandbox notifications.
-*   **AI Backend (`services/ai`)**: Python FastAPI backend utilizing `Gemini text-embedding-004` (768 dimensions) to provide semantic catalog search and find similar products.
 *   **Automation Engine (`automation/n8n`)**: Self-hosted n8n instance executing workflows (order confirmation, abandoned-cart follow-up) and hosting the RAG-based customer support chat assistant.
-*   **Database & Storage (Supabase)**: Managed Postgres database with 13 sequential migrations (`001` through `013`), Supabase Auth for sessions, S3-compatible Storage for product assets, and pgvector extension for embedding searches.
+*   **Database & Storage (Supabase)**: Managed Postgres database with 13 sequential migrations (`001` through `013`), Supabase Auth for sessions, S3-compatible Storage for product assets,.
 *   **Payment Gateway**: Midtrans Snap Sandbox integration with cryptographic SHA-512 webhook verification and stateful order transitions.
 
 ---
@@ -49,7 +48,6 @@ Ensure you have the following installed locally:
 *   [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
 *   [Go](https://go.dev/doc/install) v1.22+
 *   [Node.js](https://nodejs.org/) v18+ & [pnpm](https://pnpm.io/)
-*   [Python](https://www.python.org/downloads/) v3.11+
 *   [PostgreSQL CLI (psql)](https://www.postgresql.org/download/)
 
 ---
@@ -72,7 +70,6 @@ Ensure you set:
 *   `NEXT_PUBLIC_SUPABASE_URL` & `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 *   `SUPABASE_DB_URL`
 *   `SUPABASE_JWT_SECRET`
-*   `GEMINI_API_KEY` (needed for FastAPI AI service)
 *   `MIDTRANS_SERVER_KEY` & `MIDTRANS_CLIENT_KEY`
 
 ### Step 3: Run Database Migrations
@@ -145,13 +142,12 @@ cd ../..
 ## 5. Running the Platform
 
 ### Running Backend Services (Docker Compose)
-Start the Go Commerce Backend, Python FastAPI AI Backend, and n8n Engine using Docker Compose:
+Start the Go Commerce Backend and n8n Engine using Docker Compose:
 ```bash
 docker compose up -d --build
 ```
 Verify services are active:
 *   Go API: `http://localhost:8080/healthz`
-*   FastAPI AI: `http://localhost:8000/healthz`
 *   n8n Engine: `http://localhost:5678`
 
 ### Running the Frontend (Local Development)
