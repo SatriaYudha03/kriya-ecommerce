@@ -16,6 +16,7 @@ func RegisterRoutes(deps *platform.Deps, r *platform.Routers) {
 	r.Admin.GET("/reports/summary", adminHandler.ReportSummary)
 	r.Admin.GET("/reports/sales", adminHandler.ReportSales)
 	r.Admin.GET("/reports/top-products", adminHandler.ReportTopProducts)
+	r.Admin.GET("/reports/breakdown", adminHandler.ReportBreakdown)
 
 	pubCoupons := r.Public.Group("/coupons")
 	{

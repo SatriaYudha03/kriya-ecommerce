@@ -73,9 +73,10 @@ func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
 	}()
 	go func() {
 		defer wg.Done()
-		recentErr = r.db.Table("orders").
-			Select("id, order_number, status, total, created_at, '' AS customer_email").
-			Order("created_at DESC").Limit(5).
+		recentErr = r.db.Table("orders o").
+			Select("o.id, o.order_number, o.status, o.total, o.created_at, COALESCE(u.email, '') AS customer_email").
+			Joins("LEFT JOIN auth.users u ON u.id = o.user_id").
+			Order("o.created_at DESC").Limit(6).
 			Scan(&stats.RecentOrders).Error
 	}()
 	wg.Wait()
@@ -99,14 +100,14 @@ func (r *AdminRepository) Stats() (*AdminStatsResponse, error) {
 
 func (r *AdminRepository) ReportSummary(from, to string) (*ReportSummaryResponse, error) {
 	var summary ReportSummaryResponse
-	
+
 	query := `
 		WITH filtered_orders AS (
 			SELECT id, user_id, subtotal, discount_total, shipping_cost
 			FROM orders
 			WHERE status IN ('paid','processing','shipped','completed','refunded')
-			  AND paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' 
-			  AND paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+			  AND COALESCE(paid_at, created_at) >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' 
+			  AND COALESCE(paid_at, created_at) < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
 		)
 		SELECT 
 			COALESCE(SUM(subtotal), 0) as gross_sales,
@@ -122,22 +123,22 @@ func (r *AdminRepository) ReportSummary(from, to string) (*ReportSummaryResponse
 					SELECT 1 FROM orders o2 
 					WHERE o2.user_id = fo.user_id 
 					  AND o2.status IN ('paid','processing','shipped','completed','refunded')
-					  AND o2.paid_at < ?::timestamptz AT TIME ZONE 'Asia/Jakarta'
+					  AND COALESCE(o2.paid_at, o2.created_at) < ?::timestamptz AT TIME ZONE 'Asia/Jakarta'
 				)
 			), 0) as new_customers
 		FROM filtered_orders
 	`
-	
+
 	err := r.db.Raw(query, from, to, from).Scan(&summary).Error
 	if err != nil {
 		return nil, err
 	}
-	
+
 	summary.NetSales = summary.GrossSales - summary.DiscountTotal - summary.RefundedTotal
 	if summary.OrdersCount > 0 {
 		summary.AvgOrderValue = float64(summary.NetSales) / float64(summary.OrdersCount)
 	}
-	
+
 	return &summary, err
 }
 
@@ -152,27 +153,27 @@ func (r *AdminRepository) ReportSales(from, to, interval string) ([]ReportSalesI
 	default:
 		trunc = "day"
 	}
-	
+
 	query := `
 		WITH period_sales AS (
 			SELECT 
-				date_trunc(?, o.paid_at AT TIME ZONE 'Asia/Jakarta')::date as period,
+				date_trunc(?, COALESCE(o.paid_at, o.created_at) AT TIME ZONE 'Asia/Jakarta')::date as period,
 				COUNT(o.id) as orders_count,
 				COALESCE(SUM(o.subtotal), 0) as gross_sales,
 				COALESCE(SUM(o.discount_total), 0) as discount_total,
 				COALESCE(SUM(o.shipping_cost), 0) as shipping_total
 			FROM orders o
 			WHERE o.status IN ('paid','processing','shipped','completed','refunded')
-			  AND o.paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND o.paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+			  AND COALESCE(o.paid_at, o.created_at) >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND COALESCE(o.paid_at, o.created_at) < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
 			GROUP BY period
 		),
 		period_refunds AS (
 			SELECT 
-				date_trunc(?, o.paid_at AT TIME ZONE 'Asia/Jakarta')::date as period,
+				date_trunc(?, COALESCE(o.paid_at, o.created_at) AT TIME ZONE 'Asia/Jakarta')::date as period,
 				COALESCE(SUM(r.amount), 0) as refunded_total
 			FROM refunds r JOIN orders o ON r.order_id = o.id
 			WHERE o.status IN ('paid','processing','shipped','completed','refunded')
-			  AND o.paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND o.paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+			  AND COALESCE(o.paid_at, o.created_at) >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND COALESCE(o.paid_at, o.created_at) < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
 			GROUP BY period
 		)
 		SELECT 
@@ -187,7 +188,7 @@ func (r *AdminRepository) ReportSales(from, to, interval string) ([]ReportSalesI
 		LEFT JOIN period_refunds pr ON ps.period = pr.period
 		ORDER BY ps.period ASC
 	`
-	
+
 	var items []ReportSalesItem
 	err := r.db.Raw(query, trunc, from, to, trunc, from, to).Scan(&items).Error
 	if err != nil {
@@ -202,17 +203,19 @@ func (r *AdminRepository) ReportSales(from, to, interval string) ([]ReportSalesI
 func (r *AdminRepository) ReportTopProducts(from, to string, limit int) ([]ReportTopProduct, error) {
 	query := `
 		SELECT 
-			oi.product_id,
+			p.id AS product_id,
 			p.slug,
 			p.name,
 			SUM(oi.qty) as items_sold,
 			SUM(oi.subtotal - oi.discount_amount) as revenue
 		FROM order_items oi
 		JOIN orders o ON oi.order_id = o.id
-		JOIN products p ON oi.product_id = p.id
+		-- Sebagian order_items lama tidak menyimpan product_id; ambil dari varian.
+		LEFT JOIN product_variants pv ON pv.id = oi.variant_id
+		JOIN products p ON p.id = COALESCE(oi.product_id, pv.product_id)
 		WHERE o.status IN ('paid','processing','shipped','completed','refunded')
-		  AND o.paid_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND o.paid_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
-		GROUP BY oi.product_id, p.slug, p.name
+		  AND COALESCE(o.paid_at, o.created_at) >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta' AND COALESCE(o.paid_at, o.created_at) < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+		GROUP BY p.id, p.slug, p.name
 		ORDER BY items_sold DESC, revenue DESC
 		LIMIT ?
 	`
@@ -227,3 +230,62 @@ func (r *AdminRepository) ReportTopProducts(from, to string, limit int) ([]Repor
 	return items, nil
 }
 
+func (r *AdminRepository) ReportBreakdown(from, to string) (*ReportBreakdownResponse, error) {
+	res := &ReportBreakdownResponse{
+		OrderStatus: []ReportStatusCount{},
+		Categories:  []ReportCategoryShare{},
+	}
+
+	// Status dihitung dari tanggal order dibuat (semua status, termasuk yang
+	// belum dibayar) agar admin melihat corong pesanan apa adanya.
+	const statusSQL = `
+		SELECT status, COUNT(*) AS count
+		FROM orders
+		WHERE created_at >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta'
+		  AND created_at < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+		GROUP BY status
+		ORDER BY count DESC
+	`
+	// Penjualan digulung ke kategori induk (hierarki maks. 2 tingkat).
+	const categorySQL = `
+		SELECT
+			root.slug,
+			root.name_i18n,
+			SUM(oi.qty) AS items_sold,
+			SUM(oi.subtotal - oi.discount_amount) AS revenue
+		FROM order_items oi
+		JOIN orders o ON oi.order_id = o.id
+		LEFT JOIN product_variants pv ON pv.id = oi.variant_id
+		JOIN products p ON p.id = COALESCE(oi.product_id, pv.product_id)
+		JOIN categories c ON c.slug = p.category_slug
+		JOIN categories root ON root.id = COALESCE(c.parent_id, c.id)
+		WHERE o.status IN ('paid','processing','shipped','completed','refunded')
+		  AND COALESCE(o.paid_at, o.created_at) >= ?::timestamptz AT TIME ZONE 'Asia/Jakarta'
+		  AND COALESCE(o.paid_at, o.created_at) < (?::timestamptz AT TIME ZONE 'Asia/Jakarta' + interval '1 day')
+		GROUP BY root.slug, root.name_i18n
+		ORDER BY revenue DESC
+	`
+
+	var (
+		wg                sync.WaitGroup
+		statusErr, catErr error
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		statusErr = r.db.Raw(statusSQL, from, to).Scan(&res.OrderStatus).Error
+	}()
+	go func() {
+		defer wg.Done()
+		catErr = r.db.Raw(categorySQL, from, to).Scan(&res.Categories).Error
+	}()
+	wg.Wait()
+
+	if statusErr != nil {
+		return nil, statusErr
+	}
+	if catErr != nil {
+		return nil, catErr
+	}
+	return res, nil
+}

@@ -122,7 +122,7 @@ export async function validateCoupon(code: string, items: { variant_id: string; 
   }
 }
 
-import type { ReportSummary, ReportSalesItem, ReportTopProduct } from "./types";
+import type { ReportSummary, ReportSalesItem, ReportTopProduct, ReportBreakdown } from "./types";
 
 export async function getReportSummary(from?: string, to?: string): Promise<ReportSummary> {
   const params = new URLSearchParams();
@@ -150,3 +150,11 @@ export async function getReportTopProducts(from?: string, to?: string, limit?: n
   return data;
 }
 
+
+export async function getReportBreakdown(from?: string, to?: string): Promise<ReportBreakdown> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const { data } = await request<Envelope<ReportBreakdown>>(`/api/v1/admin/reports/breakdown?${params.toString()}`, { auth: true });
+  return data;
+}

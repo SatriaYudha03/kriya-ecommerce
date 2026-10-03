@@ -9,6 +9,10 @@ import {
   updateCoupon,
   deleteCoupon,
   getAdminCouponRedemptions,
+  getReportSummary,
+  getReportSales,
+  getReportTopProducts,
+  getReportBreakdown,
 } from "./api";
 import type { CouponPayload } from "./types";
 import { ApiError } from "../http";
@@ -19,6 +23,8 @@ export const promoKeys = {
   coupons: () => [...promoKeys.all, "admin-coupons"] as const,
   coupon: (id: string) => [...promoKeys.all, "admin-coupon", id] as const,
   couponRedemptions: (id: string) => [...promoKeys.all, "admin-coupon-redemptions", id] as const,
+  report: (kind: string, from: string, to: string, extra?: string) =>
+    [...promoKeys.all, "admin-report", kind, from, to, extra ?? ""] as const,
 };
 
 // Probe akses ringan untuk AdminGuard (tanpa query agregat berat).
@@ -39,6 +45,43 @@ export function useAdminStats(enabled = true) {
     enabled,
     retry: false,
     staleTime: 30_000,
+  });
+}
+
+// Laporan per periode untuk dashboard admin. from/to: YYYY-MM-DD (WIB).
+export function useReportSummary(from: string, to: string) {
+  return useQuery({
+    queryKey: promoKeys.report("summary", from, to),
+    queryFn: () => getReportSummary(from, to),
+    retry: false,
+    staleTime: 60_000,
+  });
+}
+
+export function useReportSales(from: string, to: string, interval: "day" | "week" | "month") {
+  return useQuery({
+    queryKey: promoKeys.report("sales", from, to, interval),
+    queryFn: () => getReportSales(from, to, interval),
+    retry: false,
+    staleTime: 60_000,
+  });
+}
+
+export function useReportTopProducts(from: string, to: string, limit: number) {
+  return useQuery({
+    queryKey: promoKeys.report("top-products", from, to, String(limit)),
+    queryFn: () => getReportTopProducts(from, to, limit),
+    retry: false,
+    staleTime: 60_000,
+  });
+}
+
+export function useReportBreakdown(from: string, to: string) {
+  return useQuery({
+    queryKey: promoKeys.report("breakdown", from, to),
+    queryFn: () => getReportBreakdown(from, to),
+    retry: false,
+    staleTime: 60_000,
   });
 }
 

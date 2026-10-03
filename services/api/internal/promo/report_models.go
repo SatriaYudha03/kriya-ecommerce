@@ -1,25 +1,27 @@
 package promo
 
+import "encoding/json"
+
 type ReportSummaryResponse struct {
-	GrossSales      int64   `json:"gross_sales"`
-	DiscountTotal   int64   `json:"discount_total"`
-	RefundedTotal   int64   `json:"refunded_total"`
-	NetSales        int64   `json:"net_sales"`
-	ShippingTotal   int64   `json:"shipping_total"`
-	OrdersCount     int     `json:"orders_count"`
-	ItemsSold       int     `json:"items_sold"`
-	AvgOrderValue   float64 `json:"avg_order_value"`
-	NewCustomers    int     `json:"new_customers"`
+	GrossSales    int64   `json:"gross_sales"`
+	DiscountTotal int64   `json:"discount_total"`
+	RefundedTotal int64   `json:"refunded_total"`
+	NetSales      int64   `json:"net_sales"`
+	ShippingTotal int64   `json:"shipping_total"`
+	OrdersCount   int     `json:"orders_count"`
+	ItemsSold     int     `json:"items_sold"`
+	AvgOrderValue float64 `json:"avg_order_value"`
+	NewCustomers  int     `json:"new_customers"`
 }
 
 type ReportSalesItem struct {
-	Period         string `json:"period"`
-	OrdersCount    int    `json:"orders_count"`
-	GrossSales     int64  `json:"gross_sales"`
-	DiscountTotal  int64  `json:"discount_total"`
-	RefundedTotal  int64  `json:"refunded_total"`
-	NetSales       int64  `json:"net_sales"`
-	ShippingTotal  int64  `json:"shipping_total"`
+	Period        string `json:"period"`
+	OrdersCount   int    `json:"orders_count"`
+	GrossSales    int64  `json:"gross_sales"`
+	DiscountTotal int64  `json:"discount_total"`
+	RefundedTotal int64  `json:"refunded_total"`
+	NetSales      int64  `json:"net_sales"`
+	ShippingTotal int64  `json:"shipping_total"`
 }
 
 type ReportTopProduct struct {
@@ -28,4 +30,23 @@ type ReportTopProduct struct {
 	Name      string `json:"name"`
 	ItemsSold int    `json:"items_sold"`
 	Revenue   int64  `json:"revenue"`
+}
+
+type ReportStatusCount struct {
+	Status string `json:"status"`
+	Count  int    `json:"count"`
+}
+
+type ReportCategoryShare struct {
+	Slug      string          `json:"slug"`
+	NameI18n  json.RawMessage `json:"name_i18n"`
+	ItemsSold int             `json:"items_sold"`
+	Revenue   int64           `json:"revenue"`
+}
+
+// ReportBreakdownResponse memecah pesanan per status dan penjualan per
+// kategori induk dalam satu periode — sumber donat di dashboard admin.
+type ReportBreakdownResponse struct {
+	OrderStatus []ReportStatusCount   `json:"order_status"`
+	Categories  []ReportCategoryShare `json:"categories"`
 }

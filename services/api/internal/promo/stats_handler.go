@@ -83,6 +83,23 @@ func (h *AdminHandler) ReportSales(c *gin.Context) {
 	c.JSON(http.StatusOK, httpx.Response{Data: res})
 }
 
+// ReportBreakdown mengembalikan jumlah pesanan per status dan penjualan per
+// kategori induk untuk periode from–to (default 30 hari terakhir).
+func (h *AdminHandler) ReportBreakdown(c *gin.Context) {
+	from := c.DefaultQuery("from", time.Now().AddDate(0, 0, -30).Format("2006-01-02"))
+	to := c.DefaultQuery("to", time.Now().Format("2006-01-02"))
+
+	res, err := h.repo.ReportBreakdown(from, to)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
+			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal mengambil breakdown: " + err.Error()},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, httpx.Response{Data: res})
+}
+
 func (h *AdminHandler) ReportTopProducts(c *gin.Context) {
 	from := c.DefaultQuery("from", time.Now().AddDate(0, 0, -30).Format("2006-01-02"))
 	to := c.DefaultQuery("to", time.Now().Format("2006-01-02"))

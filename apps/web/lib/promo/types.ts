@@ -86,3 +86,20 @@ export interface ReportTopProduct {
   revenue: number;
 }
 
+
+export interface ReportStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface ReportCategoryShare {
+  slug: string;
+  name_i18n: Record<string, string>;
+  items_sold: number;
+  revenue: number;
+}
+
+export interface ReportBreakdown {
+  order_status: ReportStatusCount[];
+  categories: ReportCategoryShare[];
+}
