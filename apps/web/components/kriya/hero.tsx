@@ -113,7 +113,7 @@ export function Hero({ slides: remote }: { slides?: HeroSlide[] | null }) {
       <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/15 to-transparent" />
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/40 to-transparent" />
 
-      <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-16 sm:px-6 sm:pb-20 lg:px-10 lg:pb-24">
+      <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 pt-20 pb-16 sm:px-6 lg:px-10">
         <div key={index} className="max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           <p className="text-xs font-semibold tracking-[0.25em] text-brand-soft uppercase sm:text-sm">
             {slide.eyebrow}
