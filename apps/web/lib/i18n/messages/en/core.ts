@@ -34,6 +34,7 @@ export const coreEn: typeof coreId = {
   "nav.admin.reviews": "Reviews",
   "nav.admin.returns": "Returns",
   "nav.admin.settings": "Settings",
+  "nav.admin.paymentAnomalies": "Payment Anomalies",
   "nav.admin.hero": "Home hero",
 
   // Chat

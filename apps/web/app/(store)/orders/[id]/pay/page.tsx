@@ -7,6 +7,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Clock, Loader2, Package, ShieldCheck } from "lucide-react";
 
+import { PaymentCountdown, useNow } from "@/components/kriya/customer/payment-countdown";
+import { isPaymentWindowClosed } from "@/lib/checkout/payment-window";
+import { ApiError } from "@/lib/http";
+
 import { useLanguage } from "@/components/kriya/language-provider";
 import { afterKeys, useOrder } from "@/lib/aftersales/queries";
 import { usePaymentSync } from "@/lib/checkout/queries";
@@ -17,16 +21,18 @@ import { formatRupiah } from "@/lib/format";
 
 // Halaman bayar terpisah dari /checkout: checkout hanya membuat order, lalu pembeli
 // diarahkan ke sini untuk membuka Snap. POST /orders/:id/pay memakai ulang snap_token
-// attempt aktif (atau membuat attempt baru bila kedaluwarsa), jadi halaman ini aman
-// dibuka ulang dari daftar/detail pesanan.
+// attempt aktif (atau mengganti attempt yang rusak), jadi halaman ini aman dibuka ulang
+// dari daftar/detail pesanan. Tenggat bayar (payment.expires_at) tidak pernah
+// diperpanjang: setelah lewat, BE membalas 409 dan sweeper meng-expire order.
 export default function OrderPayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const { data: order, isLoading, isError } = useOrder(id);
   const [paying, setPaying] = useState(false);
   const sawPending = useRef(false);
+  const now = useNow();
 
   usePaymentSync(id, order?.status);
 
@@ -60,7 +66,18 @@ export default function OrderPayPage({ params }: { params: Promise<{ id: string 
       await queryClient.invalidateQueries({ queryKey: afterKeys.all });
       if (result === "pending") toast.info(t("checkoutV2.paymentPending"));
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t("checkoutV2.pay.error"));
+      if (err instanceof ApiError && err.status === 409) {
+        // 409 saat order masih pending = tenggat bayar lewat; selain itu status order
+        // sudah berubah. Refresh order supaya halaman menampilkan keadaan terbaru.
+        await queryClient.invalidateQueries({ queryKey: afterKeys.all });
+        toast.error(
+          order?.status === "pending_payment"
+            ? t("checkoutV2.pay.windowClosedError")
+            : t("checkoutV2.pay.notPayable"),
+        );
+      } else {
+        toast.error(err instanceof Error ? err.message : t("checkoutV2.pay.error"));
+      }
     } finally {
       setPaying(false);
     }
@@ -69,11 +86,8 @@ export default function OrderPayPage({ params }: { params: Promise<{ id: string 
   if (isLoading) return <div className="p-20 text-center text-neutral-500">{t("checkoutV2.loading")}</div>;
   if (isError || !order) return <div className="p-20 text-center text-red-500">{t("error.orderNotFound")}</div>;
 
-  const expiresAt = order.payment?.expires_at
-    ? new Date(order.payment.expires_at).toLocaleString(locale, {
-        day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-      })
-    : null;
+  const expiresAt = order.payment?.expires_at ?? null;
+  const windowClosed = isPaymentWindowClosed(expiresAt, now);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
@@ -96,12 +110,7 @@ export default function OrderPayPage({ params }: { params: Promise<{ id: string 
             <p className="text-sm text-neutral-500">{t("checkoutV2.pay.total")}</p>
             <p className="mt-1 text-3xl font-semibold text-neutral-900">{formatRupiah(order.total)}</p>
           </div>
-          {expiresAt && (
-            <p className="flex items-center gap-1.5 text-right text-xs text-amber-700">
-              <Clock className="h-3.5 w-3.5 shrink-0" />
-              {t("checkoutV2.pay.expiresAt", { time: expiresAt })}
-            </p>
-          )}
+          {!windowClosed && <PaymentCountdown expiresAt={expiresAt} now={now} />}
         </div>
 
         <div className="mt-6 border-t border-neutral-100 pt-5">
@@ -128,19 +137,37 @@ export default function OrderPayPage({ params }: { params: Promise<{ id: string 
           </ul>
         </div>
 
-        <button
-          type="button"
-          onClick={handlePay}
-          disabled={paying}
-          className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-neutral-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 disabled:opacity-50"
-        >
-          {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-          {paying ? t("checkoutV2.pay.opening") : t("checkoutV2.pay.button")}
-        </button>
+        {windowClosed ? (
+          <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4" role="alert">
+            <p className="flex items-center gap-2 text-sm font-medium text-red-800">
+              <Clock className="h-4 w-4 shrink-0" />
+              {t("checkoutV2.pay.windowClosedTitle")}
+            </p>
+            <p className="mt-1 text-sm text-red-700">{t("checkoutV2.pay.windowClosedBody")}</p>
+            <Link
+              href="/"
+              className="mt-3 inline-flex items-center rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              {t("checkoutV2.pay.shopAgain")}
+            </Link>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={paying}
+            className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-neutral-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 disabled:opacity-50"
+          >
+            {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {paying ? t("checkoutV2.pay.opening") : t("checkoutV2.pay.button")}
+          </button>
+        )}
         <p className="mt-3 text-center text-xs text-neutral-400">{t("checkoutV2.pay.secure")}</p>
       </div>
 
-      <p className="mt-6 text-center text-sm text-neutral-500">{t("checkoutV2.pay.waiting")}</p>
+      {!windowClosed && (
+        <p className="mt-6 text-center text-sm text-neutral-500">{t("checkoutV2.pay.waiting")}</p>
+      )}
     </div>
   );
 }

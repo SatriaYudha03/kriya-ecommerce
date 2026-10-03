@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCheckoutQuote, createOrder, syncPayment } from "./api";
-import type { CheckoutQuoteRequest, CreateOrderPayload } from "./types";
+import { getCheckoutQuote, createOrder, syncPayment, getAdminPaymentAnomalies, resolvePaymentAnomaly } from "./api";
+import type {
+  CheckoutQuoteRequest,
+  CreateOrderPayload,
+  PaymentAnomalyFilter,
+  ResolvePaymentAnomalyPayload,
+} from "./types";
 import type { OrderStatus } from "../aftersales/types";
 import { afterKeys } from "../aftersales/queries";
 
@@ -9,6 +14,9 @@ export const checkoutKeys = {
   all: ["checkout"] as const,
   quote: (req: CheckoutQuoteRequest) => [...checkoutKeys.all, "quote", req] as const,
   paymentSync: (orderId: string) => [...checkoutKeys.all, "payment-sync", orderId] as const,
+  anomalies: () => [...checkoutKeys.all, "payment-anomalies"] as const,
+  anomalyList: (status: PaymentAnomalyFilter, page: number) => [...checkoutKeys.anomalies(), status, page] as const,
+  anomalyOpenCount: () => [...checkoutKeys.anomalies(), "open-count"] as const,
 };
 
 export function useCheckoutQuote(req: CheckoutQuoteRequest, enabled: boolean) {
@@ -50,4 +58,33 @@ export function usePaymentSync(orderId: string, status: OrderStatus | undefined)
       queryClient.invalidateQueries({ queryKey: afterKeys.all });
     }
   }, [syncedStatus, status, queryClient]);
+}
+
+// Admin — anomali pembayaran (RENCANA-PAYMENT-LIFECYCLE Fase 6).
+export function useAdminPaymentAnomalies(status: PaymentAnomalyFilter, page: number = 1, limit: number = 20) {
+  return useQuery({
+    queryKey: checkoutKeys.anomalyList(status, page),
+    queryFn: () => getAdminPaymentAnomalies(status, page, limit),
+    placeholderData: (previous) => previous,
+  });
+}
+
+// Jumlah anomali yang belum ditindaklanjuti — untuk kartu "Perlu perhatian" di dashboard.
+export function useOpenPaymentAnomalyCount() {
+  return useQuery({
+    queryKey: checkoutKeys.anomalyOpenCount(),
+    queryFn: () => getAdminPaymentAnomalies("open", 1, 1),
+    select: (res) => res.meta.total,
+  });
+}
+
+export function useResolvePaymentAnomaly() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: ResolvePaymentAnomalyPayload }) =>
+      resolvePaymentAnomaly(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: checkoutKeys.anomalies() });
+    },
+  });
 }

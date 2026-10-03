@@ -11,6 +11,7 @@ import { useLanguage } from "@/components/kriya/language-provider";
 import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
 import { CancelOrderDialog } from "@/components/kriya/aftersales/cancel-order-dialog";
 import { ReturnOrderDialog } from "@/components/kriya/aftersales/return-order-dialog";
+import { PaymentDeadlineNote } from "@/components/kriya/customer/payment-countdown";
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -51,6 +52,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   })}
                 </span>
               </p>
+              {order.status === "pending_payment" && (
+                <PaymentDeadlineNote expiresAt={order.payment?.expires_at ?? null} className="mt-2" />
+              )}
             </div>
             
             <div className="flex items-center gap-2 mt-4 sm:mt-0">

@@ -79,3 +79,32 @@ export interface CheckoutQuote {
   coupon: QuoteCoupon | null;
   problems: QuoteProblem[];
 }
+
+// GET /admin/payment-anomalies — uang masuk untuk order yang sudah tertutup
+// (paid_after_close) atau pembayaran kedua untuk order lunas (double_payment).
+// RENCANA-PAYMENT-LIFECYCLE Fase 4.
+export type PaymentAnomalyKind = "paid_after_close" | "double_payment";
+export type PaymentAnomalyResolution = "refunded" | "ignored";
+export type PaymentAnomalyFilter = "open" | "resolved" | "all";
+
+export interface PaymentAnomaly {
+  id: string;
+  order_id: string;
+  order_number: string;
+  order_total: number;
+  midtrans_order_id: string;
+  kind: PaymentAnomalyKind;
+  order_status: OrderStatus;
+  transaction_status: string;
+  gross_amount: string | null; // string persis dari Midtrans, mis. "150000.00"
+  resolution: PaymentAnomalyResolution | null;
+  resolution_note: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+export interface ResolvePaymentAnomalyPayload {
+  resolution: PaymentAnomalyResolution;
+  note: string | null;
+}

@@ -79,6 +79,11 @@ export function useCancelOrder() {
     },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.message : "Gagal membatalkan pesanan");
+      // 409 = status order berubah (mis. ternyata sudah lunas saat BE mengecek Midtrans
+      // sebelum membatalkan) — muat ulang supaya halaman menampilkan status terbaru.
+      if (err instanceof ApiError && err.status === 409) {
+        qc.invalidateQueries({ queryKey: afterKeys.all });
+      }
     },
   });
 }

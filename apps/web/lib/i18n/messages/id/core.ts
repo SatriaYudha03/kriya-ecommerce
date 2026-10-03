@@ -33,6 +33,7 @@ export const coreId = {
   "nav.admin.reviews": "Ulasan",
   "nav.admin.returns": "Retur",
   "nav.admin.settings": "Pengaturan",
+  "nav.admin.paymentAnomalies": "Anomali Bayar",
   "nav.admin.hero": "Hero Beranda",
 
   // Chat

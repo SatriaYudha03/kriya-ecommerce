@@ -9,6 +9,7 @@ import {
   Package,
   ReceiptText,
   RotateCcw,
+  ShieldAlert,
   ShoppingBag,
   Star,
   UserPlus,
@@ -22,6 +23,7 @@ import {
   useReportTopProducts,
 } from "@/lib/promo/queries";
 import { useCategories } from "@/lib/catalog/queries";
+import { useOpenPaymentAnomalyCount } from "@/lib/checkout/queries";
 import type { ReportSalesItem } from "@/lib/promo/types";
 import type { OrderStatus } from "@/lib/aftersales/types";
 import type { MessageKey } from "@/lib/i18n";
@@ -132,6 +134,7 @@ export default function AdminDashboard() {
   const interval = range === 90 ? "week" : "day";
 
   const stats = useAdminStats();
+  const anomalyCount = useOpenPaymentAnomalyCount();
   const summary = useReportSummary(from, to);
   const prevSummary = useReportSummary(ymd(bounds.prevFrom), ymd(bounds.prevTo));
   const sales = useReportSales(from, to, interval);
@@ -213,12 +216,14 @@ export default function AdminDashboard() {
     year: "numeric",
   });
 
+  // Anomali pembayaran paling atas: uang pembeli tertahan sampai admin me-refund.
   const attention = [
-    { href: "/admin/orders?status=processing", key: "adminPromo.toShip", count: stats.data?.to_ship_count, icon: Package },
-    { href: "/admin/orders?status=pending", key: "adminPromo.pendingPayment", count: stats.data?.pending_payment_count, icon: Clock },
-    { href: "/admin/inventory", key: "adminPromo.lowStock", count: stats.data?.low_stock_count, icon: AlertTriangle },
-    { href: "/admin/reviews", key: "adminPromo.pendingReviews", count: stats.data?.pending_reviews_count, icon: Star },
-    { href: "/admin/returns", key: "adminPromo.openReturns", count: stats.data?.open_returns_count, icon: RotateCcw },
+    { href: "/admin/payment-anomalies", key: "adminPay.attention", count: anomalyCount.data, icon: ShieldAlert, loading: anomalyCount.isLoading },
+    { href: "/admin/orders?status=processing", key: "adminPromo.toShip", count: stats.data?.to_ship_count, icon: Package, loading: stats.isLoading },
+    { href: "/admin/orders?status=pending", key: "adminPromo.pendingPayment", count: stats.data?.pending_payment_count, icon: Clock, loading: stats.isLoading },
+    { href: "/admin/inventory", key: "adminPromo.lowStock", count: stats.data?.low_stock_count, icon: AlertTriangle, loading: stats.isLoading },
+    { href: "/admin/reviews", key: "adminPromo.pendingReviews", count: stats.data?.pending_reviews_count, icon: Star, loading: stats.isLoading },
+    { href: "/admin/returns", key: "adminPromo.openReturns", count: stats.data?.open_returns_count, icon: RotateCcw, loading: stats.isLoading },
   ] as const;
   const attentionTotal = attention.reduce((sum, a) => sum + (a.count ?? 0), 0);
 
@@ -340,7 +345,7 @@ export default function AdminDashboard() {
           title={t("adminPromo.dash.attention")}
           subtitle={t("adminPromo.dash.attentionHint")}
           action={
-            !stats.isLoading && attentionTotal === 0 ? (
+            !stats.isLoading && !anomalyCount.isLoading && attentionTotal === 0 ? (
               <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                 {t("adminPromo.dash.allClear")}
               </span>
@@ -355,7 +360,7 @@ export default function AdminDashboard() {
                 label={t(a.key)}
                 count={a.count ?? 0}
                 icon={a.icon}
-                loading={stats.isLoading}
+                loading={a.loading}
               />
             ))}
           </div>

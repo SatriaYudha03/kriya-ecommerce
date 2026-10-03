@@ -1,4 +1,14 @@
-import type { CheckoutQuote, CheckoutQuoteRequest, CreateOrderPayload, CreateOrderResponse, QuoteLine } from "./types";
+import type {
+  CheckoutQuote,
+  CheckoutQuoteRequest,
+  CreateOrderPayload,
+  CreateOrderResponse,
+  PaymentAnomaly,
+  PaymentAnomalyFilter,
+  QuoteLine,
+  ResolvePaymentAnomalyPayload,
+} from "./types";
+import type { ListEnvelope } from "../http";
 import { cart as fixtureCart } from "../customer/fixtures";
 
 const SHIPPING_OPTIONS = [
@@ -118,4 +128,41 @@ export function createOrderResponse(payload: CreateOrderPayload): CreateOrderRes
   };
 }
 
-export const fixtures = { quote, createOrderResponse };
+// Mode fixtures: satu anomali contoh (pembayaran VA masuk setelah pesanan dibatalkan).
+const anomalyStore: PaymentAnomaly[] = [
+  {
+    id: "anomaly-1",
+    order_id: "order-3",
+    order_number: "KRY-261003-000042",
+    order_total: 2450000,
+    midtrans_order_id: "KRIYA-7QX2M9KD",
+    kind: "paid_after_close",
+    order_status: "cancelled",
+    transaction_status: "settlement",
+    gross_amount: "2450000.00",
+    resolution: null,
+    resolution_note: null,
+    resolved_by: null,
+    resolved_at: null,
+    created_at: "2026-10-03T03:12:00Z",
+  },
+];
+
+function paymentAnomalies(status: PaymentAnomalyFilter, page: number, limit: number): ListEnvelope<PaymentAnomaly> {
+  const rows = anomalyStore.filter((a) =>
+    status === "all" ? true : status === "open" ? a.resolved_at === null : a.resolved_at !== null,
+  );
+  return { data: rows.slice((page - 1) * limit, page * limit), meta: { page, limit, total: rows.length } };
+}
+
+function resolvePaymentAnomaly(id: string, payload: ResolvePaymentAnomalyPayload): PaymentAnomaly {
+  const row = anomalyStore.find((a) => a.id === id);
+  if (!row) throw new Error("Anomali tidak ditemukan");
+  row.resolution = payload.resolution;
+  row.resolution_note = payload.note;
+  row.resolved_by = "fixture-admin";
+  row.resolved_at = new Date().toISOString();
+  return { ...row };
+}
+
+export const fixtures = { quote, createOrderResponse, paymentAnomalies, resolvePaymentAnomaly };
