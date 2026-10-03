@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/kriya/empty-state";
 import { PriceTag } from "@/components/kriya/catalog/price-tag";
 
 export default function CartPage() {
-  const { items, total, updateQty, removeItem, loading } = useCartStore();
+  const { items, total, updateQty, removeItem } = useCartStore();
   const { t } = useLanguage();
 
   if (items.length === 0) {
@@ -82,7 +82,6 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => updateQty(item.variant_id, item.qty - 1)}
-                        disabled={loading}
                         className="p-1.5 text-neutral-600 disabled:opacity-40"
                       >
                         <Minus className="h-3 w-3" />
@@ -91,7 +90,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => updateQty(item.variant_id, item.qty + 1)}
-                        disabled={loading || item.qty >= item.stock}
+                        disabled={item.qty >= item.stock}
                         className="p-1.5 text-neutral-600 disabled:opacity-40"
                       >
                         <Plus className="h-3 w-3" />
@@ -101,8 +100,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => removeItem(item.variant_id)}
-                      disabled={loading}
-                      className="flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong disabled:opacity-50"
+                      className="flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span>{t("cart.remove")}</span>

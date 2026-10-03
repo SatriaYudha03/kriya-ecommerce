@@ -71,8 +71,12 @@ export default function CheckoutPage() {
   );
 
   const debouncedQuoteRequest = useDebouncedValue(quoteRequest, 350);
-  const quoteEnabled = lineItems.length > 0 && Boolean(address);
-  const { data: quote, isFetching: quoteLoading } = useCheckoutQuote(debouncedQuoteRequest, quoteEnabled);
+  // Quote jalan walau alamat belum dipilih (BE hanya mengosongkan opsi ongkir) supaya diskon
+  // kupon langsung tampil. Perubahan kupon melewati debounce agar diskon muncul seketika.
+  const activeQuoteRequest =
+    debouncedQuoteRequest.coupon_code !== quoteRequest.coupon_code ? quoteRequest : debouncedQuoteRequest;
+  const quoteEnabled = lineItems.length > 0;
+  const { data: quote, isFetching: quoteLoading } = useCheckoutQuote(activeQuoteRequest, quoteEnabled);
 
   // Default ke opsi termurah dari quote sampai pengguna memilih sendiri (dihitung saat
   // render, bukan di effect, agar tidak memicu render berantai).

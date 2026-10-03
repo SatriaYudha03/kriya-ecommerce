@@ -3,6 +3,8 @@ package customer
 import (
 	"errors"
 	"github.com/kriya-commerce/api/internal/httpx"
+	"strconv"
+	"sync"
 
 	"net/http"
 
@@ -36,7 +38,7 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 		reqItems = append(reqItems, CartItemRequest{VariantID: it.VariantID, Qty: it.Qty})
 	}
 
-	res, err := h.buildCartResponse(reqItems, lang)
+	variants, err := h.repo.GetVariantsByIDs(variantIDs(reqItems))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
@@ -44,7 +46,7 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, httpx.Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: h.buildCartResponse(reqItems, variants, lang)})
 }
 
 func (h *CartHandler) PutCart(c *gin.Context) {
@@ -59,7 +61,8 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.validateItems(c, req.Items); err != nil {
+	variants, err := h.validateItems(c, userID, req.Items, true)
+	if err != nil {
 		return
 	}
 
@@ -70,15 +73,7 @@ func (h *CartHandler) PutCart(c *gin.Context) {
 		return
 	}
 
-	res, err := h.buildCartResponse(req.Items, lang)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
-			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, httpx.Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: h.buildCartResponse(req.Items, variants, lang)})
 }
 
 func (h *CartHandler) MergeCart(c *gin.Context) {
@@ -93,7 +88,7 @@ func (h *CartHandler) MergeCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.validateItems(c, req.Items); err != nil {
+	if _, err := h.validateItems(c, userID, req.Items, false); err != nil {
 		return
 	}
 
@@ -118,7 +113,7 @@ func (h *CartHandler) MergeCart(c *gin.Context) {
 		reqItems = append(reqItems, CartItemRequest{VariantID: it.VariantID, Qty: it.Qty})
 	}
 
-	res, err := h.buildCartResponse(reqItems, lang)
+	variants, err := h.repo.GetVariantsByIDs(variantIDs(reqItems))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal menghitung cart"},
@@ -126,49 +121,79 @@ func (h *CartHandler) MergeCart(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, httpx.Response{Data: res})
+	c.JSON(http.StatusOK, httpx.Response{Data: h.buildCartResponse(reqItems, variants, lang)})
 }
 
-func (h *CartHandler) validateItems(c *gin.Context, items []CartItemRequest) error {
+func variantIDs(items []CartItemRequest) []string {
 	ids := make([]string, 0, len(items))
 	for _, it := range items {
 		ids = append(ids, it.VariantID)
 	}
+	return ids
+}
 
-	variants, err := h.repo.GetVariantsByIDs(ids)
-	if err != nil {
+// validateItems memastikan semua variant_id ada dan mengembalikan datanya, supaya
+// buildCartResponse tidak perlu query ulang. Jika checkStock, kenaikan qty melebihi stok
+// ditolak (409 insufficient_stock). Hanya KENAIKAN yang ditolak: item lama yang stoknya
+// sudah menyusut tidak boleh memblokir pengguna mengubah/menghapus item lain.
+func (h *CartHandler) validateItems(c *gin.Context, userID string, items []CartItemRequest, checkStock bool) ([]VariantWithProduct, error) {
+	var (
+		variants []VariantWithProduct
+		current  []CartItem
+		varErr   error
+		curErr   error
+		wg       sync.WaitGroup
+	)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		variants, varErr = h.repo.GetVariantsByIDs(variantIDs(items))
+	}()
+	if checkStock {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			current, curErr = h.repo.GetCartItems(userID)
+		}()
+	}
+	wg.Wait()
+
+	if varErr != nil || curErr != nil {
 		c.JSON(http.StatusInternalServerError, httpx.ErrorResponse{
 			Error: httpx.ErrorDetail{Code: "internal", Message: "Gagal memvalidasi varian"},
 		})
-		return err
+		return nil, errors.New("gagal memvalidasi varian")
 	}
-	found := make(map[string]bool, len(variants))
+
+	byID := make(map[string]VariantWithProduct, len(variants))
 	for _, v := range variants {
-		found[v.VariantID] = true
+		byID[v.VariantID] = v
+	}
+	prevQty := make(map[string]int, len(current))
+	for _, ci := range current {
+		prevQty[ci.VariantID] = ci.Qty
 	}
 	for _, it := range items {
-		if !found[it.VariantID] {
+		v, ok := byID[it.VariantID]
+		if !ok {
 			c.JSON(http.StatusBadRequest, httpx.ErrorResponse{
 				Error: httpx.ErrorDetail{Code: "validation_error", Message: "variant_id tidak ditemukan: " + it.VariantID},
 			})
-			return errors.New("variant_id tidak ditemukan")
+			return nil, errors.New("variant_id tidak ditemukan")
+		}
+		if checkStock && it.Qty > prevQty[it.VariantID] && it.Qty > v.Stock {
+			c.JSON(http.StatusConflict, httpx.ErrorResponse{
+				Error: httpx.ErrorDetail{Code: "insufficient_stock", Message: "Stok tidak cukup untuk " + v.ProductName + ", tersedia " + strconv.Itoa(v.Stock)},
+			})
+			return nil, errors.New("stok tidak cukup")
 		}
 	}
-	return nil
+	return variants, nil
 }
 
 // buildCartResponse menghitung ulang harga/subtotal/total dari data varian TERBARU di DB.
 // Item yang variant_id-nya sudah tidak ada (mis. dihapus admin) di-skip diam-diam saat GET.
-func (h *CartHandler) buildCartResponse(items []CartItemRequest, locale string) (CartResponse, error) {
-	ids := make([]string, 0, len(items))
-	for _, it := range items {
-		ids = append(ids, it.VariantID)
-	}
-
-	variants, err := h.repo.GetVariantsByIDs(ids)
-	if err != nil {
-		return CartResponse{}, err
-	}
+func (h *CartHandler) buildCartResponse(items []CartItemRequest, variants []VariantWithProduct, locale string) CartResponse {
 	byID := make(map[string]VariantWithProduct, len(variants))
 	for _, v := range variants {
 		byID[v.VariantID] = v
@@ -204,5 +229,5 @@ func (h *CartHandler) buildCartResponse(items []CartItemRequest, locale string) 
 		})
 	}
 	res.Total = total
-	return res, nil
+	return res
 }
