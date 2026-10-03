@@ -3,15 +3,40 @@
 import Link from "next/link";
 import type { Category } from "@/lib/types";
 import { categoryLabel } from "@/lib/category-meta";
+import type { Locale } from "@/lib/i18n";
 import { useLanguage } from "./language-provider";
 
-// Footer toko: kolom belanja + bantuan (gaya anon), Bahasa Indonesia.
+const PAYMENT_SHIPPING: Record<Locale, { title: string; items: string[] }> = {
+  id: {
+    title: "Pembayaran & Pengiriman",
+    items: [
+      "Virtual account bank",
+      "E-wallet & QRIS",
+      "Kartu kredit/debit",
+      "Pengiriman ke seluruh Indonesia",
+      "Kurir terpercaya, bisa dilacak",
+    ],
+  },
+  en: {
+    title: "Payment & Shipping",
+    items: [
+      "Bank virtual account",
+      "E-wallet & QRIS",
+      "Credit/debit card",
+      "Delivery across Indonesia",
+      "Trusted couriers, trackable",
+    ],
+  },
+};
+
+// Footer toko: kolom belanja + bantuan + pembayaran & pengiriman (gaya anon).
 export function SiteFooter({ categories }: { categories: Category[] }) {
   const { t, locale } = useLanguage();
+  const pay = PAYMENT_SHIPPING[locale];
   return (
     <footer className="mt-16 border-t border-neutral-200 bg-cream">
       <div className="mx-auto max-w-6xl px-4 py-14">
-        <div className="grid gap-10 md:grid-cols-3">
+        <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-1">
             <p className="text-xl font-semibold tracking-tight text-neutral-900">KRIYA</p>
             <p className="mt-3 max-w-xs text-sm text-neutral-500">
@@ -44,6 +69,15 @@ export function SiteFooter({ categories }: { categories: Category[] }) {
               <li><a href="#" className="hover:text-neutral-900">{t("footer.help.guide")}</a></li>
               <li><a href="#" className="hover:text-neutral-900">{t("footer.help.shipping")}</a></li>
               <li><a href="#" className="hover:text-neutral-900">{t("footer.help.track")}</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-900">{pay.title}</h3>
+            <ul className="mt-4 space-y-2.5 text-sm text-neutral-500">
+              {pay.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </div>
         </div>
