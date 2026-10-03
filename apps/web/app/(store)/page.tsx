@@ -1,6 +1,7 @@
 import { getCategoriesServer, getProductsServer, getServerLocale } from "@/lib/catalog/server";
 import type { ListEnvelope } from "@/lib/http";
 import type { ProductListItem, ServerInitial } from "@/lib/catalog/types";
+import { getHeroSlidesServer } from "@/lib/hero/server";
 import { Hero } from "@/components/kriya/hero";
 import { ServiceFeatures } from "@/components/kriya/service-features";
 import { CategoryShowcase } from "@/components/kriya/category-showcase";
@@ -23,7 +24,8 @@ export default async function HomePage() {
     }
   };
 
-  const [categories, newest, workspace, livingRoom] = await Promise.all([
+  const [heroSlides, categories, newest, workspace, livingRoom] = await Promise.all([
+    getHeroSlidesServer(),
     getCategoriesServer(locale),
     loadRail("newest"),
     loadRail("workspace"),
@@ -32,7 +34,7 @@ export default async function HomePage() {
 
   return (
     <div className="pb-8">
-      <Hero />
+      <Hero slides={heroSlides} />
       <ServiceFeatures />
       <CategoryShowcase categories={categories} />
       <ClientProductRails initial={{ newest, workspace, livingRoom }} />

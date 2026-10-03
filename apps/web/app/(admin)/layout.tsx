@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, Package, ShoppingCart, LogOut, Store, 
   Users, Truck, Settings, Ticket, BarChart3, MessageSquare, Undo2,
-  Tags, ListTree, Archive, CheckSquare
+  Tags, ListTree, Archive, CheckSquare, Image as ImageIcon
 } from "lucide-react";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { AdminGuard } from "@/components/kriya/admin/admin-guard";
@@ -30,6 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/reports", label: t("nav.admin.reports"), icon: BarChart3, exact: false },
     { href: "/admin/reviews", label: t("nav.admin.reviews"), icon: MessageSquare, exact: false },
     { href: "/admin/returns", label: t("nav.admin.returns"), icon: Undo2, exact: false },
+    { href: "/admin/hero", label: t("nav.admin.hero"), icon: ImageIcon, exact: false },
     { href: "/admin/settings", label: t("nav.admin.settings"), icon: Settings, exact: false },
   ];
 

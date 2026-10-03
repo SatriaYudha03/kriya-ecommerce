@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { HeroSlide } from "@/lib/hero/types";
 import { useLanguage } from "./language-provider";
 
 interface Slide {
@@ -21,12 +22,12 @@ const INTERVAL_MS = 6000;
 // Hero full-bleed: foto memenuhi lebar layar, header transparan di atasnya
 // (-mt-20 = tinggi header), teks besar di kiri bawah. Semua slide dirender
 // bertumpuk agar pergantiannya crossfade, bukan remount.
-export function Hero() {
+export function Hero({ slides: remote }: { slides?: HeroSlide[] | null }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
-  const slides: Slide[] = [
+  const fallback: Slide[] = [
     {
       eyebrow: t("home.hero.eyebrow1"),
       title: t("home.hero.title1"),
@@ -53,6 +54,19 @@ export function Hero() {
     },
   ];
 
+  // Slide dari admin (hero_slides) bila ada; kalau kosong/gagal → slide bawaan di atas.
+  const slides: Slide[] =
+    remote && remote.length > 0
+      ? remote.map((r) => ({
+          eyebrow: locale === "en" ? r.eyebrow_en : r.eyebrow_id,
+          title: locale === "en" ? r.title_en : r.title_id,
+          subtitle: locale === "en" ? r.subtitle_en : r.subtitle_id,
+          href: r.href,
+          image: r.image_url,
+          alt: r.alt,
+        }))
+      : fallback;
+
   const count = slides.length;
   const go = useCallback((n: number) => setIndex((i) => (i + n + count) % count), [count]);
 
@@ -62,7 +76,7 @@ export function Hero() {
     return () => clearInterval(id);
   }, [paused, count, index]);
 
-  const slide = slides[index];
+  const slide = slides[index % count];
 
   return (
     <section
