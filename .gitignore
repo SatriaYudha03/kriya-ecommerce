@@ -28,6 +28,9 @@ e2e/node_modules/
 # Claude instructions
 CLAUDE.md
 
+# Dokumen internal (rencana, panduan agent, catatan sesi) — hanya lokal
+docs/
+
 # n8n lokal (data runtime, berisi kredensial terenkripsi)
 automation/n8n/data/
 data/eval/results/

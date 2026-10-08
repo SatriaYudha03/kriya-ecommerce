@@ -33,9 +33,9 @@ The storefront is bilingual (Bahasa Indonesia / English) and comes with an AI cu
     <th>Product Detail</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/home.png" alt="Home page" width="300"></td>
-    <td><img src="docs/screenshots/category.png" alt="Category page" width="300"></td>
-    <td><img src="docs/screenshots/product-detail.png" alt="Product detail page" width="300"></td>
+    <td><img src="assets/screenshots/home.png" alt="Home page" width="300"></td>
+    <td><img src="assets/screenshots/category.png" alt="Category page" width="300"></td>
+    <td><img src="assets/screenshots/product-detail.png" alt="Product detail page" width="300"></td>
   </tr>
   <tr>
     <th>Cart</th>
@@ -43,9 +43,9 @@ The storefront is bilingual (Bahasa Indonesia / English) and comes with an AI cu
     <th>Login</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/cart.png" alt="Shopping cart" width="300"></td>
-    <td><img src="docs/screenshots/orders.png" alt="Order history" width="300"></td>
-    <td><img src="docs/screenshots/login.png" alt="Login page" width="300"></td>
+    <td><img src="assets/screenshots/cart.png" alt="Shopping cart" width="300"></td>
+    <td><img src="assets/screenshots/orders.png" alt="Order history" width="300"></td>
+    <td><img src="assets/screenshots/login.png" alt="Login page" width="300"></td>
   </tr>
 </table>
 
@@ -58,9 +58,9 @@ The storefront is bilingual (Bahasa Indonesia / English) and comes with an AI cu
     <th>Products</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/admin-dashboard.png" alt="Admin dashboard" width="300"></td>
-    <td><img src="docs/screenshots/admin-orders.png" alt="Admin order management" width="300"></td>
-    <td><img src="docs/screenshots/admin-products.png" alt="Admin product management" width="300"></td>
+    <td><img src="assets/screenshots/admin-dashboard.png" alt="Admin dashboard" width="300"></td>
+    <td><img src="assets/screenshots/admin-orders.png" alt="Admin order management" width="300"></td>
+    <td><img src="assets/screenshots/admin-products.png" alt="Admin product management" width="300"></td>
   </tr>
   <tr>
     <th>Inventory</th>
@@ -68,15 +68,15 @@ The storefront is bilingual (Bahasa Indonesia / English) and comes with an AI cu
     <th>Coupons</th>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/admin-inventory.png" alt="Admin inventory" width="300"></td>
-    <td><img src="docs/screenshots/admin-reports.png" alt="Admin sales reports" width="300"></td>
-    <td><img src="docs/screenshots/admin-coupons.png" alt="Admin coupon management" width="300"></td>
+    <td><img src="assets/screenshots/admin-inventory.png" alt="Admin inventory" width="300"></td>
+    <td><img src="assets/screenshots/admin-reports.png" alt="Admin sales reports" width="300"></td>
+    <td><img src="assets/screenshots/admin-coupons.png" alt="Admin coupon management" width="300"></td>
   </tr>
 </table>
 
 ### Chatbot Workflow (n8n)
 
-<img src="docs/screenshots/n8n-chatbot-workflow.png" alt="KRIYA chatbot workflow in n8n" width="100%">
+<img src="assets/screenshots/n8n-chatbot-workflow.png" alt="KRIYA chatbot workflow in n8n" width="100%">
 
 Each chat message from the web widget goes through these steps:
 
@@ -234,7 +234,7 @@ kriya-ecommerce/
 │   ├── migrations/           # forward-only SQL migrations (001 … 017)
 │   └── seed/                 # optional sample data (catalog, customers, promos, after-sales)
 ├── e2e/                      # Playwright end-to-end tests
-├── docs/                     # plans, agent guides, DevOps plans, screenshots, session notes
+├── assets/screenshots/       # README screenshots
 ├── docker-compose.yml        # local n8n + llm-proxy
 └── dev.ps1                   # one-command local dev launcher (Windows / PowerShell)
 ```
@@ -470,10 +470,8 @@ Base path: `/api/v1`. Every response uses a JSON envelope: `{"data": ...}` on su
   - frontend: `pnpm lint && pnpm build` in `apps/web`
   - backend: `go build ./... && go vet ./... && go test ./...` in `services/api`
 
-Detailed contracts and conventions are in [`docs/agents/KRIYA-MASTER.md`](docs/agents/KRIYA-MASTER.md). Feature plans are in [`docs/rencana/`](docs/rencana/).
-
 ---
 
 ## Deployment
 
-The deployment infrastructure (container images, CI/CD and hosting) is **being rebuilt from scratch**. The current plans are in [`docs/devops/`](docs/devops/). For now the project runs in local development mode as described above.
+The deployment infrastructure (container images, CI/CD and hosting) is **being rebuilt from scratch**. For now the project runs in local development mode as described above.
