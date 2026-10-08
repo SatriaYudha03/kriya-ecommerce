@@ -161,6 +161,7 @@ export const aftersalesId = {
 
   "after.common.prev": "Sebelumnya",
   "after.common.next": "Selanjutnya",
+  "after.common.pageOf": "Halaman {page} dari {total}",
   "after.common.loading": "Memuat...",
 
   "after.notifications.title": "Notifikasi",

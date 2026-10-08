@@ -20,17 +20,6 @@ const STATUS_KEYS: OrderStatus[] = [
   "expired",
 ];
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending_payment: "Menunggu Pembayaran",
-  paid: "Dibayar",
-  processing: "Diproses",
-  shipped: "Dikirim",
-  completed: "Selesai",
-  cancelled: "Dibatalkan",
-  expired: "Kadaluarsa",
-  refunded: "Dikembalikan",
-};
-
 const LIMIT = 20;
 
 export default function AdminOrdersPage() {
@@ -125,7 +114,7 @@ export default function AdminOrdersPage() {
                         </Link>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
-                        {new Date(o.created_at).toLocaleDateString("id-ID", {
+                        {new Date(o.created_at).toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
@@ -155,7 +144,7 @@ export default function AdminOrdersPage() {
                         >
                           {STATUS_KEYS.map((s) => (
                             <option key={s} value={s}>
-                              {STATUS_LABELS[s]}
+                              {t(`after.status.${s}` as const)}
                             </option>
                           ))}
                         </select>
@@ -176,17 +165,17 @@ export default function AdminOrdersPage() {
             disabled={page <= 1}
             className="rounded-lg border border-neutral-300 px-4 py-2 disabled:opacity-40"
           >
-            Sebelumnya
+            {t("after.common.prev")}
           </button>
           <span className="text-neutral-500">
-            Halaman {page} dari {totalPages}
+            {t("after.common.pageOf").replace("{page}", String(page)).replace("{total}", String(totalPages))}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="rounded-lg border border-neutral-300 px-4 py-2 disabled:opacity-40"
           >
-            Berikutnya
+            {t("after.common.next")}
           </button>
         </div>
       )}

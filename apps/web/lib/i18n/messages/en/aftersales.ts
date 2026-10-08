@@ -162,6 +162,7 @@ export const aftersalesEn: typeof aftersalesId = {
 
   "after.common.prev": "Previous",
   "after.common.next": "Next",
+  "after.common.pageOf": "Page {page} of {total}",
   "after.common.loading": "Loading...",
 
   "after.notifications.title": "Notifications",
