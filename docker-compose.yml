@@ -1,17 +1,8 @@
 # KRIYA — Docker Compose dev (KRIYA-MASTER.md Bagian 4).
 # Data (Postgres + Auth + Storage) memakai Supabase managed — bukan container lokal.
-# web (Next.js) dijalankan lokal via `npm run dev` di apps/web saat pengembangan.
+# web (Next.js) & api (Go) dijalankan lokal (lihat dev.ps1); compose hanya untuk n8n + llm-proxy.
 
 services:
-  api:
-    build: ./services/api
-    ports:
-      - "8080:8080"
-    env_file: .env
-    environment:
-      PORT: "8080"
-    restart: unless-stopped
-
   # Proxy 9router -> memaksa stream:false (lihat automation/llm-proxy/server.mjs).
   llm-proxy:
     image: node:22-alpine

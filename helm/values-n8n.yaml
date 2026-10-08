@@ -1,6 +1,0 @@
-# Values override for n8n automation
-n8n:
-  replicaCount: 1
-  persistence:
-    size: 10Gi
-    storageClass: local-path
