@@ -24,3 +24,9 @@ Peran: Claude (dokumentasi, atas permintaan Satria). Belum di-commit.
   Screenshot `docs/screenshots/admin-orders.png` diperbarui.
 - SISA: halaman detail `/admin/orders/[id]` masih hardcode Indonesia seluruhnya (judul, tombol,
   opsi status, placeholder) — belum disentuh.
+
+## Lanjutan: screenshot workflow n8n
+- `docs/screenshots/n8n-chatbot-workflow.png` + bagian "Chatbot Workflow (n8n)" di README (alur 5 langkah).
+- Diambil dari container n8n SEMENTARA (port 5679, data di scratchpad, kredensial dummy, owner dummy),
+  layout dirapikan dengan "Tidy up" HANYA di instance itu. `automation/n8n/chatbot.json` dan data
+  n8n lokal (`automation/n8n/data`, container kriya-ecommerce-n8n-1) TIDAK disentuh. Container sementara sudah dihapus.

@@ -74,6 +74,23 @@ The storefront is bilingual (Bahasa Indonesia / English) and comes with an AI cu
   </tr>
 </table>
 
+### Chatbot Workflow (n8n)
+
+<img src="docs/screenshots/n8n-chatbot-workflow.png" alt="KRIYA chatbot workflow in n8n" width="100%">
+
+Each chat message from the web widget goes through these steps:
+
+1. **Webhook chat → Validasi → Valid?** receives the message and validates the payload. An invalid request gets a `400` response.
+2. **Auth JWT** verifies the user's Supabase token (HS256). **Ctx** then builds the request context: the locale and the signed-in user's email.
+3. **Rate limit → Dalam batas?** counts the user's usage in Postgres. A user who goes over the limit gets a rate-limit response.
+4. **AI Agent** answers the message using an OpenAI-compatible chat model, a short conversation memory and a structured output parser. It can call these tools:
+   - `cari_produk`, `detail_produk`, `urutkan_produk`: search, show and sort products from the catalog (read-only Postgres role)
+   - `cari_kb`: full-text/trigram search over the bilingual knowledge base (FAQ, policies, assembly guides)
+   - `status_pesanan`: order status lookup through the API's internal endpoint
+5. **Respond OK** returns the answer. If anything fails, **Respond fallback** returns a safe fallback message instead.
+
+The workflow export lives in [`automation/n8n/chatbot.json`](automation/n8n/chatbot.json).
+
 ---
 
 ## Features
