@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { formatRupiah } from "@/lib/format";
+import { Card, Skeleton } from "./ui";
 
 // Palet kategorikal dashboard (urutan tetap, divalidasi CVD terhadap
 // permukaan putih). Slot 1 = aksen terracotta brand.
@@ -48,30 +49,21 @@ export function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("flex flex-col rounded-2xl border border-stone-200 bg-white p-6", className)}>
-      <header className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-stone-900">{title}</h2>
-          {subtitle && <p className="mt-0.5 text-sm text-stone-500">{subtitle}</p>}
-        </div>
-        {action}
-      </header>
-      <div className="flex-1">{children}</div>
-    </section>
+    <Card title={title} description={subtitle} action={action} className={cn("flex flex-col", className)}>
+      {children}
+    </Card>
   );
 }
 
 export function PanelMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full min-h-40 items-center justify-center text-center text-sm text-stone-400">
+    <div className="flex h-full min-h-40 items-center justify-center text-center text-sm text-admin-faint">
       {children}
     </div>
   );
 }
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-lg bg-stone-100", className)} />;
-}
+export { Skeleton };
 
 export function KpiCard({
   label,
@@ -97,11 +89,11 @@ export function KpiCard({
   const DeltaIcon = up ? ArrowUpRight : down ? ArrowDownRight : Minus;
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5">
+    <div className="rounded-xl bg-white p-4 shadow-[0_1px_0_0_rgba(26,26,26,0.07),0_0_0_1px_rgba(0,0,0,0.07)]">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-stone-500">{label}</p>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-strong">
-          <Icon className="h-[18px] w-[18px]" />
+        <p className="text-[13px] font-semibold text-admin-text underline decoration-dotted decoration-[#b5b5b5] underline-offset-4">{label}</p>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-admin-hover text-admin-muted">
+          <Icon className="h-4 w-4" />
         </span>
       </div>
       {loading ? (
@@ -111,30 +103,30 @@ export function KpiCard({
         </>
       ) : (
         <>
-          <p className="mt-1 truncate text-[28px] font-semibold leading-tight tracking-tight text-stone-900 tabular-nums">
+          <p className="mt-2 truncate text-2xl font-bold leading-tight tracking-tight text-admin-text tabular-nums">
             {value}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             {delta === null ? (
-              <span className="text-stone-400">{noPrevLabel}</span>
+              <span className="text-admin-faint">{noPrevLabel}</span>
             ) : (
               <>
                 <span
                   className={cn(
                     "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold tabular-nums",
-                    up && "bg-emerald-50 text-emerald-700",
-                    down && "bg-red-50 text-red-700",
-                    !up && !down && "bg-stone-100 text-stone-600",
+                    up && "bg-[#c4f5d4] text-[#0c5132]",
+                    down && "bg-[#fed1d7] text-[#8e0b21]",
+                    !up && !down && "bg-admin-hover text-admin-muted",
                   )}
                 >
                   <DeltaIcon className="h-3 w-3" />
                   {Math.abs(delta * 100).toFixed(Math.abs(delta) < 0.1 ? 1 : 0)}%
                 </span>
-                <span className="text-stone-400">{deltaLabel}</span>
+                <span className="text-admin-faint">{deltaLabel}</span>
               </>
             )}
           </div>
-          <p className="mt-1.5 text-xs text-stone-400">{hint}</p>
+          <p className="mt-1.5 text-xs text-admin-faint">{hint}</p>
         </>
       )}
     </div>
@@ -247,8 +239,8 @@ export function DonutWithLegend({
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[11px] uppercase tracking-wide text-stone-400">{centerLabel}</span>
-          <span className="max-w-[6.5rem] truncate text-lg font-semibold text-stone-900 tabular-nums">
+          <span className="text-[11px] uppercase tracking-wide text-admin-faint">{centerLabel}</span>
+          <span className="max-w-[6.5rem] truncate text-lg font-semibold text-admin-text tabular-nums">
             {centerValue}
           </span>
         </div>
@@ -257,9 +249,9 @@ export function DonutWithLegend({
         {slices.map((s) => (
           <li key={s.key} className="flex items-center gap-2.5 text-sm">
             <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: s.color }} />
-            <span className="min-w-0 flex-1 truncate text-stone-600">{s.label}</span>
-            <span className="font-medium text-stone-900 tabular-nums">{s.display}</span>
-            <span className="w-10 text-right text-xs text-stone-400 tabular-nums">
+            <span className="min-w-0 flex-1 truncate text-admin-muted">{s.label}</span>
+            <span className="font-medium text-admin-text tabular-nums">{s.display}</span>
+            <span className="w-10 text-right text-xs text-admin-faint tabular-nums">
               {total > 0 ? Math.round((s.value / total) * 100) : 0}%
             </span>
           </li>
@@ -286,17 +278,17 @@ export function AttentionRow({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-stone-50"
+      className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-admin-subdued"
     >
       <span
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-          active ? "bg-brand-tint text-brand-strong" : "bg-stone-100 text-stone-400",
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+          active ? "bg-[#fff1a8] text-[#4f4700]" : "bg-admin-hover text-admin-faint",
         )}
       >
-        <Icon className="h-[18px] w-[18px]" />
+        <Icon className="h-4 w-4" />
       </span>
-      <span className={cn("flex-1 text-sm", active ? "font-medium text-stone-800" : "text-stone-500")}>
+      <span className={cn("flex-1 text-[13px]", active ? "font-medium text-admin-text" : "text-admin-muted")}>
         {label}
       </span>
       {loading ? (
@@ -304,14 +296,14 @@ export function AttentionRow({
       ) : (
         <span
           className={cn(
-            "min-w-8 rounded-full px-2 py-0.5 text-center text-sm font-semibold tabular-nums",
-            active ? "bg-stone-900 text-white" : "text-stone-400",
+            "min-w-7 rounded-lg px-2 py-0.5 text-center text-xs font-semibold tabular-nums",
+            active ? "bg-[#303030] text-white" : "text-admin-faint",
           )}
         >
           {count}
         </span>
       )}
-      <ChevronRight className="h-4 w-4 text-stone-300 transition-colors group-hover:text-stone-500" />
+      <ChevronRight className="h-4 w-4 text-[#b5b5b5] transition-colors group-hover:text-admin-muted" />
     </Link>
   );
 }

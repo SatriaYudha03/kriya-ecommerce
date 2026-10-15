@@ -1,202 +1,352 @@
 "use client";
 
-import { useState, use } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Inbox, Truck } from "lucide-react";
 import { getAdminOrder, updateAdminOrderStatus, addAdminOrderNote } from "@/lib/aftersales/api";
+import { afterKeys } from "@/lib/aftersales/queries";
+import { promoKeys } from "@/lib/promo/queries";
+import { ApiError } from "@/lib/http";
 import { formatRupiah } from "@/lib/format";
 import type { OrderStatus } from "@/lib/aftersales/types";
-import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
-import Link from "next/link";
-import { ArrowLeft, Package, Loader2 } from "lucide-react";
-import { RefundOrderDialog } from "@/components/kriya/aftersales/refund-order-dialog";
+import { useLanguage } from "@/components/kriya/language-provider";
+import { OrderBadge } from "@/components/kriya/admin/status-badges";
+import { ShipOrderModal } from "@/components/kriya/admin/ship-order-modal";
+import { RefundOrderModal } from "@/components/kriya/admin/refund-order-modal";
+import {
+  Badge,
+  Button,
+  Card,
+  CardSection,
+  Checkbox,
+  ErrorState,
+  Field,
+  InfoItem,
+  InfoList,
+  Layout,
+  LayoutAside,
+  LayoutMain,
+  LoadingState,
+  Page,
+  PageHeader,
+  SelectInput,
+  SummaryRow,
+  TextArea,
+  TextInput,
+  Thumbnail,
+  useAdminFormat,
+} from "@/components/kriya/admin/ui";
 
-export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+const NEXT_STATUSES: OrderStatus[] = ["processing", "shipped", "completed", "cancelled", "refunded"];
+
+export default function AdminOrderDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const { t } = useLanguage();
+  const fmt = useAdminFormat();
   const queryClient = useQueryClient();
   const [statusInput, setStatusInput] = useState<OrderStatus | "">("");
   const [courier, setCourier] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
-  
   const [noteBody, setNoteBody] = useState("");
   const [isCustomerVisible, setIsCustomerVisible] = useState(false);
+  const [shipOpen, setShipOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
 
-  const { data: order, isLoading, isError } = useQuery({
-    queryKey: ["admin_orders", id],
+  // Key di bawah afterKeys.all → ikut segar saat status diubah dari mana pun.
+  const { data: order, isLoading, isError, refetch } = useQuery({
+    queryKey: [...afterKeys.all, "admin-order", id],
     queryFn: () => getAdminOrder(id),
   });
 
   const statusMut = useMutation({
-    mutationFn: () => updateAdminOrderStatus(id, statusInput as OrderStatus, undefined, courier || undefined, trackingNumber || undefined),
+    mutationFn: () =>
+      updateAdminOrderStatus(id, statusInput as OrderStatus, undefined, courier || undefined, trackingNumber || undefined),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin_orders"] });
+      queryClient.invalidateQueries({ queryKey: afterKeys.all });
+      queryClient.invalidateQueries({ queryKey: promoKeys.stats() });
+      toast.success(t("after.admin.orders.statusUpdated"));
       setStatusInput("");
       setCourier("");
       setTrackingNumber("");
-    }
+    },
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("after.admin.orders.statusUpdateFailed")),
   });
 
   const noteMut = useMutation({
     mutationFn: () => addAdminOrderNote(id, noteBody, isCustomerVisible),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin_orders", id] });
+      queryClient.invalidateQueries({ queryKey: [...afterKeys.all, "admin-order", id] });
       setNoteBody("");
       setIsCustomerVisible(false);
-    }
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("admin.common.saveFailed")),
   });
 
-  if (isLoading) return <div className="p-20 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
-  if (isError || !order) return <div className="p-20 text-center text-red-500">Order not found</div>;
+  if (isLoading) {
+    return (
+      <Page>
+        <LoadingState />
+      </Page>
+    );
+  }
+  if (isError || !order) {
+    return (
+      <Page>
+        <PageHeader icon={Inbox} backHref="/admin/orders" backLabel={t("nav.admin.orders")} title={t("admin.orders.detail")} />
+        <Card>
+          <ErrorState message={t("admin.orders.notFound")} onRetry={() => refetch()} />
+        </Card>
+      </Page>
+    );
+  }
+
+  const itemCount = order.items.reduce((sum, i) => sum + i.qty, 0);
+  const canShip = order.status === "paid" || order.status === "processing";
+  const canRefund =
+    (order.status === "completed" || order.status === "cancelled" || order.status === "refunded") &&
+    order.items.some((item) => item.qty - item.refunded_qty > 0);
+  const addr = order.shipping_address;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <Link href="/admin/orders" className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900">
-        <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar
-      </Link>
-      
-      <div className="flex justify-between items-center bg-white p-6 rounded-lg border border-neutral-200">
-        <div>
-          <h1 className="text-2xl font-bold uppercase font-mono">{order.id.split("-")[0]}</h1>
-          <p className="text-sm text-neutral-500">{new Date(order.created_at).toLocaleString("id-ID")}</p>
-        </div>
-        <OrderStatusBadge status={order.status} />
-      </div>
+    <Page>
+      <PageHeader
+        icon={Inbox}
+        backHref="/admin/orders"
+        backLabel={t("nav.admin.orders")}
+        title={order.order_number || order.id.split("-")[0].toUpperCase()}
+        badge={<OrderBadge status={order.status} />}
+        subtitle={fmt.dateTime(order.created_at)}
+        actions={
+          <>
+            {canRefund && <Button onClick={() => setRefundOpen(true)}>{t("admin.refund.title")}</Button>}
+            {canShip && (
+              <Button variant="primary" onClick={() => setShipOpen(true)}>
+                <Truck /> {t("after.admin.orders.ship.submit")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-lg border border-neutral-200">
-            <h2 className="font-semibold text-lg mb-4">Item Pesanan</h2>
-            <div className="divide-y">
+      <Layout>
+        <LayoutMain>
+          <Card
+            flush
+            title={
+              <span className="flex items-center gap-2">
+                {t("admin.orders.items")} <Badge>{itemCount}</Badge>
+              </span>
+            }
+          >
+            {order.items.length === 0 && (
+              <p className="border-t border-admin-border px-4 py-6 text-center text-admin-muted">{t("admin.orders.noItems")}</p>
+            )}
+            <ul>
               {order.items.map((item) => (
-                <div key={item.id} className="py-3 flex gap-4">
-                  <div className="h-16 w-16 bg-neutral-100 rounded overflow-hidden">
-                     {item.thumbnail_url ? <img src={item.thumbnail_url} alt="" className="object-cover w-full h-full" /> : <Package className="w-full h-full p-4 text-neutral-300" />}
+                <li key={item.id} className="flex gap-3 border-t border-admin-border px-4 py-3">
+                  <Thumbnail src={item.thumbnail_url} alt={item.name} size="lg" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-admin-text">{item.name}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.color && <Badge>{item.color}</Badge>}
+                      {item.size && <Badge>{item.size}</Badge>}
+                    </div>
+                    {item.sku && <p className="mt-1 text-xs text-admin-muted">SKU: {item.sku}</p>}
+                    {item.refunded_qty > 0 && (
+                      <p className="mt-1 text-xs text-admin-critical">
+                        {t("admin.orders.refundedQty", { n: item.refunded_qty })}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{item.name}</p>
-                    <p className="text-xs text-neutral-500">{item.color} {item.size && `/ ${item.size}`}</p>
+                  <div className="shrink-0 text-right tabular-nums">
+                    <p className="text-admin-muted">
+                      {formatRupiah(item.price)} × {item.qty}
+                    </p>
+                    <p className="mt-1 font-semibold">{formatRupiah(item.subtotal)}</p>
                   </div>
-                  <div className="text-right text-sm">
-                    <p>{item.qty} x {formatRupiah(item.price)}</p>
-                    <p className="font-semibold">{formatRupiah(item.subtotal)}</p>
-                  </div>
-                </div>
+                </li>
               ))}
-            </div>
-            
-            <div className="mt-4 pt-4 border-t flex justify-between font-semibold">
-              <span>Total Keseluruhan</span>
-              <span>{formatRupiah(order.total)}</span>
-            </div>
-          </div>
+            </ul>
+          </Card>
 
-          <div className="bg-white p-6 rounded-lg border border-neutral-200">
-            <h2 className="font-semibold text-lg mb-4">Catatan Admin</h2>
-            <div className="space-y-4 mb-6">
-              {order.notes?.map(n => (
-                <div key={n.id} className={`p-3 rounded text-sm ${n.is_customer_visible ? 'bg-yellow-50 text-yellow-800' : 'bg-neutral-50 text-neutral-800'}`}>
-                  <div className="flex justify-between mb-1">
-                    <span className="font-semibold">{n.author_name || 'Admin'} {n.is_customer_visible && '(Publik)'}</span>
-                    <span className="text-xs opacity-75">{new Date(n.created_at).toLocaleString("id-ID")}</span>
-                  </div>
-                  <p>{n.body}</p>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-3">
-              <textarea 
-                className="w-full border rounded p-2 text-sm" 
-                rows={3} 
-                placeholder="Tambah catatan..."
-                value={noteBody}
-                onChange={e => setNoteBody(e.target.value)}
+          <Card title={t("admin.orders.payment")}>
+            <div className="space-y-2.5">
+              <SummaryRow
+                label={t("admin.orders.subtotal")}
+                hint={t("admin.orders.itemsCount", { n: itemCount })}
+                value={formatRupiah(order.subtotal)}
               />
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={isCustomerVisible} onChange={e => setIsCustomerVisible(e.target.checked)} />
-                  Terlihat oleh pelanggan
-                </label>
-                <button 
-                  disabled={noteMut.isPending || !noteBody.trim()}
-                  onClick={() => noteMut.mutate()}
-                  className="bg-black text-white px-4 py-2 rounded text-sm disabled:opacity-50"
-                >
-                  {noteMut.isPending ? 'Menyimpan...' : 'Simpan Catatan'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-lg border border-neutral-200">
-            <h2 className="font-semibold mb-4">Perbarui Status</h2>
-            <div className="space-y-3">
-              <select className="w-full border rounded p-2 text-sm" value={statusInput} onChange={e => setStatusInput(e.target.value as OrderStatus)}>
-                <option value="">Pilih Status Baru...</option>
-                <option value="processing">Diproses</option>
-                <option value="shipped">Dikirim</option>
-                <option value="completed">Selesai</option>
-                <option value="cancelled">Dibatalkan</option>
-                <option value="refunded">Dikembalikan</option>
-              </select>
-              
-              {statusInput === "shipped" && (
-                <div className="space-y-2 pt-2">
-                  <input type="text" placeholder="Kurir (mis. JNE, Gojek) — wajib" required className="w-full border rounded p-2 text-sm" value={courier} onChange={e => setCourier(e.target.value)} />
-                  <input type="text" placeholder="Nomor Resi — wajib" required className="w-full border rounded p-2 text-sm" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
-                </div>
+              {order.discount_total > 0 && (
+                <SummaryRow
+                  label={t("admin.orders.discount")}
+                  hint={order.coupon_code ?? undefined}
+                  value={`−${formatRupiah(order.discount_total)}`}
+                />
               )}
-
-              <button 
-                disabled={!statusInput || statusMut.isPending || (statusInput === "shipped" && (!courier.trim() || !trackingNumber.trim()))}
-                onClick={() => statusMut.mutate()}
-                className="w-full bg-blue-600 text-white rounded p-2 text-sm font-medium disabled:opacity-50"
-              >
-                {statusMut.isPending ? 'Memperbarui...' : 'Perbarui Status'}
-              </button>
+              <SummaryRow
+                label={t("admin.orders.shipping")}
+                hint={order.shipping_method?.name}
+                value={formatRupiah(order.shipping_cost - order.shipping_discount)}
+              />
+              {order.tax_amount > 0 && <SummaryRow label={t("admin.orders.tax")} value={formatRupiah(order.tax_amount)} />}
+              <div className="border-t border-admin-border pt-2.5">
+                <SummaryRow strong label={t("admin.orders.total")} value={formatRupiah(order.total)} />
+              </div>
+              {order.paid_at && (
+                <SummaryRow label={t("admin.orders.paidAt")} value={<span className="text-admin-muted">{fmt.dateTime(order.paid_at)}</span>} />
+              )}
             </div>
-            
-            {order.status === "completed" || order.status === "cancelled" || order.status === "refunded" ? (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="font-semibold text-sm mb-2 text-neutral-900">Refund Manual</h3>
-                <p className="text-xs text-neutral-500 mb-3">
-                  Proses refund sebagian atau seluruhnya.
-                </p>
-                <div className="w-full">
-                  <RefundOrderDialog order={order} className="w-full" />
+          </Card>
+
+          <Card flush title={t("admin.orders.timeline")}>
+            <CardSection>
+              <div className="space-y-2">
+                <TextArea
+                  rows={2}
+                  placeholder={t("admin.orders.notePlaceholder")}
+                  aria-label={t("admin.orders.notePlaceholder")}
+                  value={noteBody}
+                  onChange={(e) => setNoteBody(e.target.value)}
+                />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Checkbox
+                    label={t("admin.orders.noteVisible")}
+                    checked={isCustomerVisible}
+                    onChange={(e) => setIsCustomerVisible(e.target.checked)}
+                  />
+                  <Button
+                    size="slim"
+                    variant="primary"
+                    loading={noteMut.isPending}
+                    disabled={!noteBody.trim()}
+                    onClick={() => noteMut.mutate()}
+                  >
+                    {t("admin.orders.notePost")}
+                  </Button>
                 </div>
               </div>
-            ) : null}
-          </div>
+            </CardSection>
+            {order.notes && order.notes.length > 0 && (
+              <CardSection title={t("admin.orders.notes")}>
+                <ul className="space-y-2">
+                  {order.notes.map((n) => (
+                    <li key={n.id} className="rounded-lg bg-admin-subdued p-3">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <span className="font-semibold">{n.author_name || "Admin"}</span>
+                        {n.is_customer_visible && <Badge tone="info">{t("admin.orders.noteVisibleBadge")}</Badge>}
+                        <span className="ml-auto text-xs text-admin-muted">{fmt.dateTime(n.created_at)}</span>
+                      </div>
+                      <p className="whitespace-pre-line">{n.body}</p>
+                    </li>
+                  ))}
+                </ul>
+              </CardSection>
+            )}
+            {order.timeline && order.timeline.length > 0 && (
+              <CardSection title={t("admin.orders.history")}>
+                <ol className="relative ml-1.5 space-y-4 border-l border-[#d4d4d4] pl-5">
+                  {order.timeline.map((ev, i) => (
+                    <li key={i} className="relative">
+                      <span className="absolute -left-[25px] top-1 size-2.5 rounded-full border-2 border-white bg-[#8a8a8a] ring-1 ring-[#d4d4d4]" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <OrderBadge status={ev.status} />
+                        <span className="text-xs text-admin-muted">{fmt.dateTime(ev.created_at)}</span>
+                      </div>
+                      {ev.note && <p className="mt-1 text-admin-muted">{ev.note}</p>}
+                    </li>
+                  ))}
+                </ol>
+              </CardSection>
+            )}
+          </Card>
+        </LayoutMain>
 
-          <div className="bg-white p-6 rounded-lg border border-neutral-200">
-            <h2 className="font-semibold mb-4">Informasi Pengiriman</h2>
-            <div className="text-sm space-y-2 text-neutral-600">
-              <p className="font-semibold text-neutral-900">{order.shipping_address.recipient}</p>
-              <p>{order.shipping_address.phone}</p>
-              <p>{order.shipping_address.address_line}</p>
-              <p>{order.shipping_address.city}, {order.shipping_address.province} {order.shipping_address.postal_code}</p>
-              {order.courier && <p className="pt-2">Kurir: <strong>{order.courier}</strong></p>}
-              {order.tracking_number && <p>Resi: <strong>{order.tracking_number}</strong></p>}
+        <LayoutAside>
+          <Card title={t("admin.orders.updateStatus")}>
+            <div className="space-y-3">
+              <SelectInput
+                value={statusInput}
+                aria-label={t("admin.orders.updateStatus")}
+                onChange={(e) => setStatusInput(e.target.value as OrderStatus | "")}
+              >
+                <option value="">{t("admin.orders.chooseStatus")}</option>
+                {NEXT_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {t(`after.status.${s}` as const)}
+                  </option>
+                ))}
+              </SelectInput>
+              {statusInput === "shipped" && (
+                <>
+                  <Field label={t("after.admin.orders.ship.courier")} htmlFor="st-courier">
+                    <TextInput
+                      id="st-courier"
+                      placeholder={t("after.admin.orders.ship.courierPlaceholder")}
+                      value={courier}
+                      onChange={(e) => setCourier(e.target.value)}
+                    />
+                  </Field>
+                  <Field label={t("after.admin.orders.ship.tracking")} htmlFor="st-tracking">
+                    <TextInput
+                      id="st-tracking"
+                      placeholder={t("after.admin.orders.ship.trackingPlaceholder")}
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                    />
+                  </Field>
+                </>
+              )}
+              <Button
+                variant="primary"
+                className="w-full"
+                loading={statusMut.isPending}
+                disabled={!statusInput || (statusInput === "shipped" && (!courier.trim() || !trackingNumber.trim()))}
+                onClick={() => statusMut.mutate()}
+              >
+                {t("admin.orders.updateStatus")}
+              </Button>
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white p-6 rounded-lg border border-neutral-200">
-            <h2 className="font-semibold mb-4">Timeline (Attempts)</h2>
-            <div className="space-y-3 text-sm">
-              {order.timeline?.map((ev, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="text-neutral-500 whitespace-nowrap">{new Date(ev.created_at).toLocaleDateString("id-ID", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
-                  <div>
-                    <span className="font-medium"><OrderStatusBadge status={ev.status as OrderStatus} /></span>
-                    {ev.note && <div className="text-neutral-500 mt-1">{ev.note}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          <Card title={t("admin.orders.customer")}>
+            <InfoList>
+              <InfoItem label={t("admin.orders.recipient")}>
+                <span className="font-semibold">{addr.recipient}</span>
+                <span className="block text-admin-muted">{addr.phone}</span>
+              </InfoItem>
+              <InfoItem label={t("admin.orders.shippingAddress")}>
+                {addr.address_line}
+                <span className="block">
+                  {addr.city}, {addr.province} {addr.postal_code}
+                </span>
+              </InfoItem>
+              {order.shipping_method && (
+                <InfoItem label={t("admin.orders.shippingMethod")}>{order.shipping_method.name}</InfoItem>
+              )}
+              {(order.courier || order.tracking_number) && (
+                <InfoItem label={t("admin.orders.tracking")}>
+                  {order.courier}
+                  {order.tracking_number && (
+                    <span className="block select-all font-mono text-xs">{order.tracking_number}</span>
+                  )}
+                </InfoItem>
+              )}
+            </InfoList>
+          </Card>
+
+          {order.customer_note && (
+            <Card title={t("admin.orders.customerNote")}>
+              <p className="whitespace-pre-line text-admin-text">{order.customer_note}</p>
+            </Card>
+          )}
+        </LayoutAside>
+      </Layout>
+
+      <ShipOrderModal orderId={shipOpen ? order.id : null} onClose={() => setShipOpen(false)} />
+      {canRefund && <RefundOrderModal order={order} open={refundOpen} onClose={() => setRefundOpen(false)} />}
+    </Page>
   );
 }

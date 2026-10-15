@@ -3,13 +3,23 @@
 import { useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { AlertCircle, ArrowDown, ArrowUp, ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Image as ImageIcon, ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "@/components/kriya/language-provider";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Badge,
+  Button,
+  Card,
+  ErrorState,
+  Field,
+  FormGrid,
+  LoadingState,
+  Page,
+  PageHeader,
+  TextArea,
+  TextInput,
+  Toggle,
+  buttonClass,
+} from "@/components/kriya/admin/ui";
 import { useAdminHeroSlides, useSaveHeroSlides } from "@/lib/hero/queries";
 import type { HeroSlide, HeroSlideInput } from "@/lib/hero/types";
 import { supabase } from "@/lib/supabase";
@@ -122,135 +132,118 @@ function HeroEditor({ initial }: { initial: HeroSlide[] }) {
   }
 
   return (
-    <div className="space-y-6">
-      {rows.map((r, i) => (
-        <section key={r.key} className="space-y-4 rounded-xl border bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-semibold">{t("adminHero.slide", { n: i + 1 })}</h2>
-            <div className="flex items-center gap-1">
-              <label className="mr-3 flex items-center gap-2 text-sm">
-                <Switch checked={r.is_active} onCheckedChange={(v) => patch(r.key, { is_active: v })} />
-                {t("adminHero.active")}
-              </label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={t("adminHero.moveUp")}
-                disabled={i === 0}
-                onClick={() => move(i, -1)}
-              >
-                <ArrowUp className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={t("adminHero.moveDown")}
-                disabled={i === rows.length - 1}
-                onClick={() => move(i, 1)}
-              >
-                <ArrowDown className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={t("adminHero.remove")}
-                disabled={rows.length === 1}
-                onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}
-              >
-                <Trash2 className="h-4 w-4 text-red-600" />
-              </Button>
-            </div>
-          </div>
+    <>
+      <div className="space-y-4">
+        {rows.map((r, i) => (
+          <Card
+            key={r.key}
+            title={
+              <span className="flex items-center gap-2">
+                {t("adminHero.slide", { n: i + 1 })}
+                {!r.is_active && <Badge>{t("admin.hero.hidden")}</Badge>}
+              </span>
+            }
+            action={
+              <div className="flex items-center gap-1">
+                <span className="mr-1 hidden text-xs text-admin-muted sm:inline">{t("adminHero.active")}</span>
+                <Toggle checked={r.is_active} onChange={(v) => patch(r.key, { is_active: v })} label={t("adminHero.active")} />
+                <span className="mx-1 h-5 w-px bg-admin-border" />
+                <Button variant="tertiary" size="icon-slim" aria-label={t("adminHero.moveUp")} title={t("adminHero.moveUp")} disabled={i === 0} onClick={() => move(i, -1)}>
+                  <ArrowUp />
+                </Button>
+                <Button
+                  variant="tertiary"
+                  size="icon-slim"
+                  aria-label={t("adminHero.moveDown")}
+                  title={t("adminHero.moveDown")}
+                  disabled={i === rows.length - 1}
+                  onClick={() => move(i, 1)}
+                >
+                  <ArrowDown />
+                </Button>
+                <Button
+                  variant="tertiary"
+                  size="icon-slim"
+                  aria-label={t("adminHero.remove")}
+                  title={t("adminHero.remove")}
+                  disabled={rows.length === 1}
+                  onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            }
+          >
+            <div className="grid gap-5 md:grid-cols-[260px_1fr]">
+              <div className="space-y-2">
+                <div className="relative aspect-video overflow-hidden rounded-xl border border-admin-border bg-admin-subdued">
+                  {r.image_url ? (
+                    <Image src={r.image_url} alt={r.alt} fill sizes="260px" className="object-cover" />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center text-xs text-admin-muted">
+                      {t("admin.hero.noImage")}
+                    </span>
+                  )}
+                </div>
+                <label className={buttonClass("secondary", "slim", "w-full")}>
+                  {uploading === r.key ? <Loader2 className="animate-spin" /> : <ImagePlus />}
+                  {uploading === r.key ? t("adminHero.uploading") : t("adminHero.upload")}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={uploading !== null}
+                    onChange={(e) => {
+                      void onPick(r.key, e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <p className="text-xs text-admin-muted">{t("adminHero.imageHelp")}</p>
+              </div>
 
-          <div className="grid gap-5 md:grid-cols-[260px_1fr]">
-            <div className="space-y-2">
-              <Label>{t("adminHero.image")}</Label>
-              <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
-                {r.image_url ? (
-                  <Image src={r.image_url} alt={r.alt} fill sizes="260px" className="object-cover" />
-                ) : null}
-              </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted">
-                {uploading === r.key ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ImagePlus className="h-4 w-4" />
-                )}
-                {uploading === r.key ? t("adminHero.uploading") : t("adminHero.upload")}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  disabled={uploading !== null}
-                  onChange={(e) => {
-                    void onPick(r.key, e.target.files?.[0]);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              <p className="text-xs text-muted-foreground">{t("adminHero.imageHelp")}</p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>{t("adminHero.eyebrow", { lang: "ID" })}</Label>
-                  <Input maxLength={80} value={r.eyebrow_id} onChange={(e) => setText(r.key, "eyebrow_id", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>{t("adminHero.headline", { lang: "ID" })}</Label>
-                  <Input required maxLength={160} value={r.title_id} onChange={(e) => setText(r.key, "title_id", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>{t("adminHero.sub", { lang: "ID" })}</Label>
-                  <Textarea rows={2} maxLength={300} value={r.subtitle_id} onChange={(e) => setText(r.key, "subtitle_id", e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>{t("adminHero.eyebrow", { lang: "EN" })}</Label>
-                  <Input maxLength={80} value={r.eyebrow_en} onChange={(e) => setText(r.key, "eyebrow_en", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>{t("adminHero.headline", { lang: "EN" })}</Label>
-                  <Input required maxLength={160} value={r.title_en} onChange={(e) => setText(r.key, "title_en", e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>{t("adminHero.sub", { lang: "EN" })}</Label>
-                  <Textarea rows={2} maxLength={300} value={r.subtitle_en} onChange={(e) => setText(r.key, "subtitle_en", e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("adminHero.href")}</Label>
-                <Input required maxLength={300} value={r.href} onChange={(e) => setText(r.key, "href", e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("adminHero.alt")}</Label>
-                <Input maxLength={200} value={r.alt} onChange={(e) => setText(r.key, "alt", e.target.value)} />
+              <div className="space-y-4">
+                <FormGrid>
+                  <Field label={t("adminHero.eyebrow", { lang: "ID" })}>
+                    <TextInput maxLength={80} value={r.eyebrow_id} onChange={(e) => setText(r.key, "eyebrow_id", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.eyebrow", { lang: "EN" })}>
+                    <TextInput maxLength={80} value={r.eyebrow_en} onChange={(e) => setText(r.key, "eyebrow_en", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.headline", { lang: "ID" })}>
+                    <TextInput required maxLength={160} value={r.title_id} onChange={(e) => setText(r.key, "title_id", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.headline", { lang: "EN" })}>
+                    <TextInput required maxLength={160} value={r.title_en} onChange={(e) => setText(r.key, "title_en", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.sub", { lang: "ID" })}>
+                    <TextArea rows={2} className="min-h-16" maxLength={300} value={r.subtitle_id} onChange={(e) => setText(r.key, "subtitle_id", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.sub", { lang: "EN" })}>
+                    <TextArea rows={2} className="min-h-16" maxLength={300} value={r.subtitle_en} onChange={(e) => setText(r.key, "subtitle_en", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.href")}>
+                    <TextInput required maxLength={300} value={r.href} onChange={(e) => setText(r.key, "href", e.target.value)} />
+                  </Field>
+                  <Field label={t("adminHero.alt")}>
+                    <TextInput maxLength={200} value={r.alt} onChange={(e) => setText(r.key, "alt", e.target.value)} />
+                  </Field>
+                </FormGrid>
               </div>
             </div>
-          </div>
-        </section>
-      ))}
+          </Card>
+        ))}
+      </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={rows.length >= MAX_SLIDES}
-          onClick={() => setRows((rs) => [...rs, emptyRow()])}
-        >
-          <Plus className="mr-2 h-4 w-4" /> {t("adminHero.add")}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[#d4d4d4] pt-5">
+        <Button disabled={rows.length >= MAX_SLIDES} onClick={() => setRows((rs) => [...rs, emptyRow()])}>
+          <Plus /> {t("adminHero.add")}
         </Button>
-        <Button type="button" disabled={isPending || uploading !== null} onClick={onSave}>
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button variant="primary" loading={isPending} disabled={uploading !== null} onClick={onSave}>
           {t("adminHero.save")}
         </Button>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -259,23 +252,19 @@ export default function AdminHeroPage() {
   const { data, isLoading, isError, refetch } = useAdminHeroSlides();
 
   return (
-    <div className="max-w-5xl p-6">
-      <h1 className="text-2xl font-semibold">{t("adminHero.title")}</h1>
-      <p className="mb-6 mt-1 text-sm text-muted-foreground">{t("adminHero.subtitle")}</p>
+    <Page>
+      <PageHeader icon={ImageIcon} title={t("adminHero.title")} subtitle={t("adminHero.subtitle")} />
       {isLoading ? (
-        <div className="flex items-center gap-2 text-muted-foreground" role="status">
-          <Loader2 className="h-5 w-5 animate-spin" />
-        </div>
+        <Card>
+          <LoadingState />
+        </Card>
       ) : isError || !data ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
-          <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-500" />
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            Retry
-          </Button>
-        </div>
+        <Card>
+          <ErrorState onRetry={() => refetch()} />
+        </Card>
       ) : (
         <HeroEditor initial={data} />
       )}
-    </div>
+    </Page>
   );
 }

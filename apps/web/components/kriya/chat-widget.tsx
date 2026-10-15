@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { MessageCircle, Send, Minus } from "lucide-react";
 import { useLanguage } from "./language-provider";
 import { supabase } from "@/lib/supabase";
@@ -28,7 +29,14 @@ interface Message {
   sources?: Source[];
 }
 
+// Widget pembeli: tidak ditampilkan di panel admin (menutupi area kerja).
 export function ChatWidget() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return null;
+  return <ChatWidgetPanel />;
+}
+
+function ChatWidgetPanel() {
   const { t, locale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([

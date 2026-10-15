@@ -1,14 +1,27 @@
 "use client";
 
-// Modal form create/edit produk untuk panel admin (M6).
+// Editor produk halaman penuh (ala "Tambahkan produk" Shopify): kolom utama
+// berisi judul/deskripsi, media, varian, pengiriman, SEO; kolom samping berisi
+// status, organisasi, dan produk terkait.
 // - Create: kirim field + varian + gambar (upload Storage) sekaligus via createProduct.
 // - Edit: field via updateProduct; varian & gambar direkonsiliasi ke endpoint masing-masing.
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Star, Loader2, ImagePlus } from "lucide-react";
-import { useCategories, useAdminProduct, useAdminTags, useAdminAttributes, useAdminProducts } from "@/lib/catalog/queries";
+import { ExternalLink, ImagePlus, Plus, Star, Tag, Trash2, X } from "lucide-react";
+import {
+  useCategories,
+  useAdminProduct,
+  useAdminTags,
+  useAdminAttributes,
+  useAdminProducts,
+  useDeleteProduct,
+  catalogKeys,
+} from "@/lib/catalog/queries";
+import { promoKeys } from "@/lib/promo/queries";
 import { uploadProductImage } from "@/lib/storage";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -23,7 +36,31 @@ import {
 } from "@/lib/catalog/api";
 import { ApiError } from "@/lib/http";
 import type { VariantInput } from "@/lib/catalog/types";
-import { useLanguage } from "../language-provider";
+import { useLanguage } from "@/components/kriya/language-provider";
+import { ProductStatusBadge } from "./status-badges";
+import {
+  Button,
+  ButtonLink,
+  Card,
+  CardSection,
+  Checkbox,
+  ChoiceChip,
+  ConfirmModal,
+  Field,
+  FormGrid,
+  Layout,
+  LayoutAside,
+  LayoutMain,
+  LoadingState,
+  Page,
+  PageHeader,
+  SelectInput,
+  TextArea,
+  TextInput,
+  Toggle,
+  ToggleRow,
+  buttonClass,
+} from "./ui";
 
 type VariantRow = {
   key: string;
@@ -37,6 +74,7 @@ type VariantRow = {
   sale_ends_at?: string;
   stock: number;
   is_active?: boolean;
+  showSale?: boolean;
 };
 
 type ImageRow = {
@@ -55,10 +93,10 @@ const slugify = (s: string) =>
 const isKebab = (s: string) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s);
 
 function emptyVariant(): VariantRow {
-  return { key: uid(), sku: "", color: "", size: "", price: 0, stock: 0 };
+  return { key: uid(), sku: "", color: "", size: "", price: 0, stock: 0, is_active: true };
 }
 
-function ProductMultiSelect({
+export function ProductMultiSelect({
   value,
   onChange,
   excludeId,
@@ -69,95 +107,86 @@ function ProductMultiSelect({
   excludeId?: string;
   label: string;
 }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const { data } = useAdminProducts({ q, limit: 20, status: "published" });
 
-  const toggle = (id: string) => {
-    if (value.includes(id)) {
-      onChange(value.filter((v) => v !== id));
-    } else {
-      onChange([...value, id]);
-    }
-  };
-
-  const remove = (id: string) => {
-    onChange(value.filter((v) => v !== id));
-  };
+  const toggle = (id: string) => onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
 
   return (
     <div className="space-y-2">
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {value.map((id) => {
-            const prod = data?.data.find((p) => p.id === id);
-            return (
-              <div key={id} className="flex items-center gap-1 rounded bg-neutral-100 px-2 py-1 text-xs">
-                <span className="truncate max-w-[150px]" title={id}>
-                  {prod ? prod.name : id}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => remove(id)}
-                  className="text-neutral-500 hover:text-red-500 ml-1"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger className="flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50">
-          Pilih {label}...
+        <PopoverTrigger className={buttonClass("secondary", "slim", "w-full justify-start font-medium")}>
+          <Plus /> {t("adminCatalog.productForm.selectLabel", { label })}
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0" align="start">
-          <div className="p-2 border-b">
-            <input
-              type="text"
-              placeholder="Cari produk..."
-              className="w-full rounded bg-neutral-100 px-2 py-1 text-sm outline-none"
+        <PopoverContent className="w-72 p-0" align="start">
+          <div className="border-b p-2">
+            <TextInput
+              placeholder={t("adminCatalog.productForm.searchProduct")}
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              className="h-8"
             />
           </div>
-          <div className="max-h-60 overflow-y-auto p-2">
-            {data?.data.filter((p) => p.id !== excludeId).map((p) => (
-              <label key={p.id} className="flex cursor-pointer items-center gap-2 rounded p-1 hover:bg-neutral-100">
-                <input
-                  type="checkbox"
+          <div className="max-h-60 overflow-y-auto p-1.5">
+            {data?.data
+              .filter((p) => p.id !== excludeId)
+              .map((p) => (
+                <Checkbox
+                  key={p.id}
+                  className="rounded-md px-1.5 py-1 hover:bg-admin-hover"
                   checked={value.includes(p.id)}
                   onChange={() => toggle(p.id)}
-                  className="rounded border-neutral-300 text-brand-strong focus:ring-brand-strong"
+                  label={<span className="line-clamp-1">{p.name}</span>}
                 />
-                <span className="text-sm truncate">{p.name}</span>
-              </label>
-            ))}
+              ))}
             {data?.data.length === 0 && (
-              <div className="p-2 text-center text-sm text-neutral-500">Tidak ada hasil</div>
+              <p className="p-3 text-center text-[13px] text-admin-muted">{t("adminCatalog.productForm.noResult")}</p>
             )}
           </div>
         </PopoverContent>
       </Popover>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((id) => {
+            const prod = data?.data.find((p) => p.id === id);
+            return (
+              <span
+                key={id}
+                className="inline-flex h-6 max-w-full items-center gap-1 rounded-lg bg-admin-hover pl-2 pr-1 text-xs font-medium text-admin-text"
+              >
+                <span className="truncate" title={id}>
+                  {prod ? prod.name : id.slice(0, 8)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onChange(value.filter((v) => v !== id))}
+                  aria-label={t("admin.common.remove")}
+                  className="rounded p-0.5 text-admin-muted hover:bg-black/10 hover:text-admin-text"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-export function ProductForm({
-  productId,
-  onClose,
-}: {
-  productId?: string;
-  onClose: () => void;
-}) {
-  const { t } = useLanguage();
+export function ProductEditor({ productId }: { productId?: string }) {
+  const { t, locale } = useLanguage();
+  const router = useRouter();
   const isEdit = Boolean(productId);
   const qc = useQueryClient();
   const { data: categories } = useCategories();
   const { data: adminTags } = useAdminTags();
   const { data: adminAttributes } = useAdminAttributes();
-  const { data: detail, isLoading: loadingDetail } = useAdminProduct(productId ?? "", isEdit);
+  const { data: detail, isLoading: loadingDetail, isError: detailError } = useAdminProduct(productId ?? "", isEdit);
+  const del = useDeleteProduct();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -178,7 +207,7 @@ export function ProductForm({
   const [selectedTermIds, setSelectedTermIds] = useState<string[]>([]);
   const [upsellIds, setUpsellIds] = useState<string[]>([]);
   const [crossSellIds, setCrossSellIds] = useState<string[]>([]);
-  
+
   const [variants, setVariants] = useState<VariantRow[]>([emptyVariant()]);
   const [images, setImages] = useState<ImageRow[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
@@ -200,31 +229,32 @@ export function ProductForm({
     setWidth(detail.dimensions?.width_cm ?? 0);
     setDepth(detail.dimensions?.depth_cm ?? 0);
     setHeight(detail.dimensions?.height_cm ?? 0);
-      setWeight(detail.weight_kg ?? 0);
-      setHasGuide(detail.has_assembly_guide);
-      setStatus(detail.status ?? "published");
-      setFeatured(detail.featured ?? false);
-      setSummary(detail.summary ?? "");
-      setSeoTitle(detail.seo_metadata?.en ?? "");
-      setSelectedTagSlugs(detail.tag_slugs ?? []);
-      setSelectedTermIds(detail.attribute_term_ids ?? []);
-      setUpsellIds(detail.upsell_ids ?? []);
-      setCrossSellIds(detail.cross_sell_ids ?? []);
-      setVariants(
-        detail.variants.map((v) => ({
-          key: uid(),
-          id: v.id,
-          sku: v.sku,
-          color: v.color ?? "",
-          size: v.size ?? "",
-          price: v.price,
-          sale_price: v.sale_price,
-          sale_starts_at: v.sale_starts_at ? new Date(v.sale_starts_at).toISOString().slice(0, 16) : undefined,
-          sale_ends_at: v.sale_ends_at ? new Date(v.sale_ends_at).toISOString().slice(0, 16) : undefined,
-          stock: v.stock,
-          is_active: v.is_active,
-        })),
-      );
+    setWeight(detail.weight_kg ?? 0);
+    setHasGuide(detail.has_assembly_guide);
+    setStatus(detail.status ?? "published");
+    setFeatured(detail.featured ?? false);
+    setSummary(detail.summary ?? "");
+    setSeoTitle(detail.seo_metadata?.en ?? "");
+    setSelectedTagSlugs(detail.tag_slugs ?? []);
+    setSelectedTermIds(detail.attribute_term_ids ?? []);
+    setUpsellIds(detail.upsell_ids ?? []);
+    setCrossSellIds(detail.cross_sell_ids ?? []);
+    setVariants(
+      detail.variants.map((v) => ({
+        key: uid(),
+        id: v.id,
+        sku: v.sku,
+        color: v.color ?? "",
+        size: v.size ?? "",
+        price: v.price,
+        sale_price: v.sale_price,
+        sale_starts_at: v.sale_starts_at ? new Date(v.sale_starts_at).toISOString().slice(0, 16) : undefined,
+        sale_ends_at: v.sale_ends_at ? new Date(v.sale_ends_at).toISOString().slice(0, 16) : undefined,
+        stock: v.stock,
+        is_active: v.is_active,
+        showSale: Boolean(v.sale_price),
+      })),
+    );
     setImages(
       detail.images.map((img) => ({
         key: uid(),
@@ -235,9 +265,13 @@ export function ProductForm({
         origAlt: img.alt ?? "",
       })),
     );
+    setRemovedImageIds([]);
   }
 
   const effectiveSlug = slugTouched ? slug : slugify(name);
+
+  const patchVariant = (key: string, p: Partial<VariantRow>) =>
+    setVariants((rows) => rows.map((r) => (r.key === key ? { ...r, ...p } : r)));
 
   function setPrimary(key: string) {
     setImages((rows) => rows.map((r) => ({ ...r, is_primary: r.key === key })));
@@ -254,7 +288,7 @@ export function ProductForm({
     }));
     setImages((rows) => {
       const merged = [...rows, ...next];
-      if (!merged.some((r) => r.is_primary) && merged.length > 0) merged[0].is_primary = true;
+      if (!merged.some((r) => r.is_primary) && merged.length > 0) merged[0] = { ...merged[0], is_primary: true };
       return merged;
     });
   }
@@ -265,7 +299,7 @@ export function ProductForm({
       if (target?.id) setRemovedImageIds((ids) => [...ids, target.id!]);
       const remaining = rows.filter((r) => r.key !== key);
       if (remaining.length > 0 && !remaining.some((r) => r.is_primary)) {
-        remaining[0].is_primary = true;
+        remaining[0] = { ...remaining[0], is_primary: true };
       }
       return remaining;
     });
@@ -277,14 +311,14 @@ export function ProductForm({
   );
 
   function validate(): string | null {
-    if (!name.trim()) return "Nama produk wajib diisi.";
-    if (!effectiveSlug || !isKebab(effectiveSlug)) return "Slug harus kebab-case (mis. taru-work-desk).";
-    if (!categorySlug) return "Kategori wajib dipilih.";
-    if (variants.length === 0) return "Minimal satu varian.";
+    if (!name.trim()) return t("adminCatalog.productForm.nameRequired");
+    if (!effectiveSlug || !isKebab(effectiveSlug)) return t("adminCatalog.productForm.slugInvalid");
+    if (!categorySlug) return t("adminCatalog.productForm.categoryRequired");
+    if (variants.length === 0) return t("adminCatalog.productForm.minVariant");
     for (const v of variants) {
-      if (!v.sku.trim()) return "SKU varian wajib diisi.";
-      if (v.price < 1) return "Harga varian harus lebih dari 0.";
-      if (v.stock < 0) return "Stok tidak boleh negatif.";
+      if (!v.sku.trim()) return t("adminCatalog.productForm.skuRequired");
+      if (v.price < 1) return t("adminCatalog.productForm.pricePositive");
+      if (v.stock < 0) return t("adminCatalog.productForm.stockNonNeg");
     }
     return null;
   }
@@ -339,411 +373,538 @@ export function ProductForm({
             is_primary: r.is_primary,
           })),
         );
-        await createProduct({
+        const created = await createProduct({
           ...baseFields,
           variants: variants.map(toVariantInput),
           images: uploaded,
         });
-      } else {
-        const pid = productId!;
-        await updateProduct(pid, baseFields);
-
-        // Varian: hapus yang dihilangkan, update yang ada, buat yang baru.
-        const origIds = new Set((detail?.variants ?? []).map((v) => v.id));
-        const currentIds = new Set(variants.filter((v) => v.id).map((v) => v.id!));
-        for (const id of origIds) {
-          if (!currentIds.has(id)) await deleteVariant(pid, id);
-        }
-        for (const v of variants) {
-          if (v.id) await updateVariant(pid, v.id, toVariantInput(v));
-          else await createVariant(pid, toVariantInput(v));
-        }
-
-        // Gambar: hapus, upload+tambah yang baru, lalu rekonsiliasi alt/primary.
-        // Id gambar baru dikumpulkan ke array lokal `persisted` — objek di state
-        // `images` tidak dimutasi (react-hooks/immutability).
-        for (const id of removedImageIds) await deleteProductImage(pid, id);
-        const persisted: { id: string; alt: string; is_primary: boolean }[] = [];
-        for (const r of images) {
-          if (r.id) {
-            persisted.push({ id: r.id, alt: r.alt, is_primary: r.is_primary });
-          } else if (r.file) {
-            const storage_path = await uploadProductImage(r.file, effectiveSlug);
-            const created = await addProductImage(pid, { storage_path, alt: r.alt, is_primary: false });
-            persisted.push({ id: created.id, alt: r.alt, is_primary: r.is_primary });
-          }
-        }
-        const primary = persisted.find((r) => r.is_primary) ?? persisted[0];
-        for (const r of persisted) {
-          if (r !== primary) await updateProductImage(pid, r.id, { alt: r.alt, is_primary: false });
-        }
-        if (primary) await updateProductImage(pid, primary.id, { alt: primary.alt, is_primary: true });
+        toast.success(t("adminCatalog.productForm.created"));
+        qc.invalidateQueries({ queryKey: catalogKeys.all });
+        qc.invalidateQueries({ queryKey: promoKeys.stats() });
+        router.replace(`/admin/products/${created.id}`);
+        return;
       }
 
-      toast.success(isEdit ? "Produk diperbarui" : "Produk dibuat");
-      qc.invalidateQueries({ queryKey: ["products"] });
-      qc.invalidateQueries({ queryKey: ["admin-stats"] });
-      if (isEdit) qc.invalidateQueries({ queryKey: ["admin-product", productId] });
-      onClose();
+      const pid = productId!;
+      await updateProduct(pid, baseFields);
+
+      // Varian: hapus yang dihilangkan, update yang ada, buat yang baru.
+      const origIds = new Set((detail?.variants ?? []).map((v) => v.id));
+      const currentIds = new Set(variants.filter((v) => v.id).map((v) => v.id!));
+      for (const id of origIds) {
+        if (!currentIds.has(id)) await deleteVariant(pid, id);
+      }
+      for (const v of variants) {
+        if (v.id) await updateVariant(pid, v.id, toVariantInput(v));
+        else await createVariant(pid, toVariantInput(v));
+      }
+
+      // Gambar: hapus, upload+tambah yang baru, lalu rekonsiliasi alt/primary.
+      // Id gambar baru dikumpulkan ke array lokal `persisted` — objek di state
+      // `images` tidak dimutasi (react-hooks/immutability).
+      for (const id of removedImageIds) await deleteProductImage(pid, id);
+      const persisted: { id: string; alt: string; is_primary: boolean }[] = [];
+      for (const r of images) {
+        if (r.id) {
+          persisted.push({ id: r.id, alt: r.alt, is_primary: r.is_primary });
+        } else if (r.file) {
+          const storage_path = await uploadProductImage(r.file, effectiveSlug);
+          const created = await addProductImage(pid, { storage_path, alt: r.alt, is_primary: false });
+          persisted.push({ id: created.id, alt: r.alt, is_primary: r.is_primary });
+        }
+      }
+      const primary = persisted.find((r) => r.is_primary) ?? persisted[0];
+      for (const r of persisted) {
+        if (r !== primary) await updateProductImage(pid, r.id, { alt: r.alt, is_primary: false });
+      }
+      if (primary) await updateProductImage(pid, primary.id, { alt: primary.alt, is_primary: true });
+
+      toast.success(t("adminCatalog.productForm.updated"));
+      qc.invalidateQueries({ queryKey: promoKeys.stats() });
+      // Tunggu detail termuat ulang lalu seed ulang form, supaya varian & gambar
+      // baru memegang id dari server (simpan berikutnya tidak menggandakan).
+      await qc.invalidateQueries({ queryKey: catalogKeys.all });
+      setSeeded(false);
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : "Gagal menyimpan produk");
+      toast.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : t("adminCatalog.productForm.saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8">
-      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-neutral-900">
-            {isEdit ? "Edit Produk" : "Tambah Produk"}
-          </h2>
-          <button onClick={onClose} className="rounded-lg p-1 text-neutral-500 hover:bg-neutral-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+  const tagLabel = (i18n: Record<string, string> | undefined, fallback: string) =>
+    i18n?.[locale] || i18n?.id || fallback;
 
-        {isEdit && loadingDetail ? (
-          <div className="flex items-center justify-center gap-2 py-24 text-neutral-500">
-            <Loader2 className="h-5 w-5 animate-spin" /> Memuat produk…
-          </div>
-        ) : (
-          <div className="max-h-[70vh] space-y-6 overflow-y-auto px-6 py-5">
-            {/* Field produk */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Nama produk">
-                  <input
-                    className={inputCls}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="TARU work desk"
+  if (isEdit && loadingDetail) {
+    return (
+      <Page>
+        <LoadingState label={t("adminCatalog.productForm.loadingProduct")} />
+      </Page>
+    );
+  }
+
+  if (isEdit && (detailError || !detail)) {
+    return (
+      <Page>
+        <PageHeader icon={Tag} backHref="/admin/products" backLabel={t("adminCatalog.products.title")} title={t("admin.products.notFound")} />
+      </Page>
+    );
+  }
+
+  const actions = (
+    <>
+      {isEdit && detail && (
+        <ButtonLink href={`/products/${detail.slug}`} target="_blank" variant="secondary">
+          <ExternalLink /> {t("admin.products.viewInStore")}
+        </ButtonLink>
+      )}
+      <Button variant="primary" loading={saving} onClick={handleSubmit}>
+        {isEdit ? t("adminCatalog.productForm.saveEdit") : t("adminCatalog.productForm.saveNew")}
+      </Button>
+    </>
+  );
+
+  return (
+    <Page>
+      <PageHeader
+        icon={Tag}
+        backHref="/admin/products"
+        backLabel={t("adminCatalog.products.title")}
+        title={isEdit ? name || detail?.name : t("adminCatalog.productForm.addTitle")}
+        badge={isEdit ? <ProductStatusBadge status={status} /> : undefined}
+        actions={actions}
+      />
+
+      <Layout>
+        <LayoutMain>
+          <Card>
+            <div className="space-y-4">
+              <Field label={t("admin.products.titleLabel")} htmlFor="p-name">
+                <TextInput id="p-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="TARU work desk" />
+              </Field>
+              <Field label={t("adminCatalog.productForm.descLabel")} htmlFor="p-desc">
+                <TextArea id="p-desc" rows={7} value={description} onChange={(e) => setDescription(e.target.value)} />
+              </Field>
+              <Field
+                label={t("admin.products.summaryLabel")}
+                htmlFor="p-summary"
+                help={t("adminCatalog.productForm.summaryPlaceholder")}
+              >
+                <TextInput id="p-summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
+              </Field>
+            </div>
+          </Card>
+
+          <Card title={t("admin.products.media")}>
+            {images.length === 0 ? (
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#b5b5b5] px-4 py-10 text-center transition-colors hover:bg-admin-subdued">
+                <span className={buttonClass("secondary", "medium")}>
+                  <ImagePlus /> {t("admin.products.uploadNew")}
+                </span>
+                <span className="text-[13px] text-admin-muted">{t("admin.products.mediaHint")}</span>
+                <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => onPickFiles(e.target.files)} />
+              </label>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {images.map((img) => (
+                  <div
+                    key={img.key}
+                    className="group relative overflow-hidden rounded-xl border border-admin-border bg-admin-subdued"
+                  >
+                    <div className="relative aspect-square w-full">
+                      <Image src={img.previewUrl} alt={img.alt} fill unoptimized sizes="160px" className="object-cover" />
+                    </div>
+                    <div className="absolute inset-x-0 top-0 flex justify-between p-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setPrimary(img.key)}
+                        title={t("adminCatalog.productForm.setPrimary")}
+                        aria-label={t("adminCatalog.productForm.setPrimary")}
+                        className={`rounded-md p-1 shadow-sm ${img.is_primary ? "bg-[#303030] text-white" : "bg-white/90 text-admin-muted hover:text-admin-text"}`}
+                      >
+                        <Star className="size-3.5" fill={img.is_primary ? "currentColor" : "none"} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(img.key)}
+                        title={t("adminCatalog.productForm.removeImage")}
+                        aria-label={t("adminCatalog.productForm.removeImage")}
+                        className="rounded-md bg-white/90 p-1 text-admin-muted shadow-sm hover:text-admin-critical"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
+                    {img.is_primary && (
+                      <span className="absolute bottom-1.5 left-1.5 rounded-md bg-[#303030] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                        {t("adminCatalog.productForm.primaryBadge")}
+                      </span>
+                    )}
+                  </div>
+                ))}
+                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[#b5b5b5] text-admin-muted transition-colors hover:bg-admin-subdued hover:text-admin-text">
+                  <Plus className="size-5" />
+                  <span className="text-xs font-medium">{t("adminCatalog.productForm.uploadImage")}</span>
+                  <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => onPickFiles(e.target.files)} />
+                </label>
+              </div>
+            )}
+          </Card>
+
+          <Card
+            flush
+            title={t("adminCatalog.productForm.variantsTitle")}
+            description={t("admin.products.variantsHint")}
+            action={
+              <Button size="slim" variant="tertiary" onClick={() => setVariants((v) => [...v, emptyVariant()])}>
+                <Plus /> {t("adminCatalog.productForm.addVariant")}
+              </Button>
+            }
+          >
+            {variants.map((v, i) => (
+              <div key={v.key} className="border-t border-admin-border p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-[13px] font-semibold text-admin-text">
+                    {[v.color, v.size].filter(Boolean).join(" / ") || t("admin.products.variantN", { n: i + 1 })}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <ToggleRowInline
+                      label={t("admin.products.variantActive")}
+                      checked={v.is_active ?? true}
+                      onChange={(next) => patchVariant(v.key, { is_active: next })}
+                    />
+                    <Button
+                      variant="tertiary"
+                      size="icon-slim"
+                      onClick={() => setVariants((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== v.key) : rows))}
+                      disabled={variants.length <= 1}
+                      title={
+                        variants.length <= 1
+                          ? t("adminCatalog.productForm.minOneVariant")
+                          : t("adminCatalog.productForm.removeVariant")
+                      }
+                      aria-label={t("adminCatalog.productForm.removeVariant")}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
+                </div>
+                <FormGrid cols={3}>
+                  <Field label={t("adminCatalog.productForm.skuLabel")}>
+                    <TextInput value={v.sku} onChange={(e) => patchVariant(v.key, { sku: e.target.value })} />
+                  </Field>
+                  <Field label={t("adminCatalog.productForm.colorLabel")}>
+                    <TextInput value={v.color} onChange={(e) => patchVariant(v.key, { color: e.target.value })} />
+                  </Field>
+                  <Field label={t("adminCatalog.productForm.sizeLabel")}>
+                    <TextInput value={v.size} onChange={(e) => patchVariant(v.key, { size: e.target.value })} />
+                  </Field>
+                  <Field label={t("adminCatalog.productForm.priceLabel")}>
+                    <TextInput
+                      type="number"
+                      min={0}
+                      prefix="Rp"
+                      placeholder="0"
+                      value={v.price || ""}
+                      onChange={(e) => patchVariant(v.key, { price: Number(e.target.value) })}
+                    />
+                  </Field>
+                  <Field label={t("adminCatalog.productForm.stockLabel")}>
+                    <TextInput
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      value={v.stock || ""}
+                      onChange={(e) => patchVariant(v.key, { stock: Number(e.target.value) })}
+                    />
+                  </Field>
+                </FormGrid>
+                {v.showSale ? (
+                  <div className="mt-4 rounded-xl bg-admin-subdued p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-admin-text">{t("admin.products.sale")}</p>
+                      <Button
+                        size="slim"
+                        variant="tertiary"
+                        onClick={() =>
+                          patchVariant(v.key, {
+                            showSale: false,
+                            sale_price: undefined,
+                            sale_starts_at: undefined,
+                            sale_ends_at: undefined,
+                          })
+                        }
+                      >
+                        {t("admin.common.remove")}
+                      </Button>
+                    </div>
+                    <FormGrid cols={3}>
+                      <Field label={t("admin.products.salePrice")}>
+                        <TextInput
+                          type="number"
+                          min={0}
+                          prefix="Rp"
+                          value={v.sale_price || ""}
+                          onChange={(e) =>
+                            patchVariant(v.key, { sale_price: e.target.value ? Number(e.target.value) : undefined })
+                          }
+                        />
+                      </Field>
+                      <Field label={t("adminCatalog.productForm.saleStartLabel")}>
+                        <TextInput
+                          type="datetime-local"
+                          value={v.sale_starts_at || ""}
+                          onChange={(e) => patchVariant(v.key, { sale_starts_at: e.target.value })}
+                        />
+                      </Field>
+                      <Field label={t("adminCatalog.productForm.saleEndLabel")}>
+                        <TextInput
+                          type="datetime-local"
+                          value={v.sale_ends_at || ""}
+                          onChange={(e) => patchVariant(v.key, { sale_ends_at: e.target.value })}
+                        />
+                      </Field>
+                    </FormGrid>
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <ChoiceChip selected={false} onClick={() => patchVariant(v.key, { showSale: true })}>
+                      <Plus className="size-3.5" /> {t("admin.products.addSale")}
+                    </ChoiceChip>
+                  </div>
+                )}
+              </div>
+            ))}
+          </Card>
+
+          <Card title={t("admin.products.shipping")}>
+            <div className="space-y-4">
+              <Field label={t("admin.products.dimensions")} help={t("admin.products.dimensionsHint")}>
+                <div className="flex items-center gap-2">
+                  <TextInput
+                    type="number"
+                    min={0}
+                    prefix={t("admin.products.dimW")}
+                    suffix="cm"
+                    aria-label={t("adminCatalog.productForm.widthLabel")}
+                    value={width}
+                    onChange={(e) => setWidth(Number(e.target.value))}
                   />
-                </Field>
-                <Field label="Slug">
-                  <input
-                    className={inputCls}
-                    value={effectiveSlug}
-                    onChange={(e) => {
-                      setSlug(e.target.value);
-                      setSlugTouched(true);
-                    }}
-                    placeholder="taru-work-desk"
+                  <span className="text-admin-muted">×</span>
+                  <TextInput
+                    type="number"
+                    min={0}
+                    prefix={t("admin.products.dimD")}
+                    suffix="cm"
+                    aria-label={t("adminCatalog.productForm.depthLabel")}
+                    value={depth}
+                    onChange={(e) => setDepth(Number(e.target.value))}
                   />
-                </Field>
-                <Field label="Kategori">
-                  <select className={inputCls} value={categorySlug} onChange={(e) => setCategorySlug(e.target.value)}>
-                    <option value="">Pilih kategori...</option>
-                    {categories?.map((c) => (
-                      <option key={c.slug} value={c.slug}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Berat (kg)">
-                  <input
+                  <span className="text-admin-muted">×</span>
+                  <TextInput
+                    type="number"
+                    min={0}
+                    prefix={t("admin.products.dimH")}
+                    suffix="cm"
+                    aria-label={t("adminCatalog.productForm.heightLabel")}
+                    value={height}
+                    onChange={(e) => setHeight(Number(e.target.value))}
+                  />
+                </div>
+              </Field>
+              <FormGrid>
+                <Field label={t("admin.products.weight")} htmlFor="p-weight">
+                  <TextInput
+                    id="p-weight"
                     type="number"
                     step="0.1"
-                    className={inputCls}
+                    min={0}
+                    suffix="kg"
                     value={weight}
                     onChange={(e) => setWeight(Number(e.target.value))}
                   />
                 </Field>
-                <Field label="Status">
-                  <select className={inputCls} value={status} onChange={(e) => setStatus(e.target.value)}>
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </Field>
-                <Field label="Pilihan (Featured)">
-                  <select className={inputCls} value={featured ? "true" : "false"} onChange={(e) => setFeatured(e.target.value === "true")}>
-                    <option value="false">Tidak</option>
-                    <option value="true">Ya</option>
-                  </select>
-                </Field>
-                <Field label="SEO Title">
-                  <input
-                    className={inputCls}
-                    value={seoTitle}
-                    onChange={(e) => setSeoTitle(e.target.value)}
-                    placeholder="Title for SEO"
+                <Field label={t("admin.products.materials")} htmlFor="p-materials" help={t("admin.products.materialsHint")}>
+                  <TextInput
+                    id="p-materials"
+                    value={materials}
+                    onChange={(e) => setMaterials(e.target.value)}
+                    placeholder={t("adminCatalog.productForm.materialPlaceholder")}
                   />
                 </Field>
-              </div>
+              </FormGrid>
+              <Checkbox
+                label={t("adminCatalog.productForm.hasGuide")}
+                checked={hasGuide}
+                onChange={(e) => setHasGuide(e.target.checked)}
+              />
+            </div>
+          </Card>
 
-              <Field label="Ringkasan Pendek (Summary)">
-                <input
-                  className={inputCls}
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  placeholder="Deskripsi singkat untuk kartu produk"
+          <Card title={t("admin.products.seo")} description={t("admin.products.seoHint")}>
+            <div className="space-y-4">
+              <Field label={t("admin.products.seoTitle")} htmlFor="p-seo">
+                <TextInput id="p-seo" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={name} />
+              </Field>
+              <Field label={t("admin.products.handle")} htmlFor="p-slug" help={t("admin.products.handleHint")}>
+                <TextInput
+                  id="p-slug"
+                  prefix="/products/"
+                  value={effectiveSlug}
+                  onChange={(e) => {
+                    setSlug(e.target.value);
+                    setSlugTouched(true);
+                  }}
+                  placeholder="taru-work-desk"
                 />
               </Field>
+            </div>
+          </Card>
+        </LayoutMain>
 
-              <Field label="Tags">
-                <div className="flex flex-wrap gap-3">
-                  {adminTags?.map(tag => (
-                    <label key={tag.id} className="flex items-center gap-1.5 text-sm">
-                      <input 
-                        type="checkbox"
-                        checked={selectedTagSlugs.includes(tag.slug)}
-                        onChange={(e) => {
-                          if (e.target.checked) setSelectedTagSlugs([...selectedTagSlugs, tag.slug]);
-                          else setSelectedTagSlugs(selectedTagSlugs.filter(s => s !== tag.slug));
-                        }}
-                      />
-                      {tag.name_i18n?.id || tag.slug}
-                    </label>
+        <LayoutAside>
+          <Card title={t("adminCatalog.productForm.statusLabel")}>
+            <div className="space-y-4">
+              <SelectInput
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                aria-label={t("adminCatalog.productForm.statusLabel")}
+              >
+                <option value="published">{t("adminCatalog.products.published")}</option>
+                <option value="draft">{t("adminCatalog.products.draft")}</option>
+                <option value="archived">{t("adminCatalog.products.archived")}</option>
+              </SelectInput>
+              <ToggleRow
+                label={t("admin.products.featured")}
+                help={t("admin.products.featuredHint")}
+                checked={featured}
+                onChange={setFeatured}
+              />
+            </div>
+          </Card>
+
+          <Card title={t("admin.products.organization")}>
+            <div className="space-y-4">
+              <Field label={t("adminCatalog.productForm.categoryLabel")} htmlFor="p-category">
+                <SelectInput id="p-category" value={categorySlug} onChange={(e) => setCategorySlug(e.target.value)}>
+                  <option value="">{t("adminCatalog.productForm.categoryPlaceholder")}</option>
+                  {categories?.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.name}
+                    </option>
                   ))}
-                </div>
+                </SelectInput>
               </Field>
-
-              {adminAttributes?.map(attr => (
-                <Field key={attr.id} label={`Atribut: ${attr.name_i18n?.id || attr.slug}`}>
-                  <div className="flex flex-wrap gap-3">
-                    {attr.terms.map(term => (
-                      <label key={term.id} className="flex items-center gap-1.5 text-sm">
-                        <input 
-                          type="checkbox"
-                          checked={selectedTermIds.includes(term.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) setSelectedTermIds([...selectedTermIds, term.id]);
-                            else setSelectedTermIds(selectedTermIds.filter(id => id !== term.id));
-                          }}
-                        />
-                        {term.name_i18n?.id || term.slug}
-                      </label>
-                    ))}
+              <Field label={t("admin.products.tags")}>
+                {adminTags && adminTags.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {adminTags.map((tag) => {
+                      const on = selectedTagSlugs.includes(tag.slug);
+                      return (
+                        <ChoiceChip
+                          key={tag.id}
+                          selected={on}
+                          onClick={() =>
+                            setSelectedTagSlugs(on ? selectedTagSlugs.filter((s) => s !== tag.slug) : [...selectedTagSlugs, tag.slug])
+                          }
+                        >
+                          {tagLabel(tag.name_i18n, tag.slug)}
+                        </ChoiceChip>
+                      );
+                    })}
                   </div>
-                </Field>
+                ) : (
+                  <p className="text-[13px] text-admin-muted">{t("adminCatalog.tags.empty")}</p>
+                )}
+              </Field>
+            </div>
+          </Card>
+
+          {adminAttributes && adminAttributes.length > 0 && (
+            <Card flush title={t("admin.products.attributes")}>
+              {adminAttributes.map((attr) => (
+                <CardSection key={attr.id} title={tagLabel(attr.name_i18n, attr.slug)}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {attr.terms.map((term) => {
+                      const on = selectedTermIds.includes(term.id);
+                      return (
+                        <ChoiceChip
+                          key={term.id}
+                          selected={on}
+                          onClick={() =>
+                            setSelectedTermIds(on ? selectedTermIds.filter((id) => id !== term.id) : [...selectedTermIds, term.id])
+                          }
+                        >
+                          {tagLabel(term.name_i18n, term.slug)}
+                        </ChoiceChip>
+                      );
+                    })}
+                  </div>
+                </CardSection>
               ))}
+            </Card>
+          )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <Field label={t("adminCatalog.productForm.upsell")}>
-                  <ProductMultiSelect
-                    label="Upsell"
-                    value={upsellIds}
-                    onChange={setUpsellIds}
-                    excludeId={productId}
-                  />
-                </Field>
-                <Field label={t("adminCatalog.productForm.crossSell")}>
-                  <ProductMultiSelect
-                    label="Cross-sell"
-                    value={crossSellIds}
-                    onChange={setCrossSellIds}
-                    excludeId={productId}
-                  />
-                </Field>
-              </div>
-
-            <Field label="Deskripsi">
-              <textarea
-                className={`${inputCls} min-h-20`}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Field>
-
-            <Field label="Material (pisahkan dengan koma)">
-              <input
-                className={inputCls}
-                value={materials}
-                onChange={(e) => setMaterials(e.target.value)}
-                placeholder="kayu jati, baja"
-              />
-            </Field>
-
-            <div className="grid grid-cols-3 gap-4">
-              <Field label="Lebar (cm)">
-                <input type="number" className={inputCls} value={width} onChange={(e) => setWidth(Number(e.target.value))} />
+          <Card title={t("admin.products.related")}>
+            <div className="space-y-4">
+              <Field label={t("adminCatalog.productForm.upsell")}>
+                <ProductMultiSelect label="upsell" value={upsellIds} onChange={setUpsellIds} excludeId={productId} />
               </Field>
-              <Field label="Kedalaman (cm)">
-                <input type="number" className={inputCls} value={depth} onChange={(e) => setDepth(Number(e.target.value))} />
-              </Field>
-              <Field label="Tinggi (cm)">
-                <input type="number" className={inputCls} value={height} onChange={(e) => setHeight(Number(e.target.value))} />
+              <Field label={t("adminCatalog.productForm.crossSell")}>
+                <ProductMultiSelect label="cross-sell" value={crossSellIds} onChange={setCrossSellIds} excludeId={productId} />
               </Field>
             </div>
+          </Card>
+        </LayoutAside>
+      </Layout>
 
-            <label className="flex items-center gap-2 text-sm text-neutral-700">
-              <input type="checkbox" checked={hasGuide} onChange={(e) => setHasGuide(e.target.checked)} />
-              Punya panduan perakitan
-            </label>
-
-            {/* Varian */}
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-neutral-900">Varian</h3>
-                <button
-                  onClick={() => setVariants((v) => [...v, emptyVariant()])}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong"
-                >
-                  <Plus className="h-4 w-4" /> Tambah varian
-                </button>
-              </div>
-              <div className="space-y-2">
-                    {variants.map((v) => (
-                      <div key={v.key} className="rounded-lg border border-neutral-200 p-3 space-y-2">
-                        <div className="grid grid-cols-12 items-center gap-2">
-                          <input
-                            className={`${inputCls} col-span-2`}
-                            placeholder="SKU"
-                            value={v.sku}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sku: e.target.value } : r)))}
-                          />
-                          <input
-                            className={`${inputCls} col-span-2`}
-                            placeholder="Warna"
-                            value={v.color}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, color: e.target.value } : r)))}
-                          />
-                          <input
-                            className={`${inputCls} col-span-2`}
-                            placeholder="Ukuran"
-                            value={v.size}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, size: e.target.value } : r)))}
-                          />
-                          <input
-                            type="number"
-                            className={`${inputCls} col-span-2`}
-                            placeholder="Harga"
-                            value={v.price || ""}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, price: Number(e.target.value) } : r)))}
-                          />
-                          <input
-                            type="number"
-                            className={`${inputCls} col-span-2`}
-                            placeholder="Stok"
-                            value={v.stock || ""}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, stock: Number(e.target.value) } : r)))}
-                          />
-                          <label className="col-span-1 flex items-center justify-center">
-                            <input
-                              type="checkbox"
-                              checked={v.is_active ?? true}
-                              onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, is_active: e.target.checked } : r)))}
-                              title="Aktif?"
-                            />
-                          </label>
-                          <button
-                            onClick={() => setVariants((rows) => (rows.length > 1 ? rows.filter((r) => r.key !== v.key) : rows))}
-                            disabled={variants.length <= 1}
-                            title={variants.length <= 1 ? "Minimal satu varian" : "Hapus varian"}
-                            className="col-span-1 flex justify-center text-neutral-400 hover:text-red-600 disabled:opacity-30"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-12 items-center gap-2 border-t border-neutral-100 pt-2">
-                          <input
-                            type="number"
-                            className={`${inputCls} col-span-4`}
-                            placeholder="Harga Sale (Opsional)"
-                            value={v.sale_price || ""}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sale_price: e.target.value ? Number(e.target.value) : undefined } : r)))}
-                          />
-                          <input
-                            type="datetime-local"
-                            className={`${inputCls} col-span-4`}
-                            placeholder="Mulai Sale"
-                            value={v.sale_starts_at || ""}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sale_starts_at: e.target.value } : r)))}
-                          />
-                          <input
-                            type="datetime-local"
-                            className={`${inputCls} col-span-4`}
-                            placeholder="Akhir Sale"
-                            value={v.sale_ends_at || ""}
-                            onChange={(e) => setVariants((rows) => rows.map((r) => (r.key === v.key ? { ...r, sale_ends_at: e.target.value } : r)))}
-                          />
-                        </div>
-                      </div>
-                    ))}
-              </div>
-            </div>
-
-            {/* Gambar */}
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-neutral-900">Gambar</h3>
-                <label className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-brand hover:text-brand-strong">
-                  <ImagePlus className="h-4 w-4" /> Unggah gambar
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => onPickFiles(e.target.files)}
-                  />
-                </label>
-              </div>
-              {images.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-neutral-300 py-6 text-center text-sm text-neutral-400">
-                  Belum ada gambar. Produk akan memakai placeholder.
-                </p>
-              ) : (
-                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-                  {images.map((img) => (
-                    <div key={img.key} className="group relative overflow-hidden rounded-lg border border-neutral-200">
-                      <img src={img.previewUrl} alt={img.alt} className="aspect-square w-full object-cover" />
-                      <div className="absolute inset-x-0 top-0 flex justify-between p-1">
-                        <button
-                          onClick={() => setPrimary(img.key)}
-                          title="Jadikan gambar utama"
-                          className={`rounded-md p-1 ${img.is_primary ? "bg-amber-400 text-white" : "bg-white/80 text-neutral-500 hover:text-amber-500"}`}
-                        >
-                          <Star className="h-3.5 w-3.5" fill={img.is_primary ? "currentColor" : "none"} />
-                        </button>
-                        <button
-                          onClick={() => removeImage(img.key)}
-                          title="Hapus gambar"
-                          className="rounded-md bg-white/80 p-1 text-neutral-500 hover:text-red-600"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                      {img.is_primary && (
-                        <span className="absolute bottom-1 left-1 rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                          Utama
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[#d4d4d4] pt-5">
+        {isEdit ? (
+          <Button variant="critical" onClick={() => setConfirmDelete(true)}>
+            {t("admin.products.delete")}
+          </Button>
+        ) : (
+          <span />
         )}
-
-        <div className="flex items-center justify-end gap-3 border-t border-neutral-200 px-6 py-4">
-          <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100">
-            Batal
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-strong px-4 py-2 text-sm font-medium text-white hover:bg-brand disabled:opacity-60"
-          >
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isEdit ? "Simpan perubahan" : "Simpan produk"}
-          </button>
+        <div className="flex gap-2">
+          <ButtonLink href="/admin/products">{t("adminCatalog.productForm.cancel")}</ButtonLink>
+          <Button variant="primary" loading={saving} onClick={handleSubmit}>
+            {isEdit ? t("adminCatalog.productForm.saveEdit") : t("adminCatalog.productForm.saveNew")}
+          </Button>
         </div>
       </div>
-    </div>
+
+      {isEdit && productId && (
+        <ConfirmModal
+          open={confirmDelete}
+          onClose={() => setConfirmDelete(false)}
+          title={t("admin.products.deleteTitle")}
+          message={t("adminCatalog.products.deleteConfirm", { name })}
+          confirmLabel={t("adminCatalog.products.delete")}
+          loading={del.isPending}
+          onConfirm={() =>
+            del.mutate(productId, {
+              onSuccess: () => router.replace("/admin/products"),
+            })
+          }
+        />
+      )}
+    </Page>
   );
 }
 
-const inputCls =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function ToggleRowInline({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-neutral-700">{label}</span>
-      {children}
-    </label>
+    <div className="mr-1 flex items-center gap-2">
+      <span className="text-xs text-admin-muted">{label}</span>
+      <Toggle label={label} checked={checked} onChange={onChange} />
+    </div>
   );
 }

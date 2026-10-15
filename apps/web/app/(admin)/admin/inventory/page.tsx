@@ -1,192 +1,264 @@
 "use client";
 
 import { useState } from "react";
-import { useInventory, useMovements, useAdjustment } from "@/lib/catalog/queries";
-import type { InventoryItem } from "@/lib/catalog/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { Archive, History } from "lucide-react";
+import { useInventory, useMovements, useAdjustment } from "@/lib/catalog/queries";
+import type { InventoryItem, StockMovement } from "@/lib/catalog/types";
 import { useLanguage } from "@/components/kriya/language-provider";
+import {
+  Badge,
+  Button,
+  Card,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  Field,
+  FilterTabs,
+  IndexToolbar,
+  LoadingState,
+  Modal,
+  Page,
+  PageHeader,
+  Pager,
+  SearchInput,
+  SkeletonRows,
+  Td,
+  TextInput,
+  Th,
+  Tr,
+  useAdminFormat,
+  useDebounced,
+} from "@/components/kriya/admin/ui";
+import { cn } from "@/lib/utils";
 
-function MovementHistory({ variantId }: { variantId: string }) {
+const LIMIT = 20;
+
+function MovementHistory({ item, onClose }: { item: InventoryItem; onClose: () => void }) {
   const { t } = useLanguage();
-  const { data, isLoading } = useMovements(variantId, 1, 20);
-
-  if (isLoading) return <div>{t("adminCatalog.inventory.loading")}</div>;
-  if (!data?.data || data.data.length === 0) return <div>{t("adminCatalog.inventory.noHistory")}</div>;
+  const fmt = useAdminFormat();
+  const { data, isLoading } = useMovements(item.variant_id, 1, 20);
+  const rows = data?.data ?? [];
 
   return (
-    <div className="max-h-60 overflow-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("adminCatalog.inventory.thTime")}</TableHead>
-            <TableHead>{t("adminCatalog.inventory.thReason")}</TableHead>
-            <TableHead>{t("adminCatalog.inventory.thDelta")}</TableHead>
-            <TableHead>{t("adminCatalog.inventory.thStockAfter")}</TableHead>
-            <TableHead>{t("adminCatalog.inventory.thNote")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.data.map((m) => (
-            <TableRow key={m.id}>
-              <TableCell>{new Date(m.created_at).toLocaleString()}</TableCell>
-              <TableCell>{m.reason}</TableCell>
-              <TableCell>{m.delta > 0 ? `+${m.delta}` : m.delta}</TableCell>
-              <TableCell>{m.stock_after}</TableCell>
-              <TableCell>{m.note || "-"}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <Modal open onClose={onClose} size="lg" title={t("adminCatalog.inventory.historyTitle", { sku: item.sku })}>
+      {isLoading ? (
+        <LoadingState />
+      ) : rows.length === 0 ? (
+        <EmptyState icon={History} title={t("adminCatalog.inventory.noHistory")} />
+      ) : (
+        <div className="-m-4">
+          <DataTable>
+            <thead>
+              <tr>
+                <Th>{t("adminCatalog.inventory.thTime")}</Th>
+                <Th>{t("adminCatalog.inventory.thReason")}</Th>
+                <Th align="right">{t("adminCatalog.inventory.thDelta")}</Th>
+                <Th align="right">{t("adminCatalog.inventory.thStockAfter")}</Th>
+                <Th>{t("adminCatalog.inventory.thNote")}</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((m: StockMovement) => (
+                <Tr key={m.id}>
+                  <Td className="whitespace-nowrap text-admin-muted">{fmt.dateTime(m.created_at)}</Td>
+                  <Td className="whitespace-nowrap">{t(`admin.inventory.reason.${m.reason}` as const)}</Td>
+                  <Td
+                    align="right"
+                    className={cn("font-semibold tabular-nums", m.delta > 0 ? "text-[#0c5132]" : "text-admin-critical")}
+                  >
+                    {m.delta > 0 ? `+${m.delta}` : m.delta}
+                  </Td>
+                  <Td align="right" className="tabular-nums">
+                    {m.stock_after}
+                  </Td>
+                  <Td className="text-admin-muted">{m.note || "—"}</Td>
+                </Tr>
+              ))}
+            </tbody>
+          </DataTable>
+        </div>
+      )}
+    </Modal>
   );
 }
 
-function AdjustmentDialog({ item }: { item: InventoryItem }) {
+function AdjustmentModal({ item, onClose }: { item: InventoryItem; onClose: () => void }) {
   const { t } = useLanguage();
-  const [open, setOpen] = useState(false);
   const [qty, setQty] = useState(item.stock.toString());
   const [note, setNote] = useState("");
   const adjust = useAdjustment();
+  const parsed = parseInt(qty, 10);
+  const valid = !isNaN(parsed) && parsed >= 0;
+  const delta = valid ? parsed - item.stock : 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedQty = parseInt(qty, 10);
-    if (isNaN(parsedQty) || parsedQty < 0) return;
+    if (!valid) return;
     adjust.mutate(
-      { variant_id: item.variant_id, qty: parsedQty, note },
+      { variant_id: item.variant_id, qty: parsed, note },
       {
         onSuccess: () => {
           toast.success(t("adminCatalog.inventory.stockUpdated"));
-          setOpen(false);
+          onClose();
         },
-        onError: (err: Error) => {
-          toast.error(err.message || t("adminCatalog.inventory.stockFailed"));
-        },
-      }
+        onError: (err: Error) => toast.error(err.message || t("adminCatalog.inventory.stockFailed")),
+      },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>{t("adminCatalog.inventory.adjust")}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("adminCatalog.inventory.adjustTitle")}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t("adminCatalog.inventory.currentStock")}</Label>
-            <div>{item.stock}</div>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("adminCatalog.inventory.newStock")}</Label>
-            <Input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("adminCatalog.inventory.noteLabel")}</Label>
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("adminCatalog.inventory.notePlaceholder")} />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>{t("adminCatalog.inventory.cancel")}</Button>
-            <Button type="submit" disabled={adjust.isPending}>{t("adminCatalog.inventory.save")}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={t("adminCatalog.inventory.adjustTitle")}
+      footer={
+        <>
+          <Button onClick={onClose}>{t("adminCatalog.inventory.cancel")}</Button>
+          <Button type="submit" form="adjust-form" variant="primary" loading={adjust.isPending} disabled={!valid || delta === 0}>
+            {t("adminCatalog.inventory.save")}
+          </Button>
+        </>
+      }
+    >
+      <form id="adjust-form" onSubmit={submit} className="space-y-4">
+        <div className="rounded-xl bg-admin-subdued p-3">
+          <p className="font-semibold">{item.product_name}</p>
+          <p className="text-xs text-admin-muted">
+            {[item.color, item.size].filter(Boolean).join(" / ")} · SKU {item.sku}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t("adminCatalog.inventory.currentStock")}>
+            <TextInput value={item.stock} disabled readOnly />
+          </Field>
+          <Field
+            label={t("adminCatalog.inventory.newStock")}
+            htmlFor="adj-qty"
+            help={delta !== 0 ? t("admin.inventory.delta", { delta: delta > 0 ? `+${delta}` : String(delta) }) : undefined}
+          >
+            <TextInput id="adj-qty" type="number" min="0" required value={qty} onChange={(e) => setQty(e.target.value)} />
+          </Field>
+        </div>
+        <Field label={t("adminCatalog.inventory.noteLabel")} htmlFor="adj-note">
+          <TextInput
+            id="adj-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={t("adminCatalog.inventory.notePlaceholder")}
+          />
+        </Field>
+      </form>
+    </Modal>
   );
 }
 
 export default function AdminInventoryPage() {
   const { t } = useLanguage();
   const [q, setQ] = useState("");
-  const [lowStock, setLowStock] = useState(false);
-  const { data, isLoading } = useInventory({ q, low_stock: lowStock });
+  const debouncedQ = useDebounced(q);
+  const [tab, setTab] = useState<"all" | "low">("all");
+  const [page, setPage] = useState(1);
+  const [adjusting, setAdjusting] = useState<InventoryItem | null>(null);
+  const [history, setHistory] = useState<InventoryItem | null>(null);
+  const { data, isLoading, isError, refetch } = useInventory({
+    q: debouncedQ,
+    low_stock: tab === "low",
+    page,
+    limit: LIMIT,
+  });
+
+  const items = data?.data ?? [];
+  const total = data?.meta?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("adminCatalog.inventory.title")}</h1>
-      </div>
+    <Page width="wide">
+      <PageHeader icon={Archive} title={t("adminCatalog.inventory.title")} subtitle={t("admin.inventory.subtitle")} />
 
-      <div className="flex items-center gap-4">
-        <Input
-          placeholder={t("adminCatalog.inventory.search")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="max-w-sm"
-          aria-label={t("adminCatalog.inventory.search")}
-        />
-        <div className="flex items-center gap-2">
-          <Switch checked={lowStock} onCheckedChange={setLowStock} id="low-stock-switch" />
-          <Label htmlFor="low-stock-switch">{t("adminCatalog.inventory.lowStockOnly")}</Label>
-        </div>
-      </div>
+      <Card flush>
+        <IndexToolbar>
+          <FilterTabs
+            tabs={[
+              { value: "all", label: t("admin.common.all") },
+              { value: "low", label: t("adminCatalog.inventory.lowStockOnly") },
+            ]}
+            value={tab}
+            onChange={(v) => {
+              setTab(v);
+              setPage(1);
+            }}
+          />
+          <SearchInput
+            className="sm:ml-auto sm:w-64"
+            placeholder={t("adminCatalog.inventory.search")}
+            aria-label={t("adminCatalog.inventory.search")}
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+          />
+        </IndexToolbar>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("adminCatalog.inventory.thProduct")}</TableHead>
-              <TableHead>{t("adminCatalog.inventory.thSku")}</TableHead>
-              <TableHead>{t("adminCatalog.inventory.thVariant")}</TableHead>
-              <TableHead>{t("adminCatalog.inventory.thStock")}</TableHead>
-              <TableHead>{t("adminCatalog.inventory.thActions")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">{t("adminCatalog.inventory.loading")}</TableCell>
-              </TableRow>
-            ) : data?.data?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">{t("adminCatalog.inventory.noItems")}</TableCell>
-              </TableRow>
-            ) : (
-              data?.data?.map((item) => (
-                <TableRow key={item.variant_id}>
-                  <TableCell className="font-medium">
-                    {item.product_name}
-                  </TableCell>
-                  <TableCell>{item.sku}</TableCell>
-                  <TableCell>
-                    {item.color} {item.size ? `/ ${item.size}` : ""}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span>{item.stock}</span>
-                      {item.low_stock && (
-                        <Badge variant="destructive" className="text-[10px]">{t("adminCatalog.inventory.low")}</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <AdjustmentDialog item={item} />
-                      <Dialog>
-                        <DialogTrigger render={<Button variant="ghost" size="sm" />}>{t("adminCatalog.inventory.history")}</DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>{t("adminCatalog.inventory.historyTitle", { sku: item.sku })}</DialogTitle>
-                          </DialogHeader>
-                          <MovementHistory variantId={item.variant_id} />
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+        {isError ? (
+          <ErrorState onRetry={() => refetch()} />
+        ) : !isLoading && items.length === 0 ? (
+          <EmptyState icon={Archive} title={t("adminCatalog.inventory.noItems")} />
+        ) : (
+          <DataTable>
+            <thead>
+              <tr>
+                <Th>{t("adminCatalog.inventory.thProduct")}</Th>
+                <Th>{t("adminCatalog.inventory.thSku")}</Th>
+                <Th align="right">{t("admin.inventory.available")}</Th>
+                <Th>
+                  <span className="sr-only">{t("adminCatalog.inventory.thActions")}</span>
+                </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <SkeletonRows cols={4} />
+              ) : (
+                items.map((item) => (
+                  <Tr key={item.variant_id}>
+                    <Td>
+                      <p className="font-semibold">{item.product_name}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {item.color && <Badge>{item.color}</Badge>}
+                        {item.size && <Badge>{item.size}</Badge>}
+                      </div>
+                    </Td>
+                    <Td className="font-mono text-xs text-admin-muted">{item.sku}</Td>
+                    <Td align="right">
+                      <div className="inline-flex items-center gap-2">
+                        {item.low_stock && <Badge tone="critical">{t("adminCatalog.inventory.low")}</Badge>}
+                        <span className="min-w-8 font-semibold tabular-nums">{item.stock}</span>
+                      </div>
+                    </Td>
+                    <Td align="right" className="w-56 whitespace-nowrap">
+                      <div className="inline-flex gap-1.5">
+                        <Button size="slim" variant="tertiary" onClick={() => setHistory(item)}>
+                          <History /> {t("adminCatalog.inventory.history")}
+                        </Button>
+                        <Button size="slim" onClick={() => setAdjusting(item)}>
+                          {t("adminCatalog.inventory.adjust")}
+                        </Button>
+                      </div>
+                    </Td>
+                  </Tr>
+                ))
+              )}
+            </tbody>
+          </DataTable>
+        )}
+        <Pager page={page} totalPages={totalPages} onPage={setPage} />
+      </Card>
+
+      {adjusting && <AdjustmentModal key={adjusting.variant_id} item={adjusting} onClose={() => setAdjusting(null)} />}
+      {history && <MovementHistory item={history} onClose={() => setHistory(null)} />}
+    </Page>
   );
 }

@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Clock,
+  House,
   Package,
   ReceiptText,
   RotateCcw,
@@ -23,12 +22,11 @@ import {
 } from "@/lib/promo/queries";
 import { useCategories } from "@/lib/catalog/queries";
 import type { ReportSalesItem } from "@/lib/promo/types";
-import type { OrderStatus } from "@/lib/aftersales/types";
 import type { MessageKey } from "@/lib/i18n";
 import { formatRupiah } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/kriya/language-provider";
-import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
+import { OrderBadge } from "@/components/kriya/admin/status-badges";
+import { Badge, Card, DataTable, Page, PageHeader, Segmented, SkeletonRows, Td, TextLink, Th, Tr } from "@/components/kriya/admin/ui";
 import {
   AttentionRow,
   DonutWithLegend,
@@ -123,7 +121,6 @@ function fillSeries(
 
 export default function AdminDashboard() {
   const { t, locale } = useLanguage();
-  const router = useRouter();
   const [range, setRange] = useState<RangeDays>(30);
 
   const bounds = useMemo(() => periodBounds(range), [range]);
@@ -215,7 +212,7 @@ export default function AdminDashboard() {
 
   const attention = [
     { href: "/admin/orders?status=processing", key: "adminPromo.toShip", count: stats.data?.to_ship_count, icon: Package, loading: stats.isLoading },
-    { href: "/admin/orders?status=pending", key: "adminPromo.pendingPayment", count: stats.data?.pending_payment_count, icon: Clock, loading: stats.isLoading },
+    { href: "/admin/orders?status=pending_payment", key: "adminPromo.pendingPayment", count: stats.data?.pending_payment_count, icon: Clock, loading: stats.isLoading },
     { href: "/admin/inventory", key: "adminPromo.lowStock", count: stats.data?.low_stock_count, icon: AlertTriangle, loading: stats.isLoading },
     { href: "/admin/reviews", key: "adminPromo.pendingReviews", count: stats.data?.pending_reviews_count, icon: Star, loading: stats.isLoading },
     { href: "/admin/returns", key: "adminPromo.openReturns", count: stats.data?.open_returns_count, icon: RotateCcw, loading: stats.isLoading },
@@ -223,54 +220,37 @@ export default function AdminDashboard() {
   const attentionTotal = attention.reduce((sum, a) => sum + (a.count ?? 0), 0);
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
-      {/* Header + filter periode dalam satu baris */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{t("adminPromo.dashboard")}</h1>
-          <p className="mt-1 text-sm text-stone-500">
-            {t("adminPromo.dash.subtitle")} · {dateFmt.format(bounds.from)} – {dateFmt.format(bounds.to)}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1.5 pl-3 pr-4 text-sm">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="text-stone-500">{t("adminPromo.dash.today")}</span>
-            {stats.isLoading ? (
-              <Skeleton className="h-4 w-28" />
-            ) : (
-              <span className="font-semibold text-stone-900 tabular-nums">
-                {formatRupiah(stats.data?.today_revenue ?? 0)}
-                <span className="font-normal text-stone-400">
-                  {" "}
-                  · {stats.data?.today_orders ?? 0} {t("adminPromo.dash.ordersUnit")}
+    <Page width="full" className="space-y-4">
+      <PageHeader
+        icon={House}
+        title={t("admin.nav.home")}
+        subtitle={`${t("adminPromo.dash.subtitle")} · ${dateFmt.format(bounds.from)} – ${dateFmt.format(bounds.to)}`}
+        actions={
+          <>
+            <div className="flex h-8 items-center gap-2 rounded-lg bg-white px-3 shadow-[inset_0_-1px_0_0_#b5b5b5,inset_0_0_0_1px_rgba(0,0,0,0.12)]">
+              <span className="h-2 w-2 rounded-full bg-[#29845a]" />
+              <span className="text-admin-muted">{t("adminPromo.dash.today")}</span>
+              {stats.isLoading ? (
+                <Skeleton className="h-4 w-28" />
+              ) : (
+                <span className="font-semibold text-admin-text tabular-nums">
+                  {formatRupiah(stats.data?.today_revenue ?? 0)}
+                  <span className="font-normal text-admin-faint">
+                    {" "}
+                    · {stats.data?.today_orders ?? 0} {t("adminPromo.dash.ordersUnit")}
+                  </span>
                 </span>
-              </span>
-            )}
-          </div>
-          <div
-            role="radiogroup"
-            aria-label={t("adminPromo.dash.period")}
-            className="inline-flex rounded-full border border-stone-200 bg-white p-1"
-          >
-            {RANGES.map((r) => (
-              <button
-                key={r.days}
-                type="button"
-                role="radio"
-                aria-checked={range === r.days}
-                onClick={() => setRange(r.days)}
-                className={cn(
-                  "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
-                  range === r.days ? "bg-stone-900 text-white" : "text-stone-500 hover:text-stone-900",
-                )}
-              >
-                {t(r.key)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+              )}
+            </div>
+            <Segmented
+              label={t("adminPromo.dash.period")}
+              value={range}
+              onChange={setRange}
+              options={RANGES.map((r) => ({ value: r.days, label: t(r.key) }))}
+            />
+          </>
+        }
+      />
 
       {/* KPI periode, dengan pembanding periode sebelumnya */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -341,9 +321,7 @@ export default function AdminDashboard() {
           subtitle={t("adminPromo.dash.attentionHint")}
           action={
             !stats.isLoading && attentionTotal === 0 ? (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                {t("adminPromo.dash.allClear")}
-              </span>
+              <Badge tone="success">{t("adminPromo.dash.allClear")}</Badge>
             ) : undefined
           }
         >
@@ -409,22 +387,22 @@ export default function AdminDashboard() {
             <ol className="space-y-4">
               {topProducts.data.map((prod, i) => (
                 <li key={prod.product_id} className="flex items-center gap-3">
-                  <span className="w-4 text-sm font-semibold text-stone-300 tabular-nums">{i + 1}</span>
+                  <span className="w-4 text-sm font-semibold text-[#b5b5b5] tabular-nums">{i + 1}</span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="truncate text-sm font-medium text-stone-800">{prod.name}</span>
-                      <span className="shrink-0 text-sm font-medium text-stone-900 tabular-nums">
+                      <span className="truncate text-sm font-medium text-admin-text">{prod.name}</span>
+                      <span className="shrink-0 text-sm font-medium text-admin-text tabular-nums">
                         {compactRupiah(prod.revenue, locale)}
                       </span>
                     </div>
                     <div className="mt-1.5 flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-stone-100">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-admin-hover">
                         <div
                           className="h-full rounded-full bg-brand"
                           style={{ width: `${(prod.items_sold / maxSold) * 100}%` }}
                         />
                       </div>
-                      <span className="w-16 shrink-0 text-right text-xs text-stone-400 tabular-nums">
+                      <span className="w-16 shrink-0 text-right text-xs text-admin-faint tabular-nums">
                         {t("adminPromo.dash.sold", { n: prod.items_sold })}
                       </span>
                     </div>
@@ -437,69 +415,50 @@ export default function AdminDashboard() {
       </div>
 
       {/* Pesanan terbaru */}
-      <Panel
+      <Card
+        flush
         title={t("adminPromo.dash.recentOrders")}
-        action={
-          <Link href="/admin/orders" className="text-sm font-medium text-brand-strong hover:underline">
-            {t("adminPromo.viewAll")} &rarr;
-          </Link>
-        }
+        action={<TextLink href="/admin/orders">{t("adminPromo.viewAll")}</TextLink>}
       >
-        <div className="-mx-6 -mb-6 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-y border-stone-100 bg-stone-50/60 text-left text-xs font-medium uppercase tracking-wide text-stone-400">
-                <th scope="col" className="px-6 py-2.5">{t("adminPromo.dashboard.thOrderId")}</th>
-                <th scope="col" className="px-6 py-2.5">{t("adminPromo.dashboard.thEmail")}</th>
-                <th scope="col" className="px-6 py-2.5">{t("adminPromo.dashboard.thStatus")}</th>
-                <th scope="col" className="px-6 py-2.5 text-right">{t("adminPromo.dashboard.thTotal")}</th>
-                <th scope="col" className="px-6 py-2.5 text-right">{t("adminPromo.dashboard.thDate")}</th>
+        <DataTable>
+          <thead>
+            <tr>
+              <Th>{t("adminPromo.dashboard.thOrderId")}</Th>
+              <Th>{t("adminPromo.dashboard.thEmail")}</Th>
+              <Th>{t("adminPromo.dashboard.thStatus")}</Th>
+              <Th align="right">{t("adminPromo.dashboard.thTotal")}</Th>
+              <Th align="right">{t("adminPromo.dashboard.thDate")}</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.isLoading ? (
+              <SkeletonRows cols={5} rows={4} />
+            ) : stats.data?.recent_orders && stats.data.recent_orders.length > 0 ? (
+              stats.data.recent_orders.map((order) => (
+                <Tr key={order.id} href={`/admin/orders/${order.id}`}>
+                  <Td className="whitespace-nowrap font-semibold">{order.order_number}</Td>
+                  <Td className="max-w-56 truncate text-admin-muted">{order.customer_email || "—"}</Td>
+                  <Td className="whitespace-nowrap">
+                    <OrderBadge status={order.status} />
+                  </Td>
+                  <Td align="right" className="whitespace-nowrap tabular-nums">
+                    {formatRupiah(order.total)}
+                  </Td>
+                  <Td align="right" className="whitespace-nowrap text-admin-muted">
+                    {dateFmt.format(new Date(order.created_at))}
+                  </Td>
+                </Tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-4 py-10 text-center text-admin-muted">
+                  {t("adminPromo.dashboard.emptyOrders")}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {stats.isLoading ? (
-                Array.from({ length: 4 }, (_, i) => (
-                  <tr key={i}>
-                    <td colSpan={5} className="px-6 py-3">
-                      <Skeleton className="h-6 w-full" />
-                    </td>
-                  </tr>
-                ))
-              ) : stats.data?.recent_orders && stats.data.recent_orders.length > 0 ? (
-                stats.data.recent_orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    onClick={() => router.push(`/admin/orders/${order.id}`)}
-                    className="cursor-pointer transition-colors hover:bg-stone-50"
-                  >
-                    <td className="whitespace-nowrap px-6 py-3.5 font-medium text-stone-900">
-                      <Link href={`/admin/orders/${order.id}`} onClick={(e) => e.stopPropagation()}>
-                        {order.order_number}
-                      </Link>
-                    </td>
-                    <td className="max-w-56 truncate px-6 py-3.5 text-stone-500">{order.customer_email || "—"}</td>
-                    <td className="whitespace-nowrap px-6 py-3.5">
-                      <OrderStatusBadge status={order.status as OrderStatus} />
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3.5 text-right font-medium text-stone-900 tabular-nums">
-                      {formatRupiah(order.total)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3.5 text-right text-stone-500">
-                      {dateFmt.format(new Date(order.created_at))}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-stone-400">
-                    {t("adminPromo.dashboard.emptyOrders")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-    </div>
+            )}
+          </tbody>
+        </DataTable>
+      </Card>
+    </Page>
   );
 }

@@ -1,167 +1,190 @@
 "use client";
 
 import { useState } from "react";
+import { MessageSquare, Reply } from "lucide-react";
 import { useAdminReviews, useAdminUpdateReview } from "@/lib/aftersales/queries";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RatingStars } from "@/components/kriya/catalog/rating-stars";
-import { Pagination } from "@/components/kriya/pagination";
+import { useLanguage } from "@/components/kriya/language-provider";
+import { ReviewStatusBadge } from "@/components/kriya/admin/status-badges";
+import {
+  Button,
+  Card,
+  DataTable,
+  EmptyState,
+  Field,
+  FilterTabs,
+  IndexToolbar,
+  Modal,
+  Pager,
+  SkeletonRows,
+  Td,
+  TextArea,
+  Th,
+  Tr,
+  useAdminFormat,
+} from "@/components/kriya/admin/ui";
 import type { Review, ReviewStatus } from "@/lib/aftersales/types";
 
+const LIMIT = 20;
+
 export function AdminReviews() {
+  const { t } = useLanguage();
+  const fmt = useAdminFormat();
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<string>("pending");
-  const { data: reviews, isLoading } = useAdminReviews(status as ReviewStatus, page, 20);
-
-  const [replyDialog, setReplyDialog] = useState<{ open: boolean; review?: Review }>({ open: false });
-
+  const [status, setStatus] = useState<ReviewStatus>("pending");
+  const { data: reviews, isLoading } = useAdminReviews(status, page, LIMIT);
+  const [replying, setReplying] = useState<Review | null>(null);
   const updateMut = useAdminUpdateReview();
 
-  const handleStatusChange = (reviewId: string, newStatus: ReviewStatus) => {
-    updateMut.mutate({ id: reviewId, req: { status: newStatus } });
-  };
+  const setReviewStatus = (id: string, next: ReviewStatus) => updateMut.mutate({ id, req: { status: next } });
+  const rows = reviews?.data ?? [];
+  const totalPages = Math.max(1, Math.ceil((reviews?.meta.total ?? 0) / LIMIT));
+  const busy = (id: string) => updateMut.isPending && updateMut.variables?.id === id;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Select value={status} onValueChange={(v) => { setStatus(v || "pending"); setPage(1); }}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pending">Menunggu Moderasi</SelectItem>
-            <SelectItem value="approved">Disetujui</SelectItem>
-            <SelectItem value="rejected">Ditolak</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <Card flush>
+      <IndexToolbar>
+        <FilterTabs
+          tabs={[
+            { value: "pending", label: t("after.admin.reviews.filterPending") },
+            { value: "approved", label: t("after.admin.reviews.filterApproved") },
+            { value: "rejected", label: t("after.admin.reviews.filterRejected") },
+          ]}
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+        />
+      </IndexToolbar>
 
-      {isLoading ? (
-        <div className="text-center py-8">Memuat...</div>
-      ) : reviews?.data.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg text-muted-foreground">
-          Tidak ada ulasan dengan status ini.
-        </div>
+      {!isLoading && rows.length === 0 ? (
+        <EmptyState icon={MessageSquare} title={t("after.admin.reviews.emptyState")} />
       ) : (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-muted text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Ulasan & Produk</th>
-                <th className="px-4 py-3 font-medium">Pengguna</th>
-                <th className="px-4 py-3 font-medium">Status & Balasan</th>
-                <th className="px-4 py-3 font-medium text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {reviews?.data.map((review) => (
-                <tr key={review.id} className="bg-background">
-                  <td className="px-4 py-3 max-w-[300px]">
-                    <div className="font-medium truncate mb-1" title={review.product_name}>
+        <DataTable>
+          <thead>
+            <tr>
+              <Th>{t("after.admin.reviews.thReview")}</Th>
+              <Th>{t("after.admin.reviews.thUser")}</Th>
+              <Th>{t("after.admin.reviews.thStatus")}</Th>
+              <Th>
+                <span className="sr-only">{t("after.admin.reviews.thAction")}</span>
+              </Th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <SkeletonRows cols={4} />
+            ) : (
+              rows.map((review) => (
+                <Tr key={review.id}>
+                  <Td className="max-w-[26rem] align-top">
+                    <p className="truncate text-xs font-medium text-admin-muted" title={review.product_name}>
                       {review.product_name}
+                    </p>
+                    <div className="mt-1">
+                      <RatingStars value={review.rating} size="sm" />
                     </div>
-                    <RatingStars value={review.rating} size="sm" />
-                    {review.title && <div className="font-medium mt-2">{review.title}</div>}
-                    {review.body && <div className="text-muted-foreground line-clamp-3 mt-1">{review.body}</div>}
-                  </td>
-                  <td className="px-4 py-3 align-top whitespace-nowrap">
-                    <div>{review.user_name}</div>
-                    <div className="text-muted-foreground text-xs mt-1">
-                      {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "2-digit" }).format(new Date(review.created_at))}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <span className="uppercase text-xs font-semibold px-2 py-0.5 bg-muted rounded">
-                      {review.status}
-                    </span>
+                    {review.title && <p className="mt-1.5 font-semibold">{review.title}</p>}
+                    {review.body && <p className="mt-0.5 line-clamp-3 whitespace-normal text-admin-text">{review.body}</p>}
                     {review.admin_reply && (
-                      <div className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded line-clamp-2" title={review.admin_reply}>
-                        {review.admin_reply}
+                      <div className="mt-2 rounded-lg border-l-2 border-[#b5b5b5] bg-admin-subdued px-2.5 py-1.5 text-xs">
+                        <span className="font-semibold">{t("admin.reviews.yourReply")}</span>{" "}
+                        <span className="line-clamp-2 text-admin-muted">{review.admin_reply}</span>
                       </div>
                     )}
-                  </td>
-                  <td className="px-4 py-3 align-top text-right space-x-2 whitespace-nowrap">
-                    {review.status === "pending" && (
-                      <>
-                        <Button variant="outline" size="sm" className="text-green-600" onClick={() => handleStatusChange(review.id, "approved")} disabled={updateMut.isPending}>Setujui</Button>
-                        <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleStatusChange(review.id, "rejected")} disabled={updateMut.isPending}>Tolak</Button>
-                      </>
-                    )}
-                    {(review.status === "approved" || review.status === "rejected") && (
-                      <Button variant="outline" size="sm" onClick={() => handleStatusChange(review.id, "pending")} disabled={updateMut.isPending}>Reset</Button>
-                    )}
-                    <Button variant="default" size="sm" onClick={() => setReplyDialog({ open: true, review })}>Balas</Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </Td>
+                  <Td className="whitespace-nowrap align-top">
+                    <p>{review.user_name}</p>
+                    <p className="mt-0.5 text-xs text-admin-muted">{fmt.date(review.created_at)}</p>
+                  </Td>
+                  <Td className="align-top">
+                    <ReviewStatusBadge status={review.status} />
+                  </Td>
+                  <Td align="right" className="whitespace-nowrap align-top">
+                    <div className="inline-flex flex-wrap justify-end gap-1.5">
+                      {review.status === "pending" ? (
+                        <>
+                          <Button size="slim" disabled={busy(review.id)} onClick={() => setReviewStatus(review.id, "rejected")}>
+                            {t("after.admin.reviews.reject")}
+                          </Button>
+                          <Button
+                            size="slim"
+                            variant="primary"
+                            disabled={busy(review.id)}
+                            onClick={() => setReviewStatus(review.id, "approved")}
+                          >
+                            {t("after.admin.reviews.approve")}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button size="slim" variant="tertiary" disabled={busy(review.id)} onClick={() => setReviewStatus(review.id, "pending")}>
+                          {t("after.admin.reviews.reset")}
+                        </Button>
+                      )}
+                      <Button size="slim" onClick={() => setReplying(review)}>
+                        <Reply /> {t("after.admin.reviews.reply")}
+                      </Button>
+                    </div>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </tbody>
+        </DataTable>
       )}
+      <Pager page={page} totalPages={totalPages} onPage={setPage} />
 
-      {reviews?.meta && reviews.meta.total > 20 && (
-        <Pagination page={page} totalPages={Math.ceil(reviews.meta.total / 20)} onPage={setPage} />
-      )}
-
-      <AdminReplyDialog 
-        open={replyDialog.open} 
-        onOpenChange={(open) => setReplyDialog((prev) => ({ ...prev, open }))}
-        review={replyDialog.review}
-      />
-    </div>
+      {replying && <AdminReplyModal key={replying.id} review={replying} onClose={() => setReplying(null)} />}
+    </Card>
   );
 }
 
-function AdminReplyDialog({ open, onOpenChange, review }: { open: boolean, onOpenChange: (o: boolean) => void, review?: Review }) {
-  const [reply, setReply] = useState(review?.admin_reply || "");
+// Di-mount ulang per ulasan (key) sehingga isian awal = balasan tersimpan.
+function AdminReplyModal({ review, onClose }: { review: Review; onClose: () => void }) {
+  const { t } = useLanguage();
+  const [reply, setReply] = useState(review.admin_reply || "");
   const updateMut = useAdminUpdateReview();
-
-  if (open && review && reply === "" && !review.admin_reply) {
-    setReply("");
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (review) {
-      updateMut.mutate({ id: review.id, req: { admin_reply: reply } }, {
-        onSuccess: () => onOpenChange(false)
-      });
-    }
+    updateMut.mutate({ id: review.id, req: { admin_reply: reply } }, { onSuccess: onClose });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Balas Ulasan</DialogTitle>
-        </DialogHeader>
-        <div className="p-4 bg-muted/30 rounded-md text-sm mb-4">
-          <div className="font-semibold mb-1">{review?.title}</div>
-          <div>{review?.body}</div>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Balasan Anda</label>
-            <Textarea 
-              value={reply} 
-              onChange={(e) => setReply(e.target.value)} 
-              placeholder="Tulis balasan publik untuk pengguna ini"
-              rows={4}
-              maxLength={2000}
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Batal
-            </Button>
-            <Button type="submit" disabled={updateMut.isPending}>
-              Kirim Balasan
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <Modal
+      open
+      onClose={onClose}
+      title={t("after.admin.reviews.replyTitle")}
+      footer={
+        <>
+          <Button onClick={onClose}>{t("after.admin.reviews.replyCancel")}</Button>
+          <Button type="submit" form="review-reply" variant="primary" loading={updateMut.isPending}>
+            {t("after.admin.reviews.replySubmit")}
+          </Button>
+        </>
+      }
+    >
+      <div className="mb-4 rounded-xl bg-admin-subdued p-3">
+        <RatingStars value={review.rating} size="sm" />
+        {review.title && <p className="mt-1.5 font-semibold">{review.title}</p>}
+        {review.body && <p className="mt-0.5 text-admin-text">{review.body}</p>}
+        <p className="mt-1.5 text-xs text-admin-muted">
+          {review.user_name} · {review.product_name}
+        </p>
+      </div>
+      <form id="review-reply" onSubmit={handleSubmit}>
+        <Field label={t("after.admin.reviews.replyLabel")} htmlFor="review-reply-body">
+          <TextArea
+            id="review-reply-body"
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            placeholder={t("after.admin.reviews.replyPlaceholder")}
+            rows={4}
+            maxLength={2000}
+          />
+        </Field>
+      </form>
+    </Modal>
   );
 }

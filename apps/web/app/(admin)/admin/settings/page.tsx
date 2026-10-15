@@ -1,15 +1,25 @@
 "use client";
 
-import { useAdminSettings, useUpdateAdminSettings } from "@/lib/customer/queries";
-import { useLanguage } from "@/components/kriya/language-provider";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { AdminSettings } from "@/lib/customer/types";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Settings, Truck } from "lucide-react";
+import { useAdminSettings, useUpdateAdminSettings } from "@/lib/customer/queries";
+import type { AdminSettings } from "@/lib/customer/types";
+import { useLanguage } from "@/components/kriya/language-provider";
+import {
+  AnnotatedSection,
+  Button,
+  ButtonLink,
+  Card,
+  Checkbox,
+  ErrorState,
+  Field,
+  FormGrid,
+  LoadingState,
+  Page,
+  PageHeader,
+  TextInput,
+} from "@/components/kriya/admin/ui";
 
 function SettingsForm({ initialData }: { initialData: AdminSettings }) {
   const { t } = useLanguage();
@@ -23,80 +33,147 @@ function SettingsForm({ initialData }: { initialData: AdminSettings }) {
       tax_rate_bp: Number(formData.tax_rate_bp),
       pending_payment_ttl_minutes: Number(formData.pending_payment_ttl_minutes),
       return_window_days: Number(formData.return_window_days),
-      low_stock_threshold_default: Number(formData.low_stock_threshold_default)
+      low_stock_threshold_default: Number(formData.low_stock_threshold_default),
     };
     update(payload, {
-      onSuccess: () => {
-        toast.success(t("adminCustomer.settings.success"));
-      },
-      onError: (err) => {
-        toast.error(err.message);
-      }
+      onSuccess: () => toast.success(t("adminCustomer.settings.success")),
+      onError: (err) => toast.error(err.message),
     });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? Number(value) : value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: type === "number" ? Number(value) : value }));
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="store_name">{t("adminCustomer.settings.storeName")}</Label>
-        <Input id="store_name" name="store_name" required value={formData.store_name} onChange={handleChange} />
-      </div>
+    <form id="settings-form" onSubmit={onSubmit}>
+      <AnnotatedSection title={t("admin.settings.storeTitle")} description={t("admin.settings.storeDesc")}>
+        <Card>
+          <div className="space-y-4">
+            <Field label={t("adminCustomer.settings.storeName")} htmlFor="store_name">
+              <TextInput id="store_name" name="store_name" required value={formData.store_name} onChange={handleChange} />
+            </Field>
+            <FormGrid>
+              <Field label={t("adminCustomer.settings.supportEmail")} htmlFor="support_email">
+                <TextInput
+                  id="support_email"
+                  name="support_email"
+                  type="email"
+                  value={formData.support_email || ""}
+                  onChange={handleChange}
+                />
+              </Field>
+              <Field label={t("adminCustomer.settings.supportPhone")} htmlFor="support_phone">
+                <TextInput id="support_phone" name="support_phone" value={formData.support_phone || ""} onChange={handleChange} />
+              </Field>
+            </FormGrid>
+          </div>
+        </Card>
+      </AnnotatedSection>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="support_email">{t("adminCustomer.settings.supportEmail")}</Label>
-          <Input id="support_email" name="support_email" type="email" value={formData.support_email || ""} onChange={handleChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="support_phone">{t("adminCustomer.settings.supportPhone")}</Label>
-          <Input id="support_phone" name="support_phone" value={formData.support_phone || ""} onChange={handleChange} />
-        </div>
-      </div>
+      <AnnotatedSection title={t("admin.settings.taxTitle")} description={t("admin.settings.taxDesc")}>
+        <Card>
+          <div className="space-y-4">
+            <Field
+              label={t("admin.settings.taxRate")}
+              htmlFor="tax_rate_bp"
+              help={t("admin.settings.taxRateHint", { pct: (Number(formData.tax_rate_bp) / 100).toLocaleString() })}
+            >
+              <TextInput
+                id="tax_rate_bp"
+                name="tax_rate_bp"
+                type="number"
+                min={0}
+                max={5000}
+                required
+                suffix="bp"
+                className="sm:max-w-56"
+                value={formData.tax_rate_bp}
+                onChange={handleChange}
+              />
+            </Field>
+            <Checkbox
+              label={t("adminCustomer.settings.pricesIncludeTax")}
+              checked={formData.prices_include_tax}
+              onChange={(e) => setFormData((prev) => ({ ...prev, prices_include_tax: e.target.checked }))}
+            />
+          </div>
+        </Card>
+      </AnnotatedSection>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="tax_rate_bp">{t("adminCustomer.settings.taxRate")}</Label>
-          <Input id="tax_rate_bp" name="tax_rate_bp" type="number" min={0} max={5000} required value={formData.tax_rate_bp} onChange={handleChange} />
-          <p className="text-xs text-muted-foreground">{t("adminCustomer.settings.taxHelp")}</p>
-        </div>
-        <div className="flex items-center space-x-2 pt-8">
-          <Checkbox 
-            id="prices_include_tax" 
-            checked={formData.prices_include_tax} 
-            onCheckedChange={(checked) => setFormData(prev => ({...prev, prices_include_tax: checked === true}))} 
-          />
-          <Label htmlFor="prices_include_tax" className="cursor-pointer">{t("adminCustomer.settings.pricesIncludeTax")}</Label>
-        </div>
-      </div>
+      <AnnotatedSection title={t("admin.settings.checkoutTitle")} description={t("admin.settings.checkoutDesc")}>
+        <Card>
+          <FormGrid>
+            <Field label={t("admin.settings.paymentTtl")} htmlFor="pending_payment_ttl_minutes" help={t("admin.settings.paymentTtlHint")}>
+              <TextInput
+                id="pending_payment_ttl_minutes"
+                name="pending_payment_ttl_minutes"
+                type="number"
+                min={15}
+                max={10080}
+                required
+                suffix={t("admin.settings.minutes")}
+                value={formData.pending_payment_ttl_minutes}
+                onChange={handleChange}
+              />
+            </Field>
+            <Field label={t("admin.settings.returnWindow")} htmlFor="return_window_days" help={t("admin.settings.returnWindowHint")}>
+              <TextInput
+                id="return_window_days"
+                name="return_window_days"
+                type="number"
+                min={0}
+                max={60}
+                required
+                suffix={t("admin.settings.days")}
+                value={formData.return_window_days}
+                onChange={handleChange}
+              />
+            </Field>
+          </FormGrid>
+        </Card>
+      </AnnotatedSection>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="pending_payment_ttl_minutes">{t("adminCustomer.settings.paymentTtl")}</Label>
-          <Input id="pending_payment_ttl_minutes" name="pending_payment_ttl_minutes" type="number" min={15} max={10080} required value={formData.pending_payment_ttl_minutes} onChange={handleChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="return_window_days">{t("adminCustomer.settings.returnWindow")}</Label>
-          <Input id="return_window_days" name="return_window_days" type="number" min={0} max={60} required value={formData.return_window_days} onChange={handleChange} />
-        </div>
-      </div>
+      <AnnotatedSection title={t("nav.admin.inventory")} description={t("admin.settings.inventoryDesc")}>
+        <Card>
+          <Field label={t("adminCustomer.settings.lowStock")} htmlFor="low_stock_threshold_default">
+            <TextInput
+              id="low_stock_threshold_default"
+              name="low_stock_threshold_default"
+              type="number"
+              min={0}
+              required
+              suffix={t("admin.settings.units")}
+              className="sm:max-w-56"
+              value={formData.low_stock_threshold_default}
+              onChange={handleChange}
+            />
+          </Field>
+        </Card>
+      </AnnotatedSection>
 
-      <div className="space-y-2">
-        <Label htmlFor="low_stock_threshold_default">{t("adminCustomer.settings.lowStock")}</Label>
-        <Input id="low_stock_threshold_default" name="low_stock_threshold_default" type="number" min={0} required value={formData.low_stock_threshold_default} onChange={handleChange} />
-      </div>
+      <AnnotatedSection title={t("nav.admin.shipping")} description={t("admin.settings.shippingDesc")}>
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-admin-hover">
+                <Truck className="size-4" />
+              </span>
+              <p>{t("adminCustomer.shipping.subtitle")}</p>
+            </div>
+            <ButtonLink href="/admin/shipping" size="slim">
+              {t("admin.settings.manage")}
+            </ButtonLink>
+          </div>
+        </Card>
+      </AnnotatedSection>
 
-      <Button type="submit" disabled={isPending}>
-        {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-        {t("adminCustomer.settings.save")}
-      </Button>
+      <div className="mt-2 flex justify-end border-t border-[#d4d4d4] pt-5">
+        <Button type="submit" variant="primary" loading={isPending}>
+          {t("adminCustomer.settings.save")}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -105,33 +182,20 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   const { data, isLoading, isError, refetch } = useAdminSettings();
 
-  if (isLoading) {
-    return (
-      <div className="p-6 flex items-center gap-2 text-muted-foreground" role="status">
-        <Loader2 className="animate-spin w-6 h-6" />
-        <span className="text-sm">Memuat pengaturan toko...</span>
-      </div>
-    );
-  }
-
-  if (isError || !data) {
-    return (
-      <div className="p-6 max-w-2xl">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
-          <AlertCircle className="mx-auto h-8 w-8 mb-2 text-red-500" />
-          <p className="text-sm font-medium">Gagal memuat pengaturan toko.</p>
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-3">
-            Coba lagi
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-semibold mb-6">{t("adminCustomer.settings.title")}</h1>
-      <SettingsForm initialData={data} />
-    </div>
+    <Page>
+      <PageHeader icon={Settings} title={t("adminCustomer.settings.title")} />
+      {isLoading ? (
+        <Card>
+          <LoadingState />
+        </Card>
+      ) : isError || !data ? (
+        <Card>
+          <ErrorState onRetry={() => refetch()} />
+        </Card>
+      ) : (
+        <SettingsForm initialData={data} />
+      )}
+    </Page>
   );
 }

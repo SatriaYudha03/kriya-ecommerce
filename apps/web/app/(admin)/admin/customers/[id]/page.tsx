@@ -1,158 +1,173 @@
 "use client";
 
-import { useAdminCustomerDetail } from "@/lib/customer/queries";
-import { useLanguage } from "@/components/kriya/language-provider";
-import { formatRupiah } from "@/lib/format";
-import { Loader2, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { OrderStatusBadge } from "@/components/kriya/aftersales/order-status-badge";
-import type { OrderStatus } from "@/lib/aftersales/types";
 import { useParams } from "next/navigation";
+import { User } from "lucide-react";
+import { useAdminCustomerDetail } from "@/lib/customer/queries";
+import { formatRupiah } from "@/lib/format";
+import { useLanguage } from "@/components/kriya/language-provider";
+import { OrderBadge } from "@/components/kriya/admin/status-badges";
+import {
+  Badge,
+  Card,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  InfoItem,
+  InfoList,
+  Layout,
+  LayoutAside,
+  LayoutMain,
+  LoadingState,
+  Page,
+  PageHeader,
+  Td,
+  Th,
+  Tr,
+  useAdminFormat,
+} from "@/components/kriya/admin/ui";
 
 export default function CustomerDetailPage() {
   const { t } = useLanguage();
-  const params = useParams();
-  const id = params.id as string;
-  const { data, isLoading, isError } = useAdminCustomerDetail(id);
+  const fmt = useAdminFormat();
+  const { id } = useParams<{ id: string }>();
+  const { data, isLoading, isError, refetch } = useAdminCustomerDetail(id);
 
   if (isLoading) {
-    return <div className="p-6"><Loader2 className="animate-spin w-6 h-6 text-muted-foreground" /></div>;
+    return (
+      <Page>
+        <LoadingState />
+      </Page>
+    );
   }
 
   if (isError || !data) {
     return (
-      <div className="p-6 max-w-5xl">
-        <Link href="/admin/customers">
-          <Button variant="ghost" className="mb-4 -ml-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {t("adminCustomer.customerDetail.back")}
-          </Button>
-        </Link>
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
-          <p className="text-sm font-medium">Data pelanggan tidak ditemukan atau gagal dimuat.</p>
-        </div>
-      </div>
+      <Page>
+        <PageHeader
+          icon={User}
+          backHref="/admin/customers"
+          backLabel={t("nav.admin.customers")}
+          title={t("adminCustomer.customerDetail.title")}
+        />
+        <Card>
+          <ErrorState message={t("admin.customers.notFound")} onRetry={() => refetch()} />
+        </Card>
+      </Page>
     );
   }
 
+  const avg = data.orders_count > 0 ? Math.round(data.total_spent / data.orders_count) : 0;
+
   return (
-    <div className="p-6 max-w-5xl">
-      <div className="mb-6">
-        <Link href="/admin/customers">
-          <Button variant="ghost" className="mb-4 -ml-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {t("adminCustomer.customerDetail.back")}
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-semibold">{t("adminCustomer.customerDetail.title")}</h1>
-      </div>
+    <Page>
+      <PageHeader
+        icon={User}
+        backHref="/admin/customers"
+        backLabel={t("nav.admin.customers")}
+        title={data.full_name || data.email}
+        subtitle={t("admin.customers.since", { date: fmt.date(data.created_at) })}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 space-y-6">
-          <div className="bg-card text-card-foreground shadow rounded-xl border">
-            <div className="p-6">
-              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.profile")}</h2>
-            </div>
-            <div className="p-6 pt-0 space-y-4">
-              <div>
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.name")}</div>
-                <div className="font-medium">{data.full_name || "-"}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.email")}</div>
-                <div className="font-medium">{data.email}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.phone")}</div>
-                <div className="font-medium">{data.phone || "-"}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.registered")}</div>
-                <div className="font-medium">{new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(data.created_at))}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card text-card-foreground shadow rounded-xl border">
-            <div className="p-6">
-              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.stats")}</h2>
-            </div>
-            <div className="p-6 pt-0 space-y-4">
-              <div>
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.ordersCount")}</div>
-                <div className="font-medium text-2xl">{data.orders_count}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.totalSpent")}</div>
-                <div className="font-medium text-2xl text-emerald-600 dark:text-emerald-400">{formatRupiah(data.total_spent)}</div>
-              </div>
-            </div>
-          </div>
+      {/* Ringkasan angka seperti strip statistik pelanggan Shopify */}
+      <Card className="mb-4">
+        <div className="grid grid-cols-1 divide-y divide-admin-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <Stat label={t("adminCustomer.customerDetail.totalSpent")} value={formatRupiah(data.total_spent)} />
+          <Stat label={t("adminCustomer.customerDetail.ordersCount")} value={String(data.orders_count)} />
+          <Stat label={t("admin.customers.aov")} value={formatRupiah(avg)} />
         </div>
+      </Card>
 
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-card text-card-foreground shadow rounded-xl border">
-            <div className="p-6">
-              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.recentOrders")}</h2>
-            </div>
-            <div className="p-6 pt-0">
-              {data.recent_orders.length === 0 ? (
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.noOrders")}</div>
-              ) : (
-                <div className="space-y-4">
-                  {data.recent_orders.map(order => (
-                    <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
-                      <div>
-                        <div className="font-medium">{order.order_number}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(order.created_at))}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium mb-1">{formatRupiah(order.total)}</div>
-                        <OrderStatusBadge status={order.status as OrderStatus} />
-                      </div>
-                    </div>
+      <Layout>
+        <LayoutMain>
+          <Card flush title={t("adminCustomer.customerDetail.recentOrders")}>
+            {data.recent_orders.length === 0 ? (
+              <EmptyState title={t("adminCustomer.customerDetail.noOrders")} />
+            ) : (
+              <DataTable>
+                <thead>
+                  <tr>
+                    <Th>{t("admin.orders.thOrder")}</Th>
+                    <Th>{t("after.admin.orders.thDate")}</Th>
+                    <Th>{t("after.admin.orders.thStatus")}</Th>
+                    <Th align="right">{t("after.admin.orders.thTotal")}</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recent_orders.map((order) => (
+                    <Tr key={order.id} href={`/admin/orders/${order.id}`}>
+                      <Td className="font-semibold">{order.order_number}</Td>
+                      <Td className="text-admin-muted">{fmt.date(order.created_at)}</Td>
+                      <Td>
+                        <OrderBadge status={order.status} />
+                      </Td>
+                      <Td align="right" className="tabular-nums">
+                        {formatRupiah(order.total)}
+                      </Td>
+                    </Tr>
                   ))}
-                </div>
-              )}
-            </div>
-          </div>
+                </tbody>
+              </DataTable>
+            )}
+          </Card>
 
-          <div className="bg-card text-card-foreground shadow rounded-xl border">
-            <div className="p-6">
-              <h2 className="font-semibold leading-none tracking-tight">{t("adminCustomer.customerDetail.addresses")}</h2>
-            </div>
-            <div className="p-6 pt-0">
-              {data.addresses.length === 0 ? (
-                <div className="text-sm text-muted-foreground">{t("adminCustomer.customerDetail.noAddresses")}</div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {data.addresses.map(addr => (
-                    <div key={addr.id} className="border rounded-md p-4 text-sm relative">
-                      {addr.is_default && (
-                        <span className="absolute top-3 right-3 text-xs bg-brand/10 text-brand font-semibold px-2 py-0.5 rounded-full">
-                          {t("adminCustomer.customerDetail.defaultBadge")}
-                        </span>
-                      )}
-                      <div className="font-semibold text-neutral-900 mb-1">{addr.label}</div>
-                      <div className="font-medium">{addr.recipient} ({addr.phone})</div>
-                      <div className="text-muted-foreground mt-1 line-clamp-2">{addr.address_line}</div>
-                      <div className="text-muted-foreground">{addr.district ? `${addr.district}, ` : ""}{addr.city}, {addr.province} {addr.postal_code}</div>
-                      {addr.notes && (
-                        <div className="text-xs text-muted-foreground italic mt-2">
-                          {t("adminCustomer.customerDetail.notes")}: {addr.notes}
-                        </div>
-                      )}
+          <Card title={t("adminCustomer.customerDetail.addresses")}>
+            {data.addresses.length === 0 ? (
+              <p className="text-admin-muted">{t("adminCustomer.customerDetail.noAddresses")}</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {data.addresses.map((addr) => (
+                  <div key={addr.id} className="rounded-xl border border-admin-border p-3">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <p className="font-semibold">{addr.label}</p>
+                      {addr.is_default && <Badge tone="info">{t("adminCustomer.customerDetail.defaultBadge")}</Badge>}
                     </div>
-                  ))}
-                </div>
+                    <p>
+                      {addr.recipient} · {addr.phone}
+                    </p>
+                    <p className="mt-1 text-admin-muted">{addr.address_line}</p>
+                    <p className="text-admin-muted">
+                      {addr.district ? `${addr.district}, ` : ""}
+                      {addr.city}, {addr.province} {addr.postal_code}
+                    </p>
+                    {addr.notes && (
+                      <p className="mt-2 text-xs italic text-admin-muted">
+                        {t("adminCustomer.customerDetail.notes")}: {addr.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </LayoutMain>
+
+        <LayoutAside>
+          <Card title={t("admin.customers.overview")}>
+            <InfoList>
+              <InfoItem label={t("adminCustomer.customerDetail.name")}>{data.full_name || "—"}</InfoItem>
+              <InfoItem label={t("adminCustomer.customerDetail.email")}>
+                <a href={`mailto:${data.email}`} className="text-admin-link hover:underline">
+                  {data.email}
+                </a>
+              </InfoItem>
+              <InfoItem label={t("adminCustomer.customerDetail.phone")}>{data.phone || "—"}</InfoItem>
+              <InfoItem label={t("adminCustomer.customerDetail.registered")}>{fmt.date(data.created_at)}</InfoItem>
+              {data.last_order_at && (
+                <InfoItem label={t("admin.customers.lastOrder")}>{fmt.date(data.last_order_at)}</InfoItem>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
+            </InfoList>
+          </Card>
+        </LayoutAside>
+      </Layout>
+    </Page>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="px-1 py-2 sm:px-4 sm:first:pl-0">
+      <p className="text-xs text-admin-muted">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-admin-text">{value}</p>
     </div>
   );
 }

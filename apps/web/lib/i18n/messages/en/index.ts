@@ -4,6 +4,7 @@ import { customerEn } from "./customer";
 import { promoEn } from "./promo";
 import { aftersalesEn } from "./aftersales";
 import { checkoutEn } from "./checkout";
+import { adminEn } from "./admin";
 
 export const en = {
   ...coreEn,
@@ -12,4 +13,5 @@ export const en = {
   ...promoEn,
   ...aftersalesEn,
   ...checkoutEn,
+  ...adminEn,
 };

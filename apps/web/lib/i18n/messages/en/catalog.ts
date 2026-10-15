@@ -69,7 +69,7 @@ export const catalogEn: typeof catalogId = {
   "adminCatalog.products.search": "Search products...",
   "adminCatalog.products.allStatus": "All Statuses",
   "adminCatalog.products.draft": "Draft",
-  "adminCatalog.products.published": "Published",
+  "adminCatalog.products.published": "Active",
   "adminCatalog.products.archived": "Archived",
   "adminCatalog.products.loading": "Loading products…",
   "adminCatalog.products.error": "Failed to load products.",

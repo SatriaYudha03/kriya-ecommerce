@@ -1,161 +1,202 @@
 "use client";
 
 import { useState } from "react";
+import { Undo2 } from "lucide-react";
 import { useAdminReturns, useUpdateAdminReturnStatus } from "@/lib/aftersales/queries";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import type { ReturnReasonCode, ReturnRequest, ReturnStatus } from "@/lib/aftersales/types";
+import type { MessageKey } from "@/lib/i18n";
 import { useLanguage } from "@/components/kriya/language-provider";
-import Image from "next/image";
-import type { ReturnStatus } from "@/lib/aftersales/types";
+import { ReturnStatusBadge } from "@/components/kriya/admin/status-badges";
+import {
+  Button,
+  ButtonLink,
+  Card,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  Field,
+  FilterTabs,
+  IndexToolbar,
+  InfoItem,
+  InfoList,
+  Modal,
+  Page,
+  PageHeader,
+  Pager,
+  SkeletonRows,
+  Td,
+  TextArea,
+  TextLink,
+  Th,
+  Thumbnail,
+  Tr,
+  stopRow,
+  useAdminFormat,
+} from "@/components/kriya/admin/ui";
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case "requested": return "bg-yellow-500";
-    case "approved": return "bg-blue-500";
-    case "received": return "bg-purple-500";
-    case "refunded": return "bg-green-500";
-    case "rejected":
-    case "cancelled": return "bg-red-500";
-    default: return "bg-gray-500";
-  }
+const LIMIT = 20;
+type Tab = ReturnStatus | "all";
+
+const REASON: Record<ReturnReasonCode, MessageKey> = {
+  damaged: "after.returns.reasonDamaged",
+  wrong_item: "after.returns.reasonWrongItem",
+  not_as_described: "after.returns.reasonNotAsDescribed",
+  missing_parts: "after.returns.reasonMissingParts",
+  changed_mind: "after.returns.reasonChangedMind",
+  other: "after.returns.reasonOther",
+};
+
+function ReturnModal({ req, onClose }: { req: ReturnRequest; onClose: () => void }) {
+  const { t } = useLanguage();
+  const fmt = useAdminFormat();
+  const updateStatus = useUpdateAdminReturnStatus();
+  const [note, setNote] = useState(req.admin_note ?? "");
+  const actionable = req.status === "requested" || req.status === "approved";
+
+  const set = (status: ReturnStatus) =>
+    updateStatus.mutate({ id: req.id, req: { status, admin_note: note || undefined } }, { onSuccess: onClose });
+
+  const footer =
+    req.status === "requested" ? (
+      <>
+        <Button variant="critical" loading={updateStatus.isPending && updateStatus.variables?.req.status === "rejected"} onClick={() => set("rejected")}>
+          {t("admin.returns.reject")}
+        </Button>
+        <Button variant="primary" loading={updateStatus.isPending && updateStatus.variables?.req.status === "approved"} onClick={() => set("approved")}>
+          {t("admin.returns.approve")}
+        </Button>
+      </>
+    ) : req.status === "approved" ? (
+      <Button variant="primary" loading={updateStatus.isPending} onClick={() => set("received")}>
+        {t("admin.returns.markReceived")}
+      </Button>
+    ) : req.status === "received" ? (
+      <ButtonLink href={`/admin/orders/${req.order_id}`} variant="primary">
+        {t("admin.returns.openForRefund")}
+      </ButtonLink>
+    ) : undefined;
+
+  return (
+    <Modal open onClose={onClose} title={t("admin.returns.modalTitle", { order: req.order_number ?? req.order_id.split("-")[0] })} footer={footer}>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <ReturnStatusBadge status={req.status} />
+          <TextLink href={`/admin/orders/${req.order_id}`}>{t("admin.returns.viewOrder")}</TextLink>
+        </div>
+        <InfoList className="grid grid-cols-2 gap-3 space-y-0">
+          <InfoItem label={t("admin.returns.requestedAt")}>{fmt.dateTime(req.created_at)}</InfoItem>
+          <InfoItem label={t("after.returns.reasonLabel")}>{t(REASON[req.reason_code] ?? "after.returns.reasonOther")}</InfoItem>
+        </InfoList>
+        {req.description && (
+          <InfoItem label={t("admin.returns.description")}>
+            <span className="whitespace-pre-line">{req.description}</span>
+          </InfoItem>
+        )}
+        <div className="divide-y divide-admin-border rounded-xl border border-admin-border">
+          {req.items.map((item) => (
+            <div key={item.order_item_id} className="flex items-center gap-3 p-3">
+              <Thumbnail src={item.thumbnail_url} alt={item.product_name} />
+              <p className="min-w-0 flex-1 truncate font-medium">{item.product_name}</p>
+              <span className="tabular-nums text-admin-muted">× {item.qty}</span>
+            </div>
+          ))}
+        </div>
+        {actionable ? (
+          <Field label={t("after.returns.adminNoteLabel")} htmlFor="return-note" help={t("admin.returns.noteHint")}>
+            <TextArea id="return-note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+          </Field>
+        ) : (
+          req.admin_note && <InfoItem label={t("after.returns.adminNoteLabel")}>{req.admin_note}</InfoItem>
+        )}
+      </div>
+    </Modal>
+  );
 }
 
 export default function AdminReturnsPage() {
   const { t } = useLanguage();
-  const [page] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const { data, isLoading, isError } = useAdminReturns(statusFilter === "all" ? undefined : statusFilter, page, 20);
-  
-  const updateStatus = useUpdateAdminReturnStatus();
-  const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const fmt = useAdminFormat();
+  const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<Tab>("all");
+  const [open, setOpen] = useState<ReturnRequest | null>(null);
+  const { data, isLoading, isError, refetch } = useAdminReturns(tab === "all" ? undefined : tab, page, LIMIT);
 
-  const handleUpdateStatus = (id: string, status: ReturnStatus) => {
-    updateStatus.mutate({ id, req: { status, admin_note: adminNotes[id] } });
-  };
+  const rows = data?.data ?? [];
+  const totalPages = Math.max(1, Math.ceil((data?.meta.total ?? 0) / LIMIT));
+  const statuses: ReturnStatus[] = ["requested", "approved", "received", "refunded", "rejected"];
 
   return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t("adminAfter.returns.title")}</h1>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "all")}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("after.admin.orders.filterAll") || "Semua Status"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("after.admin.orders.filterAll") || "Semua Status"}</SelectItem>
-            <SelectItem value="requested">Requested</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="received">Received</SelectItem>
-            <SelectItem value="refunded">Refunded</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {isLoading ? (
-        <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>
-      ) : isError ? (
-        <div className="p-8 text-center text-red-500">{t("after.admin.orders.error")}</div>
-      ) : data?.data.length === 0 ? (
-        <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center text-neutral-500">
-          {t("after.returns.empty")}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {data?.data.map((req) => (
-            <div key={req.id} className="rounded-lg border border-neutral-200 bg-white p-6">
-              <div className="flex flex-row items-center justify-between pb-4 border-b border-neutral-100 mb-4">
-                <h3 className="text-lg font-semibold">
-                  Order <Link href={`/admin/orders/${req.order_id}`} className="text-blue-600 hover:underline">#{req.order_number}</Link>
-                </h3>
-                <Badge className={getStatusColor(req.status)}>
-                  {req.status}
-                </Badge>
-              </div>
-              <div>
-                <div className="text-sm text-neutral-500 mb-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <div>Tanggal: {new Date(req.created_at).toLocaleDateString()}</div>
-                    <div>Alasan: {req.reason_code}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-neutral-900">Deskripsi:</div>
-                    <p>{req.description || "-"}</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2 mb-4">
-                  {req.items.map((item) => (
-                    <div key={item.order_item_id} className="flex gap-4 items-center">
-                      {item.thumbnail_url && (
-                        <Image src={item.thumbnail_url} alt={item.product_name} width={40} height={40} className="rounded" />
-                      )}
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{item.product_name}</div>
-                        <div className="text-sm text-neutral-500">Qty: {item.qty}</div>
+    <Page width="wide">
+      <PageHeader icon={Undo2} title={t("nav.admin.returns")} subtitle={t("admin.returns.subtitle")} />
+
+      <Card flush>
+        <IndexToolbar>
+          <FilterTabs
+            tabs={[
+              { value: "all" as Tab, label: t("admin.common.all") },
+              ...statuses.map((s) => ({ value: s as Tab, label: t(`admin.returns.status.${s}` as MessageKey) })),
+            ]}
+            value={tab}
+            onChange={(v) => {
+              setTab(v);
+              setPage(1);
+            }}
+          />
+        </IndexToolbar>
+
+        {isError ? (
+          <ErrorState onRetry={() => refetch()} />
+        ) : !isLoading && rows.length === 0 ? (
+          <EmptyState icon={Undo2} title={t("after.returns.empty")} />
+        ) : (
+          <DataTable>
+            <thead>
+              <tr>
+                <Th>{t("admin.orders.thOrder")}</Th>
+                <Th>{t("admin.returns.requestedAt")}</Th>
+                <Th>{t("after.returns.reasonLabel")}</Th>
+                <Th>{t("admin.returns.items")}</Th>
+                <Th>{t("after.admin.orders.thStatus")}</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <SkeletonRows cols={5} />
+              ) : (
+                rows.map((req) => (
+                  <Tr key={req.id} className="cursor-pointer" onClick={() => setOpen(req)}>
+                    <Td className="whitespace-nowrap font-semibold">
+                      <TextLink href={`/admin/orders/${req.order_id}`} onClick={stopRow} className="text-admin-text">
+                        {req.order_number ?? req.order_id.split("-")[0]}
+                      </TextLink>
+                    </Td>
+                    <Td className="whitespace-nowrap text-admin-muted">{fmt.date(req.created_at)}</Td>
+                    <Td>{t(REASON[req.reason_code] ?? "after.returns.reasonOther")}</Td>
+                    <Td>
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          {req.items.slice(0, 3).map((it) => (
+                            <Thumbnail key={it.order_item_id} src={it.thumbnail_url} alt={it.product_name} size="sm" />
+                          ))}
+                        </div>
+                        <span className="text-admin-muted">
+                          {t("admin.orders.itemsCount", { n: req.items.reduce((s, it) => s + it.qty, 0) })}
+                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    </Td>
+                    <Td>
+                      <ReturnStatusBadge status={req.status} />
+                    </Td>
+                  </Tr>
+                ))
+              )}
+            </tbody>
+          </DataTable>
+        )}
+        <Pager page={page} totalPages={totalPages} onPage={setPage} />
+      </Card>
 
-                {req.status === "requested" || req.status === "approved" ? (
-                  <div className="space-y-3 pt-4 border-t border-neutral-100">
-                    <Input 
-                      placeholder="Catatan Admin (opsional)" 
-                      value={adminNotes[req.id] || ""}
-                      onChange={(e) => setAdminNotes({ ...adminNotes, [req.id]: e.target.value })}
-                    />
-                    <div className="flex gap-2">
-                      {req.status === "requested" && (
-                        <>
-                          <Button 
-                            variant="default" 
-                            onClick={() => handleUpdateStatus(req.id, "approved")}
-                            disabled={updateStatus.isPending}
-                          >
-                            Setujui
-                          </Button>
-                          <Button 
-                            variant="destructive" 
-                            onClick={() => handleUpdateStatus(req.id, "rejected")}
-                            disabled={updateStatus.isPending}
-                          >
-                            Tolak
-                          </Button>
-                        </>
-                      )}
-                      {req.status === "approved" && (
-                        <Button 
-                          variant="default" 
-                          onClick={() => handleUpdateStatus(req.id, "received")}
-                          disabled={updateStatus.isPending}
-                        >
-                          Tandai Diterima
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-
-                {req.status === "received" && (
-                  <div className="pt-4 border-t border-neutral-100 flex justify-end">
-                    <Link 
-                      href={`/admin/orders/${req.order_id}`}
-                      className="inline-flex h-9 items-center justify-center rounded-md bg-neutral-900 px-4 text-sm font-medium text-neutral-50 hover:bg-neutral-900/90"
-                    >
-                      Buka Pesanan untuk Refund
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      {open && <ReturnModal key={open.id} req={open} onClose={() => setOpen(null)} />}
+    </Page>
   );
 }

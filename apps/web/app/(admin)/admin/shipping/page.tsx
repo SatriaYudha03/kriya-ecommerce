@@ -1,214 +1,224 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Settings, Truck } from "lucide-react";
 import { formatRupiah } from "@/lib/format";
 import { useLanguage } from "@/components/kriya/language-provider";
 import { useAdminShippingZones, useUpdateShippingMethod } from "@/lib/customer/queries";
 import type { ShippingMethod } from "@/lib/customer/types";
-import { SectionHeading } from "@/components/kriya/section-heading";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Pencil, Loader2, AlertCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import {
+  Badge,
+  Button,
+  Card,
+  CardSection,
+  DataTable,
+  ErrorState,
+  Field,
+  LoadingState,
+  Modal,
+  Page,
+  PageHeader,
+  Td,
+  TextInput,
+  Th,
+  Tr,
+} from "@/components/kriya/admin/ui";
 
-export default function AdminShippingPage() {
+function EditMethodModal({ method, onClose }: { method: ShippingMethod; onClose: () => void }) {
   const { t, locale } = useLanguage();
-  const { data: zones, isLoading, isError, refetch } = useAdminShippingZones();
-  const { mutate: updateMethod, isPending: formSaveLoading } = useUpdateShippingMethod();
+  const { mutate: updateMethod, isPending } = useUpdateShippingMethod();
+  const [baseCost, setBaseCost] = useState(method.base_cost);
+  const [perKgCost, setPerKgCost] = useState(method.per_kg_cost);
+  const [freeMin, setFreeMin] = useState<number | "">(method.free_shipping_min_subtotal ?? "");
+  const name = method.name_i18n[locale] || method.name_i18n.id || method.code;
 
-  const [editMethod, setEditMethod] = useState<ShippingMethod | null>(null);
-  const [formBaseCost, setFormBaseCost] = useState(0);
-  const [formPerKgCost, setFormPerKgCost] = useState(0);
-  const [formFreeMin, setFormFreeMin] = useState<number | "">("");
-
-  const handleEdit = (m: ShippingMethod) => {
-    setEditMethod(m);
-    setFormBaseCost(m.base_cost);
-    setFormPerKgCost(m.per_kg_cost);
-    setFormFreeMin(m.free_shipping_min_subtotal ?? "");
-  };
-
-  const saveEdit = () => {
-    if (!editMethod) return;
+  const save = (e: React.FormEvent) => {
+    e.preventDefault();
     updateMethod(
       {
-        id: editMethod.id,
+        id: method.id,
         payload: {
-          base_cost: formBaseCost,
-          per_kg_cost: formPerKgCost,
-          free_shipping_min_subtotal: formFreeMin === "" ? -1 : Number(formFreeMin),
+          base_cost: baseCost,
+          per_kg_cost: perKgCost,
+          free_shipping_min_subtotal: freeMin === "" ? -1 : Number(freeMin),
         },
       },
       {
         onSuccess: () => {
           toast.success(t("adminCustomer.shipping.saved"));
-          setEditMethod(null);
+          onClose();
         },
-        onError: (err) => {
-          toast.error(err instanceof Error ? err.message : "Gagal menyimpan biaya pengiriman");
-        },
-      }
+        onError: (err) => toast.error(err instanceof Error ? err.message : t("admin.common.saveFailed")),
+      },
     );
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <SectionHeading 
-        title={t("adminCustomer.shipping.title")} 
-        subtitle={t("adminCustomer.shipping.subtitle")} 
-      />
-      
-      {isLoading ? (
-        <div className="flex items-center justify-center p-12 text-muted-foreground" role="status">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" />
-          <span>{t("adminCustomer.shipping.loading")}</span>
-        </div>
-      ) : isError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
-          <AlertCircle className="mx-auto h-8 w-8 mb-2 text-red-500" />
-          <p className="text-sm font-medium">{t("adminCustomer.shipping.error")}</p>
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-3">
-            Coba lagi
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={`${t("adminCustomer.shipping.editTitle")} · ${name}`}
+      footer={
+        <>
+          <Button onClick={onClose}>{t("admin.common.cancel")}</Button>
+          <Button type="submit" form="shipping-method-form" variant="primary" loading={isPending}>
+            {t("adminCustomer.shipping.save")}
           </Button>
-        </div>
+        </>
+      }
+    >
+      <p className="mb-4 text-admin-muted">{t("adminCustomer.shipping.editDesc")}</p>
+      <form id="shipping-method-form" onSubmit={save} className="space-y-4">
+        <Field label={t("adminCustomer.shipping.baseCostLabel")} htmlFor="sm-base">
+          <TextInput id="sm-base" type="number" min={0} prefix="Rp" value={baseCost} onChange={(e) => setBaseCost(Number(e.target.value))} />
+        </Field>
+        {method.rate_type === "per_kg" && (
+          <Field label={t("adminCustomer.shipping.perKgLabel")} htmlFor="sm-perkg">
+            <TextInput
+              id="sm-perkg"
+              type="number"
+              min={0}
+              prefix="Rp"
+              suffix="/kg"
+              value={perKgCost}
+              onChange={(e) => setPerKgCost(Number(e.target.value))}
+            />
+          </Field>
+        )}
+        <Field label={t("adminCustomer.shipping.freeMinLabel")} htmlFor="sm-free" help={t("adminCustomer.shipping.freeMinPlaceholder")}>
+          <TextInput
+            id="sm-free"
+            type="number"
+            min={0}
+            prefix="Rp"
+            value={freeMin}
+            onChange={(e) => setFreeMin(e.target.value ? Number(e.target.value) : "")}
+          />
+        </Field>
+      </form>
+    </Modal>
+  );
+}
+
+export default function AdminShippingPage() {
+  const { t, locale } = useLanguage();
+  const { data: zones, isLoading, isError, refetch } = useAdminShippingZones();
+  const [editMethod, setEditMethod] = useState<ShippingMethod | null>(null);
+
+  return (
+    <Page>
+      <PageHeader
+        icon={Settings}
+        backHref="/admin/settings"
+        backLabel={t("nav.admin.settings")}
+        title={t("adminCustomer.shipping.title")}
+        subtitle={t("adminCustomer.shipping.subtitle")}
+      />
+
+      {isLoading ? (
+        <Card>
+          <LoadingState label={t("adminCustomer.shipping.loading")} />
+        </Card>
+      ) : isError ? (
+        <Card>
+          <ErrorState message={t("adminCustomer.shipping.error")} onRetry={() => refetch()} />
+        </Card>
       ) : (
-        zones?.map((zone) => {
-          const zoneName = zone.name_i18n[locale] || zone.name_i18n.id || zone.name_i18n.en || zone.code;
-          return (
-            <div key={zone.id} className="border rounded-lg bg-card text-card-foreground shadow-sm">
-              <div className="p-6">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-lg font-semibold leading-none tracking-tight">
-                    {zoneName}
-                  </h2>
-                  {!zone.is_active && (
-                    <Badge variant="secondary">{t("adminCustomer.shipping.inactive")}</Badge>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1 mt-2 mb-4">
-                  {zone.provinces.map((prov) => (
-                    <Badge key={prov} variant="outline" className="text-xs">
-                      {prov}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="overflow-x-auto border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("adminCustomer.shipping.methodCol")}</TableHead>
-                        <TableHead>{t("adminCustomer.shipping.rateTypeCol")}</TableHead>
-                        <TableHead>{t("adminCustomer.shipping.baseCostCol")}</TableHead>
-                        <TableHead>{t("adminCustomer.shipping.perKgCol")}</TableHead>
-                        <TableHead>{t("adminCustomer.shipping.freeMinCol")}</TableHead>
-                        <TableHead className="w-[80px]">{t("adminCustomer.shipping.actionCol")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+        <div className="space-y-4">
+          {zones?.map((zone) => {
+            const zoneName = zone.name_i18n[locale] || zone.name_i18n.id || zone.name_i18n.en || zone.code;
+            return (
+              <Card
+                key={zone.id}
+                flush
+                title={
+                  <span className="flex items-center gap-2">
+                    <Truck className="size-4 text-admin-muted" /> {zoneName}
+                    {!zone.is_active && <Badge>{t("adminCustomer.shipping.inactive")}</Badge>}
+                  </span>
+                }
+                description={t("admin.shipping.provinces", { n: zone.provinces.length })}
+              >
+                <CardSection className="border-t-0 pt-0">
+                  <div className="flex flex-wrap gap-1">
+                    {zone.provinces.map((prov) => (
+                      <Badge key={prov}>{prov}</Badge>
+                    ))}
+                  </div>
+                </CardSection>
+                <div className="border-t border-admin-border">
+                  <DataTable>
+                    <thead>
+                      <tr>
+                        <Th>{t("adminCustomer.shipping.methodCol")}</Th>
+                        <Th>{t("adminCustomer.shipping.rateTypeCol")}</Th>
+                        <Th align="right">{t("adminCustomer.shipping.baseCostCol")}</Th>
+                        <Th align="right">{t("adminCustomer.shipping.perKgCol")}</Th>
+                        <Th>{t("adminCustomer.shipping.freeMinCol")}</Th>
+                        <Th>
+                          <span className="sr-only">{t("adminCustomer.shipping.actionCol")}</span>
+                        </Th>
+                      </tr>
+                    </thead>
+                    <tbody>
                       {zone.methods.map((m) => {
                         const methodName = m.name_i18n[locale] || m.name_i18n.id || m.name_i18n.en || m.code;
                         return (
-                          <TableRow key={m.id}>
-                            <TableCell className="font-medium">
-                              {methodName}
-                              <div className="text-xs text-muted-foreground mt-1">
+                          <Tr key={m.id} className="cursor-pointer" onClick={() => setEditMethod(m)}>
+                            <Td>
+                              <p className="font-semibold">{methodName}</p>
+                              <p className="text-xs text-admin-muted">
                                 {t("customer.shippingPicker.estimate", { min: m.eta_min_days, max: m.eta_max_days })}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="secondary">
+                              </p>
+                            </Td>
+                            <Td>
+                              <Badge tone={m.rate_type === "flat" ? "neutral" : "info"}>
                                 {m.rate_type === "flat" ? t("adminCustomer.shipping.flat") : t("adminCustomer.shipping.perKg")}
                               </Badge>
-                            </TableCell>
-                            <TableCell>{formatRupiah(m.base_cost)}</TableCell>
-                            <TableCell>
-                              {m.rate_type === "per_kg" ? formatRupiah(m.per_kg_cost) : "-"}
-                            </TableCell>
-                            <TableCell>
+                            </Td>
+                            <Td align="right" className="tabular-nums">
+                              {formatRupiah(m.base_cost)}
+                            </Td>
+                            <Td align="right" className="tabular-nums">
+                              {m.rate_type === "per_kg" ? formatRupiah(m.per_kg_cost) : "—"}
+                            </Td>
+                            <Td>
                               {m.free_shipping_min_subtotal ? (
-                                <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                                <Badge tone="success">
                                   {t("adminCustomer.shipping.minSpend", { amount: formatRupiah(m.free_shipping_min_subtotal) })}
-                                </span>
-                              ) : "-"}
-                            </TableCell>
-                            <TableCell>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => handleEdit(m)}
-                                aria-label={`Edit ${methodName}`}
+                                </Badge>
+                              ) : (
+                                <span className="text-admin-muted">—</span>
+                              )}
+                            </Td>
+                            <Td align="right" className="w-12">
+                              <Button
+                                variant="tertiary"
+                                size="icon-slim"
+                                aria-label={`${t("admin.common.edit")} ${methodName}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditMethod(m);
+                                }}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil />
                               </Button>
-                            </TableCell>
-                          </TableRow>
+                            </Td>
+                          </Tr>
                         );
                       })}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </DataTable>
                 </div>
-              </div>
-            </div>
-          );
-        })
+              </Card>
+            );
+          })}
+        </div>
       )}
 
-      <Dialog open={!!editMethod} onOpenChange={(open) => !open && setEditMethod(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("adminCustomer.shipping.editTitle")}</DialogTitle>
-            <DialogDescription>{t("adminCustomer.shipping.editDesc")}</DialogDescription>
-          </DialogHeader>
-          {editMethod && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="shipping_form_base_cost">{t("adminCustomer.shipping.baseCostLabel")}</Label>
-                <Input 
-                  id="shipping_form_base_cost"
-                  type="number" 
-                  value={formBaseCost} 
-                  onChange={(e) => setFormBaseCost(Number(e.target.value))} 
-                />
-              </div>
-              {editMethod.rate_type === "per_kg" && (
-                <div className="space-y-2">
-                  <Label htmlFor="shipping_form_per_kg_cost">{t("adminCustomer.shipping.perKgLabel")}</Label>
-                  <Input 
-                    id="shipping_form_per_kg_cost"
-                    type="number" 
-                    value={formPerKgCost} 
-                    onChange={(e) => setFormPerKgCost(Number(e.target.value))} 
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="shipping_form_free_min">{t("adminCustomer.shipping.freeMinLabel")}</Label>
-                <Input 
-                  id="shipping_form_free_min"
-                  type="number" 
-                  placeholder={t("adminCustomer.shipping.freeMinPlaceholder")}
-                  value={formFreeMin} 
-                  onChange={(e) => setFormFreeMin(e.target.value ? Number(e.target.value) : "")} 
-                />
-              </div>
-              <Button onClick={saveEdit} disabled={formSaveLoading} className="w-full">
-                {formSaveLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t("adminCustomer.shipping.saving")}
-                  </>
-                ) : (
-                  t("adminCustomer.shipping.save")
-                )}
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+      {editMethod && <EditMethodModal key={editMethod.id} method={editMethod} onClose={() => setEditMethod(null)} />}
+    </Page>
   );
 }

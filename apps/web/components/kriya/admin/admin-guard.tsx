@@ -11,18 +11,20 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/kriya/auth-provider";
 import { useAdminAccess } from "@/lib/admin-queries";
 import { ApiError } from "@/lib/api";
+import { useLanguage } from "@/components/kriya/language-provider";
 
 function GuardScreen({ label }: { label: string }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-neutral-500">
-      <Loader2 className="h-6 w-6 animate-spin text-brand-strong" />
-      <p className="text-sm">{label}</p>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-admin-bg text-admin-muted">
+      <Loader2 className="h-6 w-6 animate-spin text-admin-text" />
+      <p className="text-[13px]">{label}</p>
     </div>
   );
 }
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const { user, loading } = useAuth();
   const probe = useAdminAccess(!loading && Boolean(user));
 
@@ -37,19 +39,19 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const err = probe.error;
     if (err instanceof ApiError && (err.code === "forbidden" || err.code === "unauthorized")) {
-      toast.error("Akses ditolak. Halaman ini khusus admin.");
+      toast.error(t("admin.guard.denied"));
       router.replace("/");
     }
-  }, [probe.error, router]);
+  }, [probe.error, router, t]);
 
-  if (loading) return <GuardScreen label="Memeriksa sesi…" />;
-  if (!user) return <GuardScreen label="Mengalihkan ke halaman masuk…" />;
-  if (probe.isLoading) return <GuardScreen label="Memeriksa akses admin…" />;
+  if (loading) return <GuardScreen label={t("admin.guard.session")} />;
+  if (!user) return <GuardScreen label={t("admin.guard.toLogin")} />;
+  if (probe.isLoading) return <GuardScreen label={t("admin.guard.access")} />;
   if (probe.isError) {
     const err = probe.error;
     const isForbidden = err instanceof ApiError && (err.code === "forbidden" || err.code === "unauthorized");
-    if (isForbidden) return <GuardScreen label="Mengalihkan…" />;
-    return <GuardScreen label="Gagal memuat panel admin. Silakan coba lagi." />;
+    if (isForbidden) return <GuardScreen label={t("admin.guard.redirect")} />;
+    return <GuardScreen label={t("admin.guard.failed")} />;
   }
 
   return <>{children}</>;

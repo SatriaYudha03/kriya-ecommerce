@@ -4,6 +4,7 @@ import { customerId } from "./customer";
 import { promoId } from "./promo";
 import { aftersalesId } from "./aftersales";
 import { checkoutId } from "./checkout";
+import { adminId } from "./admin";
 
 export const id = {
   ...coreId,
@@ -12,4 +13,5 @@ export const id = {
   ...promoId,
   ...aftersalesId,
   ...checkoutId,
+  ...adminId,
 };

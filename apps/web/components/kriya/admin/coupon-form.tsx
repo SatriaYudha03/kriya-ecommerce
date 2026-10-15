@@ -1,35 +1,154 @@
 "use client";
 
-import { useState } from "react";
-import { X, Loader2 } from "lucide-react";
-import { useAdminCoupon, useSaveCoupon } from "@/lib/promo/queries";
-import type { CouponPayload } from "@/lib/promo/types";
-import { useLanguage } from "@/components/kriya/language-provider";
+// Editor kupon halaman penuh (ala halaman diskon Shopify): kartu kode, nilai,
+// cakupan, syarat, batas pakai, periode; kolom samping status + ringkasan.
+// Pada mode edit, riwayat pemakaian kupon tampil di bawah form.
 
-export function CouponForm({ couponId, onClose }: { couponId?: string; onClose: () => void }) {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Shuffle, TicketPercent } from "lucide-react";
+import {
+  useAdminCoupon,
+  useAdminCouponRedemptions,
+  useDeleteCoupon,
+  useSaveCoupon,
+} from "@/lib/promo/queries";
+import { useAdminCategories } from "@/lib/catalog/queries";
+import type { CouponPayload } from "@/lib/promo/types";
+import { formatRupiah } from "@/lib/format";
+import { useLanguage } from "@/components/kriya/language-provider";
+import { ProductMultiSelect } from "./product-form";
+import { CouponStatusBadge } from "./status-badges";
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  Checkbox,
+  ChoiceChip,
+  ConfirmModal,
+  DataTable,
+  EmptyState,
+  Field,
+  FormGrid,
+  Layout,
+  LayoutAside,
+  LayoutMain,
+  LoadingState,
+  Page,
+  PageHeader,
+  Pager,
+  SelectInput,
+  SkeletonRows,
+  Td,
+  TextInput,
+  Th,
+  ToggleRow,
+  Tr,
+  useAdminFormat,
+} from "./ui";
+
+const EMPTY: CouponPayload = {
+  code: "",
+  description_i18n: { id: "", en: "" },
+  discount_type: "percent",
+  amount: 0,
+  max_discount: null,
+  min_subtotal: 0,
+  starts_at: null,
+  ends_at: null,
+  usage_limit: null,
+  usage_limit_per_user: null,
+  applies_to: "all",
+  exclude_sale_items: false,
+  is_public: false,
+  is_active: true,
+  products: [],
+  categories: [],
+};
+
+// <input type="datetime-local"> bekerja di waktu lokal; API memakai ISO UTC.
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+function fromLocalInput(value: string): string | null {
+  return value ? new Date(value).toISOString() : null;
+}
+
+function randomCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
+
+const REDEMPTION_LIMIT = 10;
+
+function Redemptions({ couponId }: { couponId: string }) {
   const { t } = useLanguage();
-  const { data: coupon, isLoading } = useAdminCoupon(couponId || "", !!couponId);
+  const fmt = useAdminFormat();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useAdminCouponRedemptions(couponId, page, REDEMPTION_LIMIT);
+  const rows = data?.data ?? [];
+  const total = data?.meta.total ?? 0;
+  const tone = { applied: "success", reserved: "attention", released: "neutral" } as const;
+
+  return (
+    <Card flush title={t("adminPromo.redemptions.title")} description={t("adminPromo.redemptions.count", { total })}>
+      {!isLoading && rows.length === 0 ? (
+        <EmptyState title={t("adminPromo.redemptions.empty")} />
+      ) : (
+        <DataTable>
+          <thead>
+            <tr>
+              <Th>{t("adminPromo.redemptions.thDate")}</Th>
+              <Th>{t("adminPromo.redemptions.thOrderId")}</Th>
+              <Th align="right">{t("adminPromo.redemptions.thItemsDiscount")}</Th>
+              <Th align="right">{t("adminPromo.redemptions.thShippingDiscount")}</Th>
+              <Th>{t("adminPromo.redemptions.thStatus")}</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <SkeletonRows cols={5} rows={3} />
+            ) : (
+              rows.map((r) => (
+                <Tr key={r.id} href={`/admin/orders/${r.order_id}`}>
+                  <Td className="whitespace-nowrap text-admin-muted">{fmt.dateTime(r.created_at)}</Td>
+                  <Td className="font-mono text-xs">{r.order_id.split("-")[0]}</Td>
+                  <Td align="right" className="tabular-nums">
+                    {formatRupiah(r.items_discount)}
+                  </Td>
+                  <Td align="right" className="tabular-nums">
+                    {formatRupiah(r.shipping_discount)}
+                  </Td>
+                  <Td>
+                    <Badge tone={tone[r.status]}>{t(`admin.coupons.redemption.${r.status}` as const)}</Badge>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </tbody>
+        </DataTable>
+      )}
+      <Pager page={page} totalPages={Math.max(1, Math.ceil(total / REDEMPTION_LIMIT))} onPage={setPage} />
+    </Card>
+  );
+}
+
+export function CouponEditor({ couponId }: { couponId?: string }) {
+  const { t, locale } = useLanguage();
+  const router = useRouter();
+  const fmt = useAdminFormat();
+  const isEdit = Boolean(couponId);
+  const { data: coupon, isLoading, isError } = useAdminCoupon(couponId || "", isEdit);
+  const { data: categories } = useAdminCategories();
   const save = useSaveCoupon();
+  const del = useDeleteCoupon();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [seeded, setSeeded] = useState(false);
-  const [form, setForm] = useState<CouponPayload>({
-    code: "",
-    description_i18n: { id: "", en: "" },
-    discount_type: "percent",
-    amount: 0,
-    max_discount: null,
-    min_subtotal: 0,
-    starts_at: null,
-    ends_at: null,
-    usage_limit: null,
-    usage_limit_per_user: null,
-    applies_to: "all",
-    exclude_sale_items: false,
-    is_public: false,
-    is_active: true,
-    products: [],
-    categories: [],
-  });
+  const [form, setForm] = useState<CouponPayload>(EMPTY);
 
   if (coupon && !seeded) {
     setSeeded(true);
@@ -53,360 +172,342 @@ export function CouponForm({ couponId, onClose }: { couponId?: string; onClose: 
     });
   }
 
+  const set = (patch: Partial<CouponPayload>) => setForm((f) => ({ ...f, ...patch }));
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     save.mutate(
       { id: couponId, payload: form },
       {
-        onSuccess: () => {
-          onClose();
+        onSuccess: (saved) => {
+          if (!isEdit) router.replace(`/admin/coupons/${saved.id}`);
         },
-      }
+      },
     );
   }
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="coupon-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
-      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <h2 id="coupon-dialog-title" className="text-lg font-bold text-neutral-900">
-            {couponId ? t("adminPromo.form.editTitle") : t("adminPromo.form.newTitle")}
-          </h2>
-          <button
-            onClick={onClose}
-            aria-label={t("adminPromo.form.close")}
-            className="text-neutral-500 hover:text-neutral-900"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+  if (isEdit && isLoading) {
+    return (
+      <Page>
+        <LoadingState />
+      </Page>
+    );
+  }
+  if (isEdit && (isError || !coupon)) {
+    return (
+      <Page>
+        <PageHeader icon={TicketPercent} backHref="/admin/coupons" backLabel={t("admin.nav.discounts")} title={t("admin.coupons.notFound")} />
+      </Page>
+    );
+  }
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
-            </div>
-          ) : (
-            <form id="coupon-form" onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="coupon-code" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.code")}
-                  </label>
-                  <input
+  const valueText =
+    form.discount_type === "percent"
+      ? t("admin.coupons.summaryPercent", { n: form.amount })
+      : form.discount_type === "fixed_cart"
+        ? t("admin.coupons.summaryFixed", { amount: formatRupiah(form.amount) })
+        : t("adminPromo.coupons.freeShipping");
+  const summary: string[] = [
+    valueText,
+    t(
+      form.applies_to === "all"
+        ? "admin.coupons.summaryAll"
+        : form.applies_to === "products"
+          ? "admin.coupons.summaryProducts"
+          : "admin.coupons.summaryCategories",
+      { n: form.applies_to === "products" ? (form.products?.length ?? 0) : (form.categories?.length ?? 0) },
+    ),
+    form.min_subtotal > 0
+      ? t("admin.coupons.summaryMin", { amount: formatRupiah(form.min_subtotal) })
+      : t("admin.coupons.summaryNoMin"),
+    form.usage_limit ? t("admin.coupons.summaryLimit", { n: form.usage_limit }) : t("admin.coupons.summaryNoLimit"),
+  ];
+  if (form.usage_limit_per_user) summary.push(t("admin.coupons.summaryPerUser", { n: form.usage_limit_per_user }));
+  if (form.exclude_sale_items) summary.push(t("adminPromo.form.excludeSale"));
+  if (form.starts_at) summary.push(t("admin.coupons.summaryStarts", { date: fmt.dateTime(form.starts_at) }));
+  if (form.ends_at) summary.push(t("admin.coupons.summaryEnds", { date: fmt.dateTime(form.ends_at) }));
+
+  const saveLabel = t("adminPromo.form.save");
+
+  return (
+    <Page>
+      <PageHeader
+        icon={TicketPercent}
+        backHref="/admin/coupons"
+        backLabel={t("admin.nav.discounts")}
+        title={isEdit ? coupon?.code : t("adminPromo.form.newTitle")}
+        badge={isEdit && coupon ? <CouponStatusBadge status={coupon.status} /> : undefined}
+        actions={
+          <Button type="submit" form="coupon-editor" variant="primary" loading={save.isPending}>
+            {saveLabel}
+          </Button>
+        }
+      />
+
+      <form id="coupon-editor" onSubmit={handleSubmit}>
+        <Layout>
+          <LayoutMain>
+            <Card title={t("admin.coupons.codeCard")}>
+              <div className="space-y-4">
+                <Field
+                  label={t("adminPromo.form.code")}
+                  htmlFor="coupon-code"
+                  help={t("admin.coupons.codeHint")}
+                  labelAction={
+                    <Button size="slim" variant="plain" onClick={() => set({ code: randomCode() })}>
+                      <Shuffle /> {t("admin.coupons.generate")}
+                    </Button>
+                  }
+                >
+                  <TextInput
                     id="coupon-code"
-                    type="text"
                     required
                     value={form.code}
-                    onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                    onChange={(e) => set({ code: e.target.value.toUpperCase() })}
                     placeholder={t("adminPromo.form.codePlaceholder")}
+                    className="font-mono uppercase"
                   />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-sm font-medium text-neutral-700 block">
-                    {t("adminPromo.form.status")}
-                  </span>
-                  <div className="flex flex-col gap-2 pt-1">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={form.is_active}
-                        onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                        className="rounded border-neutral-300 text-brand focus:ring-brand"
-                      />
-                      <span className="text-sm">{t("adminPromo.form.isActive")}</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={form.is_public}
-                        onChange={(e) => setForm({ ...form, is_public: e.target.checked })}
-                        className="rounded border-neutral-300 text-brand focus:ring-brand"
-                      />
-                      <span className="text-sm">{t("adminPromo.form.isPublic")}</span>
-                    </label>
-                  </div>
-                </div>
+                </Field>
+                <FormGrid>
+                  <Field label={t("adminPromo.form.descId")} htmlFor="coupon-desc-id">
+                    <TextInput
+                      id="coupon-desc-id"
+                      required
+                      value={form.description_i18n.id || ""}
+                      onChange={(e) => set({ description_i18n: { ...form.description_i18n, id: e.target.value } })}
+                    />
+                  </Field>
+                  <Field label={t("adminPromo.form.descEn")} htmlFor="coupon-desc-en">
+                    <TextInput
+                      id="coupon-desc-en"
+                      required
+                      value={form.description_i18n.en || ""}
+                      onChange={(e) => set({ description_i18n: { ...form.description_i18n, en: e.target.value } })}
+                    />
+                  </Field>
+                </FormGrid>
               </div>
+            </Card>
 
-              <div className="space-y-1">
-                <label htmlFor="coupon-desc-id" className="text-sm font-medium text-neutral-700">
-                  {t("adminPromo.form.descId")}
-                </label>
-                <input
-                  id="coupon-desc-id"
-                  type="text"
-                  required
-                  value={form.description_i18n.id || ""}
-                  onChange={(e) =>
-                    setForm({ ...form, description_i18n: { ...form.description_i18n, id: e.target.value } })
-                  }
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                />
-              </div>
-              <div className="space-y-1">
-                <label htmlFor="coupon-desc-en" className="text-sm font-medium text-neutral-700">
-                  {t("adminPromo.form.descEn")}
-                </label>
-                <input
-                  id="coupon-desc-en"
-                  type="text"
-                  required
-                  value={form.description_i18n.en || ""}
-                  onChange={(e) =>
-                    setForm({ ...form, description_i18n: { ...form.description_i18n, en: e.target.value } })
-                  }
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="coupon-discount-type" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.discountType")}
-                  </label>
-                  <select
-                    id="coupon-discount-type"
+            <Card title={t("admin.coupons.valueCard")}>
+              <FormGrid>
+                <Field label={t("adminPromo.form.discountType")} htmlFor="coupon-type">
+                  <SelectInput
+                    id="coupon-type"
                     value={form.discount_type}
-                    onChange={(e) =>
-                      setForm({ ...form, discount_type: e.target.value as CouponPayload["discount_type"], amount: 0 })
-                    }
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                    onChange={(e) => set({ discount_type: e.target.value as CouponPayload["discount_type"], amount: 0 })}
                   >
                     <option value="percent">{t("adminPromo.form.typePercent")}</option>
                     <option value="fixed_cart">{t("adminPromo.form.typeFixedCart")}</option>
                     <option value="free_shipping">{t("adminPromo.form.typeFreeShipping")}</option>
-                  </select>
-                </div>
+                  </SelectInput>
+                </Field>
                 {form.discount_type !== "free_shipping" && (
-                  <div className="space-y-1">
-                    <label htmlFor="coupon-amount" className="text-sm font-medium text-neutral-700">
-                      {t("adminPromo.form.amount", { unit: form.discount_type === "percent" ? "%" : "Rp" })}
-                    </label>
-                    <input
+                  <Field label={t("admin.coupons.amount")} htmlFor="coupon-amount">
+                    <TextInput
                       id="coupon-amount"
                       type="number"
                       required
                       min={1}
                       max={form.discount_type === "percent" ? 100 : undefined}
-                      value={form.amount}
-                      onChange={(e) => setForm({ ...form, amount: parseInt(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                      prefix={form.discount_type === "fixed_cart" ? "Rp" : undefined}
+                      suffix={form.discount_type === "percent" ? "%" : undefined}
+                      value={form.amount || ""}
+                      onChange={(e) => set({ amount: parseInt(e.target.value) || 0 })}
                     />
-                  </div>
+                  </Field>
                 )}
-              </div>
+                {form.discount_type === "percent" && (
+                  <Field label={t("admin.coupons.maxDiscount")} htmlFor="coupon-max" help={t("adminPromo.form.maxDiscountPlaceholder")}>
+                    <TextInput
+                      id="coupon-max"
+                      type="number"
+                      min={0}
+                      prefix="Rp"
+                      value={form.max_discount || ""}
+                      onChange={(e) => set({ max_discount: e.target.value ? parseInt(e.target.value) : null })}
+                    />
+                  </Field>
+                )}
+              </FormGrid>
+            </Card>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="coupon-min-subtotal" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.minSubtotal")}
-                  </label>
-                  <input
-                    id="coupon-min-subtotal"
-                    type="number"
-                    min={0}
-                    value={form.min_subtotal}
-                    onChange={(e) =>
-                      setForm({ ...form, min_subtotal: parseInt(e.target.value) || 0 })
-                    }
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="coupon-max-discount" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.maxDiscount")}
-                  </label>
-                  <input
-                    id="coupon-max-discount"
-                    type="number"
-                    min={0}
-                    value={form.max_discount || ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        max_discount: e.target.value ? parseInt(e.target.value) : null,
-                      })
-                    }
-                    placeholder={t("adminPromo.form.maxDiscountPlaceholder")}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="coupon-starts-at" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.startsAt")}
-                  </label>
-                  <input
-                    id="coupon-starts-at"
-                    type="datetime-local"
-                    value={form.starts_at ? new Date(form.starts_at).toISOString().slice(0, 16) : ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        starts_at: e.target.value ? new Date(e.target.value).toISOString() : null,
-                      })
-                    }
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="coupon-ends-at" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.endsAt")}
-                  </label>
-                  <input
-                    id="coupon-ends-at"
-                    type="datetime-local"
-                    value={form.ends_at ? new Date(form.ends_at).toISOString().slice(0, 16) : ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        ends_at: e.target.value ? new Date(e.target.value).toISOString() : null,
-                      })
-                    }
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="coupon-usage-limit" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.usageLimit")}
-                  </label>
-                  <input
-                    id="coupon-usage-limit"
-                    type="number"
-                    min={1}
-                    value={form.usage_limit || ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        usage_limit: e.target.value ? parseInt(e.target.value) : null,
-                      })
-                    }
-                    placeholder={t("adminPromo.form.unlimitedPlaceholder")}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="coupon-user-limit" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.usageLimitPerUser")}
-                  </label>
-                  <input
-                    id="coupon-user-limit"
-                    type="number"
-                    min={1}
-                    value={form.usage_limit_per_user || ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        usage_limit_per_user: e.target.value ? parseInt(e.target.value) : null,
-                      })
-                    }
-                    placeholder={t("adminPromo.form.unlimitedPlaceholder")}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="coupon-applies-to" className="text-sm font-medium text-neutral-700">
-                  {t("adminPromo.form.appliesTo")}
-                </label>
-                <select
-                  id="coupon-applies-to"
+            <Card title={t("adminPromo.form.appliesTo")}>
+              <div className="space-y-4">
+                <SelectInput
                   value={form.applies_to}
-                  onChange={(e) => setForm({ ...form, applies_to: e.target.value as CouponPayload["applies_to"] })}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  aria-label={t("adminPromo.form.appliesTo")}
+                  onChange={(e) => set({ applies_to: e.target.value as CouponPayload["applies_to"] })}
                 >
                   <option value="all">{t("adminPromo.form.appliesAll")}</option>
                   <option value="products">{t("adminPromo.form.appliesProducts")}</option>
                   <option value="categories">{t("adminPromo.form.appliesCategories")}</option>
-                </select>
+                </SelectInput>
+                {form.applies_to === "products" && (
+                  <ProductMultiSelect
+                    label={t("admin.coupons.products")}
+                    value={form.products ?? []}
+                    onChange={(products) => set({ products })}
+                  />
+                )}
+                {form.applies_to === "categories" && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {categories?.map((c) => {
+                      const on = form.categories?.includes(c.id) ?? false;
+                      return (
+                        <ChoiceChip
+                          key={c.id}
+                          selected={on}
+                          onClick={() =>
+                            set({
+                              categories: on
+                                ? (form.categories ?? []).filter((x) => x !== c.id)
+                                : [...(form.categories ?? []), c.id],
+                            })
+                          }
+                        >
+                          {c.name}
+                        </ChoiceChip>
+                      );
+                    })}
+                  </div>
+                )}
+                <Checkbox
+                  label={t("adminPromo.form.excludeSale")}
+                  checked={form.exclude_sale_items}
+                  onChange={(e) => set({ exclude_sale_items: e.target.checked })}
+                />
               </div>
+            </Card>
 
-              {form.applies_to === "products" && (
-                <div className="space-y-1">
-                  <label htmlFor="coupon-product-ids" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.productIds")}
-                  </label>
-                  <input
-                    id="coupon-product-ids"
-                    type="text"
-                    value={form.products?.join(", ") || ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        products: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
-                      })
-                    }
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            <Card title={t("admin.coupons.requirements")}>
+              <FormGrid>
+                <Field label={t("admin.coupons.minSubtotal")} htmlFor="coupon-min" help={t("admin.coupons.minSubtotalHint")}>
+                  <TextInput
+                    id="coupon-min"
+                    type="number"
+                    min={0}
+                    prefix="Rp"
+                    value={form.min_subtotal || ""}
+                    onChange={(e) => set({ min_subtotal: parseInt(e.target.value) || 0 })}
                   />
-                </div>
-              )}
+                </Field>
+              </FormGrid>
+            </Card>
 
-              {form.applies_to === "categories" && (
-                <div className="space-y-1">
-                  <label htmlFor="coupon-category-ids" className="text-sm font-medium text-neutral-700">
-                    {t("adminPromo.form.categoryIds")}
-                  </label>
-                  <input
-                    id="coupon-category-ids"
-                    type="text"
-                    value={form.categories?.join(", ") || ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        categories: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
-                      })
-                    }
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            <Card title={t("admin.coupons.limits")}>
+              <FormGrid>
+                <Field label={t("adminPromo.form.usageLimit")} htmlFor="coupon-limit">
+                  <TextInput
+                    id="coupon-limit"
+                    type="number"
+                    min={1}
+                    value={form.usage_limit || ""}
+                    placeholder={t("adminPromo.form.unlimitedPlaceholder")}
+                    onChange={(e) => set({ usage_limit: e.target.value ? parseInt(e.target.value) : null })}
                   />
-                </div>
-              )}
+                </Field>
+                <Field label={t("adminPromo.form.usageLimitPerUser")} htmlFor="coupon-user-limit">
+                  <TextInput
+                    id="coupon-user-limit"
+                    type="number"
+                    min={1}
+                    value={form.usage_limit_per_user || ""}
+                    placeholder={t("adminPromo.form.unlimitedPlaceholder")}
+                    onChange={(e) => set({ usage_limit_per_user: e.target.value ? parseInt(e.target.value) : null })}
+                  />
+                </Field>
+              </FormGrid>
+            </Card>
 
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.exclude_sale_items}
-                    onChange={(e) => setForm({ ...form, exclude_sale_items: e.target.checked })}
-                    className="rounded border-neutral-300 text-brand focus:ring-brand"
+            <Card title={t("admin.coupons.dates")}>
+              <FormGrid>
+                <Field label={t("adminPromo.form.startsAt")} htmlFor="coupon-start">
+                  <TextInput
+                    id="coupon-start"
+                    type="datetime-local"
+                    value={toLocalInput(form.starts_at)}
+                    onChange={(e) => set({ starts_at: fromLocalInput(e.target.value) })}
                   />
-                  <span className="text-sm text-neutral-700">{t("adminPromo.form.excludeSale")}</span>
-                </label>
+                </Field>
+                <Field label={t("adminPromo.form.endsAt")} htmlFor="coupon-end" help={t("admin.coupons.endsHint")}>
+                  <TextInput
+                    id="coupon-end"
+                    type="datetime-local"
+                    value={toLocalInput(form.ends_at)}
+                    onChange={(e) => set({ ends_at: fromLocalInput(e.target.value) })}
+                  />
+                </Field>
+              </FormGrid>
+            </Card>
+
+            {isEdit && couponId && <Redemptions couponId={couponId} />}
+          </LayoutMain>
+
+          <LayoutAside>
+            <Card title={t("adminPromo.form.status")}>
+              <div className="space-y-4">
+                <ToggleRow
+                  label={t("adminPromo.form.isActive")}
+                  checked={form.is_active}
+                  onChange={(v) => set({ is_active: v })}
+                />
+                <ToggleRow
+                  label={t("adminPromo.form.isPublic")}
+                  help={t("admin.coupons.publicHint")}
+                  checked={form.is_public}
+                  onChange={(v) => set({ is_public: v })}
+                />
               </div>
-            </form>
+            </Card>
+
+            <Card title={t("admin.coupons.summary")}>
+              <p className="font-mono text-sm font-semibold">{form.code || t("admin.coupons.noCode")}</p>
+              <p className="mt-0.5 text-admin-muted">
+                {form.description_i18n[locale] || form.description_i18n.id || "—"}
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-4 text-admin-text marker:text-admin-faint">
+                {summary.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+              {isEdit && coupon && (
+                <p className="mt-3 border-t border-admin-border pt-3 text-admin-muted">
+                  {t("admin.coupons.used", { n: coupon.total_redemptions })}
+                </p>
+              )}
+            </Card>
+          </LayoutAside>
+        </Layout>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[#d4d4d4] pt-5">
+          {isEdit ? (
+            <Button variant="critical" onClick={() => setConfirmDelete(true)}>
+              {t("admin.coupons.delete")}
+            </Button>
+          ) : (
+            <span />
           )}
+          <div className="flex gap-2">
+            <ButtonLink href="/admin/coupons">{t("adminPromo.form.cancel")}</ButtonLink>
+            <Button type="submit" variant="primary" loading={save.isPending}>
+              {saveLabel}
+            </Button>
+          </div>
         </div>
+      </form>
 
-        <div className="flex justify-end gap-3 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
-          >
-            {t("adminPromo.form.cancel")}
-          </button>
-          <button
-            type="submit"
-            form="coupon-form"
-            disabled={save.isPending}
-            className="rounded-lg bg-brand-strong px-4 py-2 text-sm font-medium text-white hover:bg-brand disabled:opacity-50"
-          >
-            {save.isPending ? t("adminPromo.form.saving") : t("adminPromo.form.save")}
-          </button>
-        </div>
-      </div>
-    </div>
+      {isEdit && couponId && coupon && (
+        <ConfirmModal
+          open={confirmDelete}
+          onClose={() => setConfirmDelete(false)}
+          title={t("admin.coupons.delete")}
+          message={t("adminPromo.coupons.deleteConfirm", { code: coupon.code })}
+          confirmLabel={t("adminPromo.coupons.delete")}
+          loading={del.isPending}
+          onConfirm={() => del.mutate(couponId, { onSuccess: () => router.replace("/admin/coupons") })}
+        />
+      )}
+    </Page>
   );
 }

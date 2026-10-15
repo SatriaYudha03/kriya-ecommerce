@@ -60,6 +60,22 @@
   --color-sand: #f2ebe1;
   --color-clay: #6b4a3a;
   --color-espresso: #2b1d17;
+
+  /* Panel admin — permukaan netral ala Shopify Polaris. Dipakai lewat kit
+     components/kriya/admin/ui.tsx agar semua modul admin seragam. */
+  --color-admin-bg: #f1f1f1;
+  --color-admin-nav: #ebebeb;
+  --color-admin-topbar: #1a1a1a;
+  --color-admin-subdued: #f7f7f7;
+  --color-admin-hover: #f1f1f1;
+  --color-admin-border: #e3e3e3;
+  --color-admin-input: #8a8a8a;
+  --color-admin-text: #303030;
+  --color-admin-muted: #616161;
+  --color-admin-faint: #8a8a8a;
+  --color-admin-focus: #005bd3;
+  --color-admin-link: #005bd3;
+  --color-admin-critical: #8e0b21;
 }
 
 :root {
